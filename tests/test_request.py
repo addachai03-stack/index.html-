@@ -26,6 +26,10 @@ https://remotion.media/video-30s.mp4
 
 60
 
+### Highlight style
+
+Funny — jokes and reactions
+
 ### Content ownership and permission
 
 - [X] I own this video or have permission to edit and republish its content.
@@ -48,6 +52,21 @@ class TestIssueRequest(unittest.TestCase):
         self.assertEqual(result["clips"], 6)
         self.assertEqual(result["min_sec"], 15)
         self.assertEqual(result["max_sec"], 60)
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_native_highlight_style(self, _):
+        result = parse_issue(NATIVE_FORM)
+        self.assertEqual(result["style"], "funny")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_legacy_style_default(self, _):
+        result = parse_issue(LEGACY)
+        self.assertEqual(result["style"], "engagement")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_unknown_style_rejected(self, _):
+        with self.assertRaises(ValueError):
+            parse_issue(NATIVE_FORM.replace("Funny — jokes and reactions", "Viral guaranteed"))
 
     @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
     def test_native_no_rights(self, _):
