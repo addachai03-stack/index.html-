@@ -30,6 +30,10 @@ https://remotion.media/video-30s.mp4
 
 Funny — jokes and reactions
 
+### Speech language
+
+Hindi — prefer Hindi speech
+
 ### Smart crop mode
 
 Auto — face-aware static framing
@@ -91,6 +95,24 @@ class TestIssueRequest(unittest.TestCase):
     def test_reject_bad_crop(self, _):
         with self.assertRaises(ValueError):
             parse_issue(NATIVE_FORM.replace("Auto — face-aware static framing", "unsafe"))
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_hindi_language_form(self, _):
+        self.assertEqual(parse_issue(NATIVE_FORM)["language"], "hi")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_english_language_form(self, _):
+        body = NATIVE_FORM.replace("Hindi — prefer Hindi speech", "English — prefer English speech")
+        self.assertEqual(parse_issue(body)["language"], "en")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_legacy_language_auto(self, _):
+        self.assertEqual(parse_issue(LEGACY)["language"], "auto")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_invalid_language_rejected(self, _):
+        with self.assertRaises(ValueError):
+            parse_issue(NATIVE_FORM.replace("Hindi — prefer Hindi speech", "Unknown"))
 
     @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
     def test_native_no_rights(self, _):
