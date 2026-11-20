@@ -10,6 +10,7 @@ import sys
 
 from studio import validate_url
 from premium import normalize_style
+from smartcrop import normalize_crop_mode
 
 
 FORM_LABELS = {
@@ -18,6 +19,7 @@ FORM_LABELS = {
     "Minimum clip length (seconds)": "MIN_SECONDS",
     "Maximum clip length (seconds)": "MAX_SECONDS",
     "Highlight style": "STYLE",
+    "Smart crop mode": "CROP",
 }
 RIGHTS_LABEL = "Content ownership and permission"
 RIGHTS_TEXT = "I own this video or have permission to edit and republish its content."
@@ -51,7 +53,7 @@ def issue_form_fields(body: str) -> dict[str, str]:
 def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
-        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE):[ \t]*(.+?)[ \t]*", line.strip())
+        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP):[ \t]*(.+?)[ \t]*", line.strip())
         if match and match[1] not in fields:
             fields[match[1]] = match[2]
     return fields
@@ -78,6 +80,12 @@ def parse_issue(body: str) -> dict:
         "story — suspense and twists": "story",
     }
     style = normalize_style(display_styles.get(raw_style, raw_style))
+    raw_crop = fields.get("CROP", "auto").strip().lower()
+    crop_labels = {
+        "auto — face-aware static framing": "auto",
+        "center — always center crop": "center",
+    }
+    crop = normalize_crop_mode(crop_labels.get(raw_crop, raw_crop))
     try:
         clip_count = int(fields["CLIPS"])
         min_seconds = int(fields["MIN_SECONDS"])
@@ -92,6 +100,7 @@ def parse_issue(body: str) -> dict:
         "min_sec": min_seconds,
         "max_sec": max_seconds,
         "style": style,
+        "crop": crop,
     }
 
 
