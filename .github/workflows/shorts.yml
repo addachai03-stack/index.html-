@@ -65,6 +65,10 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+      - name: Install FFmpeg + font support
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-noto-core
       - name: Verify FFmpeg codecs
         run: |
           ffmpeg -version | head -n 1
