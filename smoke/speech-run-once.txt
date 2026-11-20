@@ -1,1 +1,3 @@
 Run new GitHub-only, original espeak-ng audio + FFmpeg synthetic clip test. Check ASR SRT, real portrait MP4, Hindi Devanagari font burn, and crop fallback. 2026-11-21.
+
+Rerun after fixing subtitle MarginV=42 lower safe-zone and shorter chunks.
