@@ -1,0 +1,98 @@
+name: CutNova - Generate Shorts
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "Public HTTPS long-video URL; only videos you own or may edit"
+        type: string
+        required: true
+      clips:
+        description: "How many Shorts?"
+        type: choice
+        options:
+          - "3"
+          - "6"
+          - "10"
+        default: "6"
+        required: true
+      min_seconds:
+        description: "Minimum clip length"
+        type: choice
+        options:
+          - "15"
+          - "20"
+          - "30"
+        default: "15"
+        required: true
+      max_seconds:
+        description: "Maximum clip length"
+        type: choice
+        options:
+          - "30"
+          - "45"
+          - "60"
+        default: "60"
+        required: true
+      rights_confirm:
+        description: "I own or have permission to edit and republish this video"
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cutnova-shorts-${{ github.actor }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    if: ${{ github.actor == github.repository_owner && inputs.rights_confirm }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      VIDEO_URL: ${{ inputs.video_url }}
+      CLIPS: ${{ inputs.clips }}
+      MIN_SEC: ${{ inputs.min_seconds }}
+      MAX_SEC: ${{ inputs.max_seconds }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Verify FFmpeg codecs
+        run: |
+          ffmpeg -version | head -n 1
+          ffmpeg -hide_banner -encoders | grep libx264
+          ffmpeg -hide_banner -filters | grep subtitles
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install -r requirements.txt
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate real portrait Shorts
+        run: |
+          python studio.py \
+            --url "$VIDEO_URL" \
+            --clips "$CLIPS" \
+            --min-seconds "$MIN_SEC" \
+            --max-seconds "$MAX_SEC" \
+            --rights-confirmed
+      - name: Upload MP4 Shorts + transcripts + report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutnova-shorts-${{ github.run_number }}
+          path: |
+            output/*.mp4
+            output/*.srt
+            output/*.zip
+            output/*.json
+          retention-days: 7
+          if-no-files-found: warn
