@@ -37,10 +37,10 @@ def main() -> None:
             "devanagari_codepoints_recognized": len(script_chars),
         })
         if not speech:
-            raise RuntimeError("Whisper base/hi returned no recognized words.")
+            raise RuntimeError("Hindi Whisper returned no recognized words.")
         if len(script_chars) < 8:
             raise RuntimeError(
-                "Whisper Hindi synthetic audio did not yield sufficient Devanagari text."
+                "Hindi ASR did not yield sufficient Devanagari text; cannot verify captions."
             )
         clip = Candidate(0, 15, 0.8, "Hindi synthetic clip", full_text, "Hindi ASR check")
         sub = out / "hindi_asr_recognized.srt"
