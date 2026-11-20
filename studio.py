@@ -15,6 +15,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
+from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
@@ -141,7 +142,7 @@ def detect_scenes(source: Path) -> list[float]:
         return []
 
 def score_window(segments: list[Segment], scenes: list[float],
-                 start: float, end: float) -> Candidate:
+                 start: float, end: float, style: str = "engagement") -> Candidate:
     relevant = [s for s in segments if s.end > start and s.start < end]
     text = " ".join(s.text for s in relevant)
     density = min(1.0, len(re.findall(r"\w+", text)) / max(1, (end-start)*2.25))
@@ -150,6 +151,7 @@ def score_window(segments: list[Segment], scenes: list[float],
     cues = min(1.0, sum(w in text.lower() for w in HOOK_WORDS)/3)
     motion = min(1.0, sum(start <= sc < end for sc in scenes) / max(1, (end-start)/9))
     score = 0.31*density + 0.30*coverage + 0.19*cues + 0.20*motion
+    score += highlight_bonus(text, style)
     if relevant and abs(relevant[0].start - start) <= 3:
         score += 0.05
     if not relevant and not scenes:
@@ -163,7 +165,9 @@ def score_window(segments: list[Segment], scenes: list[float],
                      ("scene changes" if scenes else "timed fallback"))
 
 def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
-               requested: int = 6, min_seconds: int = 15, max_seconds: int = 60) -> list[Candidate]:
+               requested: int = 6, min_seconds: int = 15, max_seconds: int = 60,
+               style: str = "engagement") -> list[Candidate]:
+    normalize_style(style)
     if not (1 <= requested <= 10):
         raise ValueError("Clips count must be 1-10.")
     if not (15 <= min_seconds <= max_seconds <= 60):
@@ -176,12 +180,12 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
         | {round(max(0, duration - min_seconds), 2)}
     )
     windows = [
-        score_window(segments, scenes, float(start), float(start + length))
+        score_window(segments, scenes, float(start), float(start + length), style)
         for start in starts
         for length in lens if start + length <= duration + 0.001
     ]
     if not windows:
-        windows = [score_window(segments, scenes, 0, min(duration, max_seconds))]
+        windows = [score_window(segments, scenes, 0, min(duration, max_seconds), style)]
     selected = []
     for cut in sorted(windows, key=lambda c: (-c.score, c.start)):
         if any(cut.start < prev.end and cut.end > prev.start for prev in selected):
@@ -196,7 +200,7 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
     if len(selected) < capacity:
         spaced = [
             score_window(segments, scenes, float(i * min_seconds),
-                         float((i + 1) * min_seconds))
+                         float((i + 1) * min_seconds), style)
             for i in range(capacity)
         ]
         if len(spaced) > len(selected):
@@ -208,17 +212,17 @@ def stamp(sec: float) -> str:
     return f"{ms//3600000:02}:{ms//60000%60:02}:{ms//1000%60:02},{ms%1000:03}"
 
 def captions_for(cut: Candidate, segments: list[Segment], target: Path) -> bool:
+    """Readable short subtitles that keep all recognized words.
+
+    Word timings inside each ASR segment are approximations; review them.
+    """
     lines = []
     for seg in segments:
-        s = max(0, seg.start-cut.start)
-        e = min(cut.end, seg.end)-cut.start
-        if e <= s:
-            continue
-        text = re.sub(r"\s+", " ", seg.text.strip())
-        if len(text) > 85:
-            text = text[:82].rsplit(" ", 1)[0] + "..."
-        if text:
-            lines.append(f"{len(lines)+1}\n{stamp(s)} --> {stamp(e)}\n{text}\n")
+        for s, e, text in distribute_subtitles(
+            seg.start, seg.end, seg.text, cut.start, cut.end, max_chars=40
+        ):
+            if e > s:
+                lines.append(f"{len(lines)+1}\n{stamp(s)} --> {stamp(e)}\n{text}\n")
     if not lines:
         return False
     target.write_text("\n".join(lines), encoding="utf-8")
@@ -229,8 +233,8 @@ def render(source: Path, target: Path, cut: Candidate, sub: Path | None):
     vf = "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1"
     if sub:
         vf += ",subtitles=" + sub.name + (
-            ":force_style='FontName=DejaVu Sans,FontSize=18,Outline=2,"
-            "Shadow=1,MarginV=85,Alignment=2'")
+            ":force_style='FontName=Noto Sans,FontSize=19,Bold=1,Outline=3,"
+            "Shadow=0,MarginV=155,Alignment=2'")
     cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
            "-ss", str(cut.start), "-i", str(source), "-t", str(cut.end-cut.start),
            "-map", "0:v:0", "-map", "0:a:0?", "-vf", vf,
@@ -248,6 +252,7 @@ def main() -> int:
     p.add_argument("--clips", type=int, default=6)
     p.add_argument("--min-seconds", type=int, default=15)
     p.add_argument("--max-seconds", type=int, default=60)
+    p.add_argument("--style", choices=["engagement","funny","facts","story"], default="engagement")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -270,8 +275,9 @@ def main() -> int:
         print("Decoded length:", duration, flush=True)
         scenes = detect_scenes(video)
         speech, asr = transcribe(video, work)
-        choices = pick_clips(speech, scenes, duration, a.clips, a.min_seconds, a.max_seconds)
+        choices = pick_clips(speech, scenes, duration, a.clips, a.min_seconds, a.max_seconds, a.style)
         manifest = {"source": url, "duration": duration, "asr": asr, "scenes": len(scenes),
+                    "style": a.style,
                     "note": "AI-assisted cues, not a guarantee of views or shares.",
                     "clips": []}
         for i, cut in enumerate(choices, 1):
@@ -285,6 +291,7 @@ def main() -> int:
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None
             manifest["clips"].append(item)
+        create_creator_pack(choices, output, a.style, url)
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False),
                                               encoding="utf-8")
         archive = output / "CutNova_Shorts.zip"
