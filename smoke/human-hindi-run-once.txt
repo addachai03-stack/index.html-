@@ -1,0 +1,1 @@
+Run real human-voiced Hindi CC BY-SA 3.0 Wikimedia Commons spoken sample through Whisper base, SRT and 9:16 MP4; retain attribution and report, 2026-11-21.
