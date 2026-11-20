@@ -32,13 +32,15 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Generate own original Hindi speech and video
         run: |
-          espeak-ng -v hi -s 110 -w hindi.wav \
+          espeak-ng -v hi -a 200 -s 105 -w hindi.wav \
             "नमस्ते दोस्तों। आज हम आपको एक मजेदार कहानी सुनाने वाले हैं। इस वीडियो में हिंदी कैप्शन बनाए जाएंगे। पहले हम आवाज पहचानेंगे, फिर वीडियो काटेंगे और नीचे हिंदी सबटाइटल दिखाएंगे।"
+          ffprobe -v error -show_entries format=duration,size -of json hindi.wav
           ffmpeg -nostdin -hide_banner -v error -y \
             -f lavfi -i "testsrc2=duration=18:size=960x540:rate=25" \
             -stream_loop -1 -i hindi.wav \
             -t 18 -map 0:v:0 -map 1:a:0 \
             -c:v libx264 -preset veryfast -pix_fmt yuv420p \
+            -af "loudnorm=I=-16:TP=-2:LRA=7" \
             -c:a aac -b:a 128k -movflags +faststart hindi_source.mp4
       - name: Verify Hindi ASR, SRT and visible burned-in MP4
         run: python hindi_smoke.py
@@ -48,6 +50,8 @@ jobs:
         with:
           name: cutnova-hindi-synthetic-proof
           path: |
+            hindi.wav
+            hindi_source.mp4
             output/*.mp4
             output/*.srt
             output/*.json
