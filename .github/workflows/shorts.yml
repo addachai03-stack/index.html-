@@ -44,6 +44,15 @@ on:
           - "story"
         default: "engagement"
         required: true
+      language:
+        description: "Spoken language hint for subtitles"
+        type: choice
+        options:
+          - "auto"
+          - "hi"
+          - "en"
+        default: "auto"
+        required: true
       crop:
         description: "9:16 crop method (face-aware is a static per-clip reframe)"
         type: choice
@@ -77,6 +86,7 @@ jobs:
       MAX_SEC: ${{ inputs.max_seconds }}
       STYLE: ${{ inputs.style }}
       CROP: ${{ inputs.crop }}
+      LANGUAGE: ${{ inputs.language }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -109,6 +119,7 @@ jobs:
             --max-seconds "$MAX_SEC" \
             --style "$STYLE" \
             --crop "$CROP" \
+            --language "$LANGUAGE" \
             --rights-confirmed
       - name: Upload MP4 Shorts + transcripts + report
         if: always()
