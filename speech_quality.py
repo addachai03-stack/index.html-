@@ -46,9 +46,9 @@ def normalize_language(language: str) -> str:
 
 
 def whisper_settings(language: str) -> tuple[str, str | None]:
-    """Prefer a somewhat larger CPU ASR for requested Hindi speech."""
+    """Prefer a stronger multilingual CPU ASR for Hindi speech and Devanagari."""
     chosen = normalize_language(language)
-    model = "base" if chosen == "hi" else "tiny"
+    model = "small" if chosen == "hi" else "tiny"
     hint = None if chosen == "auto" else chosen
     return model, hint
 
