@@ -1,0 +1,52 @@
+name: CutNova - Speech Caption and Smart Crop Proof
+
+on:
+  push:
+    paths:
+      - "smoke/speech-run-once.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  real-speech-caption-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install FFmpeg, OpenCV dependencies, Devanagari fonts, and synthetic voice tool
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-noto-core espeak-ng
+          ffmpeg -hide_banner -filters | grep subtitles
+      - name: Install transcription and framing dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run all deterministic tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate a test video with original synthetic speech
+        run: |
+          espeak-ng -v en-us -s 125 -w speech.wav \
+            "Hello friends. Welcome to Cut Nova premium short videos. Today we are showing how this interesting idea works. First listen to this voice and watch how the funny moment appears. This is a simple tutorial about making short clips. We are verifying real spoken audio, automatic captions, and portrait video cropping using our own generated voice. This demonstration does not use any copyrighted third party footage."
+          ffmpeg -nostdin -hide_banner -v error -y \
+            -f lavfi -i "testsrc2=duration=16:size=960x540:rate=25" \
+            -stream_loop -1 -i speech.wav \
+            -t 16 -map 0:v:0 -map 1:a:0 \
+            -c:v libx264 -preset veryfast -pix_fmt yuv420p \
+            -c:a aac -b:a 128k -movflags +faststart speech_source.mp4
+      - name: Verify speech ASR and rendered subtitles + Hindi font test
+        run: python speech_smoke.py
+      - name: Upload real MP4 video and subtitle proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutnova-spoken-captions-proof
+          path: |
+            output/*.mp4
+            output/*.srt
+            output/*.json
+          if-no-files-found: warn
+          retention-days: 2
