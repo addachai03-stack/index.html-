@@ -21,7 +21,7 @@ class TestSpeechLanguage(unittest.TestCase):
             normalize_language("hindi; echo secret")
 
     def test_model_for_hindi(self):
-        self.assertEqual(whisper_settings("hi"), ("base", "hi"))
+        self.assertEqual(whisper_settings("hi"), ("small", "hi"))
         self.assertEqual(whisper_settings("en"), ("tiny", "en"))
         self.assertEqual(whisper_settings("auto"), ("tiny", None))
 
