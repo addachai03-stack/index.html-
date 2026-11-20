@@ -57,7 +57,7 @@ Actual MP4 files were inspected with FFprobe. The royalty-free test video yielde
 The GitHub-only URL form now has **Speech language**:
 
 - **Auto** (default): detect language with Whisper `tiny`.
-- **Hindi**: use Whisper `base` on CPU with an explicit Hindi (`hi`) hint for improved Devanagari transcription.
+- **Hindi**: use Whisper `small` on CPU with an explicit Hindi (`hi`) language hint and Devanagari script guidance. This may consume more GitHub Actions minutes and still requires caption review.
 - **English**: use Whisper `tiny` with English (`en`) hint.
 
 Whisper word-level timestamps, when returned, are grouped into short readable caption phrases with their actual recognized word start/end times. When a speech segment has no usable word timings, the renderer falls back to the existing approximate segment timing. This is **ASR-generated text**, so names, Hinglish, background sounds and nonstandard accents can still be wrong.
