@@ -44,6 +44,14 @@ on:
           - "story"
         default: "engagement"
         required: true
+      crop:
+        description: "9:16 crop method (face-aware is a static per-clip reframe)"
+        type: choice
+        options:
+          - "auto"
+          - "center"
+        default: "auto"
+        required: true
       rights_confirm:
         description: "I own or have permission to edit and republish this video"
         type: boolean
@@ -68,6 +76,7 @@ jobs:
       MIN_SEC: ${{ inputs.min_seconds }}
       MAX_SEC: ${{ inputs.max_seconds }}
       STYLE: ${{ inputs.style }}
+      CROP: ${{ inputs.crop }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -99,6 +108,7 @@ jobs:
             --min-seconds "$MIN_SEC" \
             --max-seconds "$MAX_SEC" \
             --style "$STYLE" \
+            --crop "$CROP" \
             --rights-confirmed
       - name: Upload MP4 Shorts + transcripts + report
         if: always()
