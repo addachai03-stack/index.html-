@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 from smartcrop import compute_crop, normalize_crop_mode
+from speech_quality import normalize_language, whisper_settings, group_word_timings
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
@@ -129,7 +130,14 @@ def video_dimensions(source: Path) -> tuple[int, int]:
         raise ValueError("Invalid video dimensions.")
     return width, height
 
-def transcribe(source: Path, work: Path) -> tuple[list[Segment], str]:
+def transcribe(source: Path, work: Path, language: str = "auto") -> tuple[list[Segment], str]:
+    """Run multilingual Whisper ASR and extract real word-level subtitle times.
+
+    Hindi preference uses the base model rather than tiny. If Whisper does
+    not supply usable word timestamps, fall back to ASR segment boundaries.
+    No synthetic dialogue is added and no words are fabricated.
+    """
+    choice = normalize_language(language)
     wav = work / "audio.wav"
     proc = run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", str(source),
                 "-vn", "-ac", "1", "-ar", "16000", str(wav)], timeout=180, check=False)
@@ -137,13 +145,30 @@ def transcribe(source: Path, work: Path) -> tuple[list[Segment], str]:
         return [], "No audio track / ASR unavailable"
     try:
         from faster_whisper import WhisperModel
-        model = WhisperModel("tiny", device="cpu", compute_type="int8")
-        pieces, meta = model.transcribe(str(wav), vad_filter=True, beam_size=2)
-        segments = [Segment(round(float(s.start), 2), round(float(s.end), 2), s.text.strip())
-                    for s in pieces if s.text and s.text.strip()]
-        return segments, "Whisper tiny; language " + meta.language
+        model_name, hint = whisper_settings(choice)
+        model = WhisperModel(model_name, device="cpu", compute_type="int8")
+        kwargs = {"vad_filter": True, "beam_size": 2, "word_timestamps": True}
+        if hint is not None:
+            kwargs["language"] = hint
+        pieces, meta = model.transcribe(str(wav), **kwargs)
+        segments: list[Segment] = []
+        accurate_parts = 0
+        for part in pieces:
+            words = getattr(part, "words", None)
+            timed = group_word_timings(words or [])
+            if timed:
+                segments.extend(Segment(start, stop, text)
+                                for start, stop, text in timed)
+                accurate_parts += 1
+            elif getattr(part, "text", "").strip():
+                segments.append(Segment(round(float(part.start), 2),
+                                        round(float(part.end), 2), part.text.strip()))
+        description = ("Whisper " + model_name + "; requested " + choice +
+                       "; detected " + str(getattr(meta, "language", "unknown")) +
+                       "; word-aligned parts " + str(accurate_parts))
+        return segments, description
     except Exception as error:
-        print("Whisper fallback:", str(error)[:250], flush=True)
+        print("Whisper speech unavailable:", str(error)[:350], flush=True)
         return [], "ASR unavailable; visual-only analysis"
 
 def detect_scenes(source: Path) -> list[float]:
@@ -272,6 +297,7 @@ def main() -> int:
     p.add_argument("--max-seconds", type=int, default=60)
     p.add_argument("--style", choices=["engagement","funny","facts","story"], default="engagement")
     p.add_argument("--crop", choices=["auto", "center"], default="auto")
+    p.add_argument("--language", choices=["auto", "hi", "en"], default="auto")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -293,13 +319,15 @@ def main() -> int:
         duration = probe(video)
         width, height = video_dimensions(video)
         normalize_crop_mode(a.crop)
+        normalize_language(a.language)
         print("Decoded length:", duration, "size:", width, height, flush=True)
         scenes = detect_scenes(video)
-        speech, asr = transcribe(video, work)
+        speech, asr = transcribe(video, work, a.language)
         choices = pick_clips(speech, scenes, duration, a.clips, a.min_seconds, a.max_seconds, a.style)
         manifest = {"source": url, "duration": duration, "asr": asr, "scenes": len(scenes),
                     "style": a.style,
                     "crop_mode": a.crop,
+                    "speech_language": a.language,
                     "note": "AI-assisted cues, not a guarantee of views or shares.",
                     "clips": []}
         for i, cut in enumerate(choices, 1):
