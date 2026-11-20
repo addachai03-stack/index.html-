@@ -57,6 +57,11 @@ class TestHighlights(unittest.TestCase):
         with self.assertRaises(ValueError):
             pick_clips(self.segs, [], 60, requested=2, min_seconds=12)
 
+    def test_30_second_video_yields_two_15_second_cuts(self):
+        result = pick_clips([], [], 30.067, requested=3, min_seconds=15, max_seconds=15)
+        self.assertEqual(len(result), 2)
+        self.assertEqual([(x.start, x.end) for x in result], [(0,15),(15,30)])
+
     def test_srt_stamp(self):
         self.assertEqual(stamp(61.25), "00:01:01,250")
 
