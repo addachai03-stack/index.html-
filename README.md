@@ -52,6 +52,18 @@ To optionally enable GitHub Pages yourself:
 
 Actual MP4 files were inspected with FFprobe. The royalty-free test video yielded no detected speech, so no invented SRT captions or fabricated scene-specific claims were added. A source containing speech is still needed to verify burned-in Hindi/English subtitles end-to-end.
 
+## Verified caption + portrait smoke test (GitHub Actions)
+
+[Successful speech-caption and smart crop proof run](https://github.com/addachai03-stack/index.html-/actions/runs/44820527736) generated a synthetic 16-second source video with a spoken voice using GitHub Actions, then independently checked:
+
+- Whisper tiny ASR recognized **2 speech segments** (`en` detected), and exported timestamped `speech_recognized.srt` directly from recognized spoken words.
+- FFmpeg rendered **15.0-second**, **720×1280**, H.264/AAC `speech_caption_short.mp4` with actual speech-derived captions **burned into the lower safe zone**.
+- Independent frame-comparison test measured visible subtitle pixels (mean lower-region pixel delta **25.127**) versus the version without captions.
+- A **separate manually authored** Devanagari SRT produced a valid Hindi-font subtitle video (`devanagari_font_test.mp4`; mean lower-region pixel delta **22.126**). **This is proof that Hindi glyphs render, not proof of Hindi speech recognition.**
+- Smart crop used the expected **center fallback** with `face_frames: 0` on this non-human test pattern. Automatic face-positioning remains supported by code and deterministic tests, but still needs verification with a rights-cleared human-face video.
+
+The first smoke attempt detected an incorrectly high subtitle margin (text appeared around the center). It was fixed by moving captions to a lower safe region, shortening captions to 32-character blocks and passing the final GitHub Actions test. The verification files are downloadable in that successful workflow's **Artifacts**.
+
 ## Smart portrait framing — GitHub-only next phase
 
 The GitHub-native [CutNova Shorts form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml) now includes **Smart crop mode**:
