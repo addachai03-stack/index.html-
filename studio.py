@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
+from smartcrop import compute_crop, normalize_crop_mode
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
@@ -113,6 +114,20 @@ def probe(source: Path) -> float:
     if not any(s.get("codec_type") == "video" for s in info.get("streams", [])):
         raise ValueError("Video stream missing.")
     return duration
+
+def video_dimensions(source: Path) -> tuple[int, int]:
+    """Read true video stream dimensions from ffprobe for smart reframe."""
+    proc = run(["ffprobe", "-v", "error", "-select_streams", "v:0",
+                "-show_entries", "stream=width,height", "-of", "json",
+                str(source)], timeout=30)
+    streams = json.loads(proc.stdout).get("streams", [])
+    if not streams:
+        raise ValueError("Video stream dimensions missing.")
+    width = int(streams[0].get("width", 0))
+    height = int(streams[0].get("height", 0))
+    if width <= 0 or height <= 0:
+        raise ValueError("Invalid video dimensions.")
+    return width, height
 
 def transcribe(source: Path, work: Path) -> tuple[list[Segment], str]:
     wav = work / "audio.wav"
@@ -228,9 +243,12 @@ def captions_for(cut: Candidate, segments: list[Segment], target: Path) -> bool:
     target.write_text("\n".join(lines), encoding="utf-8")
     return True
 
-def render(source: Path, target: Path, cut: Candidate, sub: Path | None):
-    # 9:16 center crop, H.264/AAC, optional spoken-word captions burned in.
-    vf = "scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,setsar=1"
+def render(source: Path, target: Path, cut: Candidate, sub: Path | None,
+           crop_x: int | None = None):
+    # 9:16 subject-aware *static* x crop; center fallback, no black bars.
+    # crop_x is computed from video dimensions and must be a safe integer.
+    crop_expr = "crop=720:1280" if crop_x is None else f"crop=720:1280:{int(crop_x)}:0"
+    vf = "scale=720:1280:force_original_aspect_ratio=increase," + crop_expr + ",setsar=1"
     if sub:
         vf += ",subtitles=" + sub.name + (
             ":force_style='FontName=Noto Sans,FontSize=19,Bold=1,Outline=3,"
@@ -253,6 +271,7 @@ def main() -> int:
     p.add_argument("--min-seconds", type=int, default=15)
     p.add_argument("--max-seconds", type=int, default=60)
     p.add_argument("--style", choices=["engagement","funny","facts","story"], default="engagement")
+    p.add_argument("--crop", choices=["auto", "center"], default="auto")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -272,12 +291,15 @@ def main() -> int:
             raise ValueError("Choose 1-10 clips and lengths from 15-60 sec.")
         video = download(url, work)
         duration = probe(video)
-        print("Decoded length:", duration, flush=True)
+        width, height = video_dimensions(video)
+        normalize_crop_mode(a.crop)
+        print("Decoded length:", duration, "size:", width, height, flush=True)
         scenes = detect_scenes(video)
         speech, asr = transcribe(video, work)
         choices = pick_clips(speech, scenes, duration, a.clips, a.min_seconds, a.max_seconds, a.style)
         manifest = {"source": url, "duration": duration, "asr": asr, "scenes": len(scenes),
                     "style": a.style,
+                    "crop_mode": a.crop,
                     "note": "AI-assisted cues, not a guarantee of views or shares.",
                     "clips": []}
         for i, cut in enumerate(choices, 1):
@@ -285,11 +307,13 @@ def main() -> int:
             sub = output / (base + ".srt")
             has_captions = captions_for(cut, speech, sub)
             target = output / (base + ".mp4")
-            print(f"Rendering Short #{i}: {cut.start}s -> {cut.end}s", flush=True)
-            render(video, target, cut, sub if has_captions else None)
+            crop_info = compute_crop(video, width, height, cut.start, cut.end, a.crop)
+            print(f"Rendering Short #{i}: {cut.start}s -> {cut.end}s; crop: {crop_info['method']} at x={crop_info['crop_x']}", flush=True)
+            render(video, target, cut, sub if has_captions else None, crop_info["crop_x"])
             item = asdict(cut)
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None
+            item["framing"] = crop_info
             manifest["clips"].append(item)
         create_creator_pack(choices, output, a.style, url)
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False),
