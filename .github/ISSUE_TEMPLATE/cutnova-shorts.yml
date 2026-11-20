@@ -65,6 +65,18 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: speech-language
+    attributes:
+      label: Speech language
+      description: "Auto detects spoken language; Hindi uses a larger CPU Whisper model for better Devanagari support."
+      options:
+        - "Auto — detect language"
+        - "Hindi — prefer Hindi speech"
+        - "English — prefer English speech"
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
     id: smart-framing
     attributes:
       label: Smart crop mode
