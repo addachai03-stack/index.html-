@@ -1,0 +1,1 @@
+Run controlled Hindi espeak-ng speech, Whisper base Hindi transcription, real ASR SRT and caption burn-in proof for CutNova. 2026-11-21.
