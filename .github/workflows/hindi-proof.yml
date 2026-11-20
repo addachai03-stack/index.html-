@@ -1,0 +1,55 @@
+name: CutNova - Synthetic Hindi Speech-to-Short Proof
+
+on:
+  push:
+    paths:
+      - "smoke/hindi-run-once.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-hindi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install FFmpeg, Hindi voice and subtitle fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-noto-core espeak-ng
+          espeak-ng --voices | grep -E 'Hindi|[[:space:]]hi([[:space:]]|$)'
+          ffmpeg -hide_banner -filters | grep subtitles
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run deterministic language/unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Generate own original Hindi speech and video
+        run: |
+          espeak-ng -v hi -s 110 -w hindi.wav \
+            "नमस्ते दोस्तों। आज हम आपको एक मजेदार कहानी सुनाने वाले हैं। इस वीडियो में हिंदी कैप्शन बनाए जाएंगे। पहले हम आवाज पहचानेंगे, फिर वीडियो काटेंगे और नीचे हिंदी सबटाइटल दिखाएंगे।"
+          ffmpeg -nostdin -hide_banner -v error -y \
+            -f lavfi -i "testsrc2=duration=18:size=960x540:rate=25" \
+            -stream_loop -1 -i hindi.wav \
+            -t 18 -map 0:v:0 -map 1:a:0 \
+            -c:v libx264 -preset veryfast -pix_fmt yuv420p \
+            -c:a aac -b:a 128k -movflags +faststart hindi_source.mp4
+      - name: Verify Hindi ASR, SRT and visible burned-in MP4
+        run: python hindi_smoke.py
+      - name: Upload proof and error report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cutnova-hindi-synthetic-proof
+          path: |
+            output/*.mp4
+            output/*.srt
+            output/*.json
+          if-no-files-found: warn
+          retention-days: 4
