@@ -11,7 +11,7 @@ const elements = {
   form: byId("url-form"), input: byId("video-url"), panel: byId("source-panel"),
   provider: byId("source-provider"), original: byId("source-original"),
   frame: byId("embed-wrapper"), message: byId("message"), rights: byId("rights-confirm"),
-  rightsTip: byId("rights-tip"), action: byId("run-actions"),
+  rightsTip: byId("rights-tip"), action: byId("submit-request"),
   clips: byId("clips-count"), min: byId("min-seconds"), max: byId("max-seconds")
 };
 let current = null;
@@ -126,13 +126,35 @@ function drawSource(source) {
   elements.panel.scrollIntoView({behavior:"smooth", block:"start"});
 }
 
+function buildIssueUrl() {
+  if (!current) return "#";
+  const body = [
+    "CUTNOVA_REQUEST_V1",
+    "URL: "+current.url.href,
+    "CLIPS: "+elements.clips.value,
+    "MIN_SECONDS: "+elements.min.value,
+    "MAX_SECONDS: "+elements.max.value,
+    "RIGHTS: YES",
+    "",
+    "I own this video or have permission to edit and republish its content.",
+    "I understand this GitHub Issue is public and source access may be blocked."
+  ].join("\n");
+  return "https://github.com/addachai03-stack/index.html-/issues/new?title="+
+    encodeURIComponent("[CutNova] Generate Shorts")+
+    "&body="+encodeURIComponent(body);
+}
+
 function updateRights() {
-  const accepted = !!(current && elements.rights.checked);
+  const validDuration = Number(elements.min.value) <= Number(elements.max.value);
+  const accepted = !!(current && elements.rights.checked && validDuration);
   elements.action.classList.toggle("disabled-link", !accepted);
   elements.action.setAttribute("aria-disabled", String(!accepted));
-  elements.rightsTip.textContent = accepted
-    ? "Copy this video URL, open the GitHub Action, paste URL and same settings, check rights, and tap Run workflow. This page doesn't run an Action automatically."
-    : "Confirm content rights to unlock the GitHub Action. Never enter GitHub passwords, cookies, private URLs or access tokens in CutNova.";
+  elements.action.href = accepted ? buildIssueUrl() : "#";
+  elements.rightsTip.textContent = !validDuration
+    ? "Minimum clip length maximum se badi nahi ho sakti."
+    : accepted
+      ? "Generate My Shorts opens a pre-filled PUBLIC GitHub Issue. Tap Submit new issue to trigger owner-only processing. No token or password needed."
+      : "Confirm content rights to unlock the Generate button. Public GitHub Issues will show your URL/settings. Do not share private links or GitHub tokens.";
 }
 
 elements.form.addEventListener("submit", event => {
@@ -142,7 +164,7 @@ elements.form.addEventListener("submit", event => {
     current = providerFor(elements.input.value);
     elements.rights.checked = false;
     drawSource(current);
-    showMessage("Public link recognized: "+current.name+". Rendering ke liye GitHub Action run karna hoga; preview khud Short export nahi hai.",true);
+    showMessage("Public link recognized: "+current.name+". Generate My Shorts tap karo, phir GitHub par Submit new issue. Ye preview rendered MP4 nahi hai.",true);
   } catch (error) {
     current = null;
     elements.panel.hidden = true;
@@ -151,6 +173,7 @@ elements.form.addEventListener("submit", event => {
 });
 
 elements.rights.addEventListener("change", updateRights);
+[elements.clips,elements.min,elements.max].forEach(field => field.addEventListener("change", updateRights));
 elements.action.addEventListener("click", event => {
   if (!current || !elements.rights.checked) {
     event.preventDefault();
@@ -161,7 +184,7 @@ byId("copy-url").addEventListener("click", async () => {
   if (!current) return;
   try {
     await navigator.clipboard.writeText(current.url.href);
-    showMessage("Video URL copied. GitHub Actions mein Video URL field mein paste karo.", true);
+    showMessage("URL copied. GitHub Action ke manual URL field mein paste kar sakte ho.", true);
   } catch (error) {
     const temp = document.createElement("textarea");
     temp.value = current.url.href;
