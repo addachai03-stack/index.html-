@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 from smartcrop import compute_crop, normalize_crop_mode
-from speech_quality import normalize_language, whisper_settings, group_word_timings
+from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
@@ -131,11 +131,10 @@ def video_dimensions(source: Path) -> tuple[int, int]:
     return width, height
 
 def transcribe(source: Path, work: Path, language: str = "auto") -> tuple[list[Segment], str]:
-    """Run multilingual Whisper ASR and extract real word-level subtitle times.
+    """Run multilingual Whisper ASR with word timestamps and a safe Hindi retry.
 
-    Hindi preference uses the base model rather than tiny. If Whisper does
-    not supply usable word timestamps, fall back to ASR segment boundaries.
-    No synthetic dialogue is added and no words are fabricated.
+    If Hindi speech is filtered out by VAD, retry without VAD only when the
+    extracted audio is audibly non-silent. Text must originate from the ASR.
     """
     choice = normalize_language(language)
     wav = work / "audio.wav"
@@ -150,22 +149,32 @@ def transcribe(source: Path, work: Path, language: str = "auto") -> tuple[list[S
         kwargs = {"vad_filter": True, "beam_size": 2, "word_timestamps": True}
         if hint is not None:
             kwargs["language"] = hint
+
+        def collect(parts) -> tuple[list[Segment], int]:
+            found: list[Segment] = []
+            aligned_parts = 0
+            for part in parts:
+                timed = group_word_timings(getattr(part, "words", None) or [])
+                if timed:
+                    found.extend(Segment(start, stop, text) for start, stop, text in timed)
+                    aligned_parts += 1
+                elif getattr(part, "text", "").strip():
+                    found.append(Segment(round(float(part.start), 2),
+                                         round(float(part.end), 2), part.text.strip()))
+            return found, aligned_parts
+
         pieces, meta = model.transcribe(str(wav), **kwargs)
-        segments: list[Segment] = []
-        accurate_parts = 0
-        for part in pieces:
-            words = getattr(part, "words", None)
-            timed = group_word_timings(words or [])
-            if timed:
-                segments.extend(Segment(start, stop, text)
-                                for start, stop, text in timed)
-                accurate_parts += 1
-            elif getattr(part, "text", "").strip():
-                segments.append(Segment(round(float(part.start), 2),
-                                        round(float(part.end), 2), part.text.strip()))
+        segments, accurate_parts = collect(pieces)
+        retry = ""
+        if not segments and choice == "hi" and has_audible_speech_candidate(wav):
+            # VAD sometimes rejects robotic or quiet Hindi speech.
+            kwargs["vad_filter"] = False
+            pieces, meta = model.transcribe(str(wav), **kwargs)
+            segments, accurate_parts = collect(pieces)
+            retry = "; VAD-off retry"
         description = ("Whisper " + model_name + "; requested " + choice +
                        "; detected " + str(getattr(meta, "language", "unknown")) +
-                       "; word-aligned parts " + str(accurate_parts))
+                       "; word-aligned parts " + str(accurate_parts) + retry)
         return segments, description
     except Exception as error:
         print("Whisper speech unavailable:", str(error)[:350], flush=True)
