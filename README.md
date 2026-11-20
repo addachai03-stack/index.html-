@@ -31,15 +31,19 @@ You can run the engine without opening an issue:
 2. Tap **Run workflow**, paste a public video URL, choose the clip count and 15–60 second limits, confirm editing rights and start.
 3. From the completed GitHub Action, open **Artifacts** and download the MP4 ZIP. If the platform blocks media access, inspect its failure report.
 
-### Optional — GitHub Pages visual dashboard
+### Fastest LIVE preview — GitHub Pages, branch-based (no Apper)
 
-The GitHub-only source also includes `index.html`, `styles.css`, `app.js` and a Pages deployment workflow. The Page is **not yet deployed**, because the GitHub integration does not have permission to enable Pages for the repository.
+**As of 21 Nov 2026, the GitHub repository API reports `has_pages: false`: the static site is not published.** The connected GitHub integration cannot change repository Pages settings. The website source is already in the `main` branch root (`index.html`, `styles.css`, `app.js`).
 
-To optionally enable GitHub Pages yourself:
-1. Open [repository Settings → Pages](https://github.com/addachai03-stack/index.html-/settings/pages) on your signed-in GitHub account.
-2. Select **Build and deployment → Source → GitHub Actions**.
-3. Open [Deploy Mobile Studio workflow](https://github.com/addachai03-stack/index.html-/actions/workflows/pages.yml) and tap **Run workflow**.
-4. Only after a successful deployment, use the GitHub Pages URL shown in the job result. This optional website is still hosted exclusively on GitHub—no Apper.
+**One-time action in the repo owner's GitHub app/browser:**
+1. Open [CutNova Settings → Pages](https://github.com/addachai03-stack/index.html-/settings/pages).
+2. Under **Build and deployment**, choose **Source → Deploy from a branch**.
+3. Set **Branch → main**, **Folder → /(root)**; press **Save**.
+4. Once GitHub reports "Your site is live", visit the **Visit site** URL in Pages settings. The expected pattern is `https://addachai03-stack.github.io/index.html-/`, **but do not share it as live before GitHub confirms deployment**.
+
+This is the fastest route because it works directly with the committed static files and needs no separate Actions dispatch. The optional `pages.yml` workflow remains available for accounts that prefer Source → GitHub Actions after Pages is already enabled.
+
+**Important:** The static site can recognize URL formats and preview permitted videos, but real MP4 rendering requires the owner's GitHub Actions/Issues workflow; a website preview alone cannot magically fetch or convert YouTube/Instagram URLs.
 
 ### Latest verified premium smoke test (21 Nov 2026)
 
