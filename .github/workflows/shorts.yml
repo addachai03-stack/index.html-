@@ -34,6 +34,16 @@ on:
           - "60"
         default: "60"
         required: true
+      style:
+        description: "Highlight style (heuristic, not actual trends)"
+        type: choice
+        options:
+          - "engagement"
+          - "funny"
+          - "facts"
+          - "story"
+        default: "engagement"
+        required: true
       rights_confirm:
         description: "I own or have permission to edit and republish this video"
         type: boolean
@@ -57,6 +67,7 @@ jobs:
       CLIPS: ${{ inputs.clips }}
       MIN_SEC: ${{ inputs.min_seconds }}
       MAX_SEC: ${{ inputs.max_seconds }}
+      STYLE: ${{ inputs.style }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -87,6 +98,7 @@ jobs:
             --clips "$CLIPS" \
             --min-seconds "$MIN_SEC" \
             --max-seconds "$MAX_SEC" \
+            --style "$STYLE" \
             --rights-confirmed
       - name: Upload MP4 Shorts + transcripts + report
         if: always()
@@ -98,5 +110,7 @@ jobs:
             output/*.srt
             output/*.zip
             output/*.json
+            output/*.md
+            output/*.csv
           retention-days: 7
           if-no-files-found: warn
