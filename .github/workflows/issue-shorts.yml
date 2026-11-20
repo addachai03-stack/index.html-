@@ -49,12 +49,14 @@ jobs:
           CLIPS: ${{ steps.request.outputs.clips }}
           MIN_SEC: ${{ steps.request.outputs.min_sec }}
           MAX_SEC: ${{ steps.request.outputs.max_sec }}
+          STYLE: ${{ steps.request.outputs.style }}
         run: |
           python studio.py \
             --url "$VIDEO_URL" \
             --clips "$CLIPS" \
             --min-seconds "$MIN_SEC" \
             --max-seconds "$MAX_SEC" \
+            --style "$STYLE" \
             --rights-confirmed
       - name: Upload MP4, captions and diagnosis
         if: always()
@@ -66,6 +68,8 @@ jobs:
             output/*.srt
             output/*.zip
             output/*.json
+            output/*.md
+            output/*.csv
           retention-days: 7
           if-no-files-found: warn
       - name: Post result link to requested issue
