@@ -58,11 +58,12 @@
             </div>
             <label class="rights"><input id="rights-confirm" type="checkbox"/><span>I own this video or have permission to edit and republish its content.</span></label>
             <div class="action-row">
-              <button id="copy-url" class="btn btn-lime" type="button">COPY SOURCE URL <span>↗</span></button>
-              <a id="run-actions" class="btn btn-outline disabled-link" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer" aria-disabled="true">OPEN GITHUB ACTIONS <span>→</span></a>
+              <a id="submit-request" class="btn btn-lime disabled-link" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">✦ GENERATE MY SHORTS <span>→</span></a>
+              <button id="copy-url" class="btn btn-outline" type="button">COPY SOURCE URL <span>↗</span></button>
             </div>
-            <p id="rights-tip" class="footnote">First confirm you own or have permission to edit the source. Your video URL is not sent anywhere by this page.</p>
-            <div class="tiny-steps"><div><b>1</b> COPY LINK</div><div><b>2</b> RUN GITHUB ACTION</div><div><b>3</b> DOWNLOAD MP4 ZIP</div></div>
+            <p id="rights-tip" class="footnote">Confirm content rights first. This opens a pre-filled GitHub issue; tap Submit new issue to start rendering. The URL and settings will be visible publicly in that issue.</p>
+            <div class="alternative-link">Alternative: <a id="run-actions" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer">run directly from GitHub Actions ↗</a></div>
+            <div class="tiny-steps"><div><b>1</b> PASTE URL</div><div><b>2</b> SUBMIT GITHUB REQUEST</div><div><b>3</b> GET MP4 ZIP</div></div>
           </div>
         </div>
       </section>
@@ -76,7 +77,7 @@
         <h2>Real clips. <em>Not fake downloads.</em></h2>
         <div class="steps-grid">
           <article class="step-card"><span>01</span><h3>Paste & check</h3><p>Add a public HTTPS video URL, then confirm you have rights to edit its content.</p></article>
-          <article class="step-card"><span>02</span><h3>Run GitHub Action</h3><p>In the repository Actions tab, tap Run workflow, paste URL and your settings, then confirm rights.</p></article>
+          <article class="step-card"><span>02</span><h3>Run GitHub Action</h3><p>Tap Generate My Shorts, review the prefilled GitHub issue and tap Submit new issue. Owner-only automation starts.</p></article>
           <article class="step-card"><span>03</span><h3>AI-assisted edit</h3><p>Whisper speech, hook-word signals and scene transitions rank moments. FFmpeg crops and captions them.</p></article>
           <article class="step-card"><span>04</span><h3>Download result</h3><p>After workflow success, open its run and download the Shorts ZIP under Artifacts.</p></article>
         </div>
