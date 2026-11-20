@@ -155,3 +155,9 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .footer{padding:24px 16px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.alternative-link{margin-top:15px;color:#a4a6ae;font-size:11px;line-height:1.5}
+.alternative-link a{color:var(--lavender);font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.action-row a.btn-lime{flex:1.5}
+.action-row button.btn-outline{flex:1}
+@media(max-width:600px){.action-row a.btn-lime,.action-row button.btn-outline{flex:auto}}
