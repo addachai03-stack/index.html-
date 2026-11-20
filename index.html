@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0c0d11"/>
+  <meta name="description" content="CutNova — premium AI-assisted 15–60 second Shorts from long videos. iPhone-friendly URL-to-clips workflow powered by GitHub Actions."/>
+  <title>CutNova — AI Shorts Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="./styles.css"/>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V1.0</b></span>
+      <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
+    </header>
+    <main class="container">
+      <div class="eyebrow"><span class="eyebrow-line"></span> CREATE. CLIP. GO VIRAL-READY.</div>
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="hero-kicker">PHONE-FIRST CREATOR WORKSPACE / 001</div>
+          <h1>One long video.<br/><em>Multiple</em> <span class="lime">premium Shorts.</span></h1>
+          <p>Paste your video link. Find high-impact moments with speech, hook words and visual scene scoring. Export real 9:16 MP4s through the GitHub Actions engine.</p>
+          <div class="hero-chips"><span>✦ 15–60 SEC</span><span>⌘ 9:16 PORTRAIT</span><span>◎ HINGLISH ASR</span></div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-aura"></div><div class="phone-shape"><div class="phone-top"></div><div class="phone-timeline"><div></div><div></div><div></div></div><span>YOUR<br/>NEXT<br/>SHORT</span><div class="phone-badge">00:30 · 9:16</div></div>
+          <div class="spark s1">✳</div><div class="spark s2">✦</div>
+        </div>
+      </section>
+      <section id="studio" class="studio-card">
+        <div class="section-head"><span class="section-number">01 / LINK IMPORT</span><span class="section-pill"><i></i> PUBLIC LINKS ONLY</span></div>
+        <h2>Start with your <span>video URL.</span></h2>
+        <p class="section-sub">YouTube · Instagram · Facebook · TikTok · Vimeo · Direct MP4. Media download depends on source permissions and platform availability.</p>
+        <form id="url-form" class="url-form" novalidate>
+          <label for="video-url">PASTE LONG VIDEO LINK</label>
+          <div class="url-row">
+            <div class="url-input-wrap"><span class="link-symbol">↗</span><input id="video-url" type="url" inputmode="url" placeholder="https://youtu.be/…" autocomplete="url" required/></div>
+            <button type="submit" class="btn btn-lime">CHECK LINK <span>→</span></button>
+          </div>
+        </form>
+        <div class="example-bar"><span>TRY REAL EXAMPLE:</span><button id="load-example" type="button">Cartoon voice reveal <span>↗</span></button><button id="load-test-video" type="button">Public MP4 <span>↗</span></button></div>
+        <div id="message" class="message" role="status" hidden></div>
+        <div id="source-panel" class="source-panel" hidden>
+          <div class="source-heading"><span id="source-provider">SOURCE</span><a id="source-original" href="#" target="_blank" rel="noopener noreferrer">OPEN SOURCE ↗</a></div>
+          <div id="embed-wrapper" class="embed-wrapper" hidden></div>
+          <p class="source-clarity">This preview is the original video, not a generated Short. GitHub Actions fetches accessible authorized media, transcribes speech, ranks moments, and renders MP4 files.</p>
+          <div class="settings-panel">
+            <div class="settings-title">GENERATE SETTINGS <span>EDIT BEFORE RUN</span></div>
+            <div class="field-grid">
+              <label>NUMBER OF SHORTS<select id="clips-count"><option value="3">3 clips</option><option selected value="6">6 clips</option><option value="10">10 clips</option></select></label>
+              <label>MINIMUM LENGTH<select id="min-seconds"><option selected value="15">15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option></select></label>
+              <label>MAXIMUM LENGTH<select id="max-seconds"><option value="30">30 seconds</option><option value="45">45 seconds</option><option selected value="60">60 seconds</option></select></label>
+            </div>
+            <label class="rights"><input id="rights-confirm" type="checkbox"/><span>I own this video or have permission to edit and republish its content.</span></label>
+            <div class="action-row">
+              <button id="copy-url" class="btn btn-lime" type="button">COPY SOURCE URL <span>↗</span></button>
+              <a id="run-actions" class="btn btn-outline disabled-link" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer" aria-disabled="true">OPEN GITHUB ACTIONS <span>→</span></a>
+            </div>
+            <p id="rights-tip" class="footnote">First confirm you own or have permission to edit the source. Your video URL is not sent anywhere by this page.</p>
+            <div class="tiny-steps"><div><b>1</b> COPY LINK</div><div><b>2</b> RUN GITHUB ACTION</div><div><b>3</b> DOWNLOAD MP4 ZIP</div></div>
+          </div>
+        </div>
+      </section>
+      <section id="example-shortcuts" class="highlights">
+        <div class="section-head"><span class="section-number">02 / REFERENCE CUTS</span><span class="section-pill secondary-pill">VERIFIED TRANSCRIPT EXAMPLE</span></div>
+        <div class="highlights-top"><div><h2>What <em>premium cuts</em> look like.</h2><p>Six curated timing examples from the cartoon-voice YouTube video. These are editorial suggestions, not automatic results for unrelated URLs.</p></div><span class="cut-counter">06 <small>CUT IDEAS</small></span></div>
+        <div id="example-cuts" class="cut-grid"></div>
+      </section>
+      <section class="steps-section">
+        <div class="section-head"><span class="section-number">03 / HOW IT WORKS</span><span class="section-pill">NO LAPTOP</span></div>
+        <h2>Real clips. <em>Not fake downloads.</em></h2>
+        <div class="steps-grid">
+          <article class="step-card"><span>01</span><h3>Paste & check</h3><p>Add a public HTTPS video URL, then confirm you have rights to edit its content.</p></article>
+          <article class="step-card"><span>02</span><h3>Run GitHub Action</h3><p>In the repository Actions tab, tap Run workflow, paste URL and your settings, then confirm rights.</p></article>
+          <article class="step-card"><span>03</span><h3>AI-assisted edit</h3><p>Whisper speech, hook-word signals and scene transitions rank moments. FFmpeg crops and captions them.</p></article>
+          <article class="step-card"><span>04</span><h3>Download result</h3><p>After workflow success, open its run and download the Shorts ZIP under Artifacts.</p></article>
+        </div>
+        <div class="notice-strip"><strong>REALITY CHECK</strong><p>Viral success is never guaranteed. YouTube/Instagram may block automated downloading; no login, private-media or DRM bypass. On GitHub, output availability is subject to repository Actions settings and usage limits. Review captions and video rights before publishing.</p></div>
+      </section>
+    </main>
+    <footer class="footer"><span>✂ CUTNOVA <b>© 2026</b></span><span>BUILT FOR CREATORS · iPHONE FIRST</span><a href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a></footer>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
