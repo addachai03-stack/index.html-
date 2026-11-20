@@ -1,0 +1,65 @@
+name: "✂ CutNova — Generate Premium Shorts"
+description: "Paste a public long-video URL. GitHub Actions will generate 15–60 second portrait MP4 clips when media access and rights permit."
+title: "[CutNova] Generate Shorts"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## CutNova AI Shorts Studio
+        Paste a **public video URL that you own or may edit**. The GitHub workflow checks access, uses speech and scene analysis to rank interesting moments, renders 9:16 MP4s and posts a ZIP artifact link back to this issue.
+
+        **Important:** This is a PUBLIC GitHub Issue. Do not paste private or sensitive URLs, passwords, tokens or content you lack permission to republish. YouTube/Instagram often restrict downloads. AI scores are estimates, not proof of real-time trends or viral success.
+  - type: input
+    id: video-url
+    attributes:
+      label: Video URL
+      description: "Your own public video, YouTube, Instagram, or a direct MP4/MOV/WebM (HTTPS only)."
+      placeholder: "https://example.com/your-video.mp4"
+    validations:
+      required: true
+  - type: dropdown
+    id: shorts-count
+    attributes:
+      label: Number of Shorts
+      description: "The number you request; very short source videos may produce fewer non-overlapping clips."
+      options:
+        - "3"
+        - "6"
+        - "10"
+      default: 1
+    validations:
+      required: true
+  - type: dropdown
+    id: minimum
+    attributes:
+      label: Minimum clip length (seconds)
+      options:
+        - "15"
+        - "20"
+        - "30"
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: maximum
+    attributes:
+      label: Maximum clip length (seconds)
+      options:
+        - "30"
+        - "45"
+        - "60"
+      default: 2
+    validations:
+      required: true
+  - type: checkboxes
+    id: permission
+    attributes:
+      label: Content ownership and permission
+      description: "Required for processing. This form is for the repository owner only."
+      options:
+        - label: "I own this video or have permission to edit and republish its content."
+          required: true
+  - type: markdown
+    attributes:
+      value: |
+        After tapping **Submit new issue**, the repository owner's GitHub Action will run. A bot will comment with a link to the run (success or failure). For a successful run, open **Artifacts → cutnova-issue-...** and download the ZIP. No Apper or external website needed.
