@@ -234,7 +234,7 @@ def captions_for(cut: Candidate, segments: list[Segment], target: Path) -> bool:
     lines = []
     for seg in segments:
         for s, e, text in distribute_subtitles(
-            seg.start, seg.end, seg.text, cut.start, cut.end, max_chars=40
+            seg.start, seg.end, seg.text, cut.start, cut.end, max_chars=32
         ):
             if e > s:
                 lines.append(f"{len(lines)+1}\n{stamp(s)} --> {stamp(e)}\n{text}\n")
@@ -251,8 +251,8 @@ def render(source: Path, target: Path, cut: Candidate, sub: Path | None,
     vf = "scale=720:1280:force_original_aspect_ratio=increase," + crop_expr + ",setsar=1"
     if sub:
         vf += ",subtitles=" + sub.name + (
-            ":force_style='FontName=Noto Sans,FontSize=19,Bold=1,Outline=3,"
-            "Shadow=0,MarginV=155,Alignment=2'")
+            ":force_style='FontName=Noto Sans,FontSize=15,Bold=1,Outline=3,"
+            "Shadow=0,MarginV=42,Alignment=2'")
     cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
            "-ss", str(cut.start), "-i", str(source), "-t", str(cut.end-cut.start),
            "-map", "0:v:0", "-map", "0:a:0?", "-vf", vf,
