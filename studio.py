@@ -16,7 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 
-ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
+ALLOWED_HOSTS = ("youtube.com", "youtu.be", "youtube-nocookie.com", "instagram.com", "instagr.am", "facebook.com", "fb.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
                  "twitter.com", "x.com", "archive.org", "remotion.media",
                  "storage.googleapis.com", "cdn.pixabay.com")
