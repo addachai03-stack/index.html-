@@ -24,32 +24,22 @@ GitHub Issues on this public repo show source URLs publicly. Do not paste confid
 
 [Successful GitHub Actions smoke test](https://github.com/addachai03-stack/index.html-/actions/runs/44751751673): a royalty-free 30-second direct MP4 URL generated a **15.0-second 720×1280 H.264/AAC MP4**. Output inspected independently with FFprobe. The sample did not yield speech captions; none were fabricated.
 
-## Use it from an iPhone (no laptop)
+## Another GitHub-only option: manual Actions dispatch
 
-### Option A — URL → GitHub request → automatic Action
-
-Once GitHub Pages is enabled (see setup below), open the CutNova dashboard, paste the video URL, select 3/6/10 clips and duration limits, and confirm you own or may edit the footage. Tap **GENERATE MY SHORTS**. A prefilled **public GitHub issue** opens in Safari. Tap **Submit new issue** — an owner-only GitHub Action starts automatically.
-
-Check the issue for a result comment with a link to its Action run. Open **Artifacts**, download `cutnova-issue-...`, and unzip the real MP4 files. GitHub accounts other than the repository owner cannot run the expensive rendering workflow through Issues.
-
-**Public issue warning:** The URL and parameters become public; do not submit secrets, private links, passwords, or personal footage.
-
-### Option B — run directly from GitHub (works before Pages setup)
-
+You can run the engine without opening an issue:
 1. Open [CutNova — Generate Shorts](https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml) on GitHub.
-2. Tap **Run workflow**. Paste the long-video's **public HTTPS URL**.
-3. Choose number of cuts, 15–60 second limits and affirm editing rights.
-4. Run the workflow. Open its run's **Artifacts** and download the video ZIP when it completes.
-5. Review all clips, cropping and automatic speech captions before posting. If the platform blocks automatic downloads, the workflow will fail with a diagnostics report rather than pretending the clip was created.
+2. Tap **Run workflow**, paste a public video URL, choose the clip count and 15–60 second limits, confirm editing rights and start.
+3. From the completed GitHub Action, open **Artifacts** and download the MP4 ZIP. If the platform blocks media access, inspect its failure report.
 
-### Optional — enable the CutNova GitHub Pages mobile dashboard
+### Optional — GitHub Pages visual dashboard
 
-GitHub's repository automation account could not create the Pages site: `Resource not accessible by integration`. **One account-owner setting is needed**:
+The GitHub-only source also includes `index.html`, `styles.css`, `app.js` and a Pages deployment workflow. The Page is **not yet deployed**, because the GitHub integration does not have permission to enable Pages for the repository.
 
-1. Open this repository's **Settings → Pages** on GitHub.
-2. Under **Build and deployment**, set **Source → GitHub Actions**.
-3. Open [Deploy Mobile Studio](https://github.com/addachai03-stack/index.html-/actions/workflows/pages.yml), tap **Run workflow** and confirm the deploy finished successfully.
-4. Then use the Pages URL shown in the deployment output. **Do not assume the website is live before the deployment succeeds.**
+To optionally enable GitHub Pages yourself:
+1. Open [repository Settings → Pages](https://github.com/addachai03-stack/index.html-/settings/pages) on your signed-in GitHub account.
+2. Select **Build and deployment → Source → GitHub Actions**.
+3. Open [Deploy Mobile Studio workflow](https://github.com/addachai03-stack/index.html-/actions/workflows/pages.yml) and tap **Run workflow**.
+4. Only after a successful deployment, use the GitHub Pages URL shown in the job result. This optional website is still hosted exclusively on GitHub—no Apper.
 
 ## Features
 
