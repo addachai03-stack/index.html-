@@ -51,6 +51,19 @@ body:
       default: 2
     validations:
       required: true
+  - type: dropdown
+    id: highlight-style
+    attributes:
+      label: Highlight style
+      description: "Content-based ranking only. Not live trending data or a viral guarantee."
+      options:
+        - "Engagement — strong hooks and reveals"
+        - "Funny — jokes and reactions"
+        - "Facts — interesting explainers"
+        - "Story — suspense and twists"
+      default: 0
+    validations:
+      required: true
   - type: checkboxes
     id: permission
     attributes:
