@@ -41,6 +41,17 @@ To optionally enable GitHub Pages yourself:
 3. Open [Deploy Mobile Studio workflow](https://github.com/addachai03-stack/index.html-/actions/workflows/pages.yml) and tap **Run workflow**.
 4. Only after a successful deployment, use the GitHub Pages URL shown in the job result. This optional website is still hosted exclusively on GitHub—no Apper.
 
+### Latest verified premium smoke test (21 Nov 2026)
+
+[GitHub-only run #44819052760](https://github.com/addachai03-stack/index.html-/actions/runs/44819052760) was triggered by the [native GitHub Issue form](https://github.com/addachai03-stack/index.html-/issues/4) using the public 30-second sample and **Funny** style. It completed successfully with:
+
+- `short_01.mp4` — 15.0 seconds, 720×1280 H.264
+- `short_02.mp4` — 15.0 seconds, 720×1280 H.264
+- `Posting_Guide.md`, `Shorts_Plan.csv`, `manifest.json`, `report.json`, `CutNova_Shorts.zip`
+- A GitHub bot comment linking to the downloadable artifact.
+
+Actual MP4 files were inspected with FFprobe. The royalty-free test video yielded no detected speech, so no invented SRT captions or fabricated scene-specific claims were added. A source containing speech is still needed to verify burned-in Hindi/English subtitles end-to-end.
+
 ## Premium Shorts — new features
 
 The native [CutNova GitHub URL form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml) now offers four selectable **content-based highlight styles**:
