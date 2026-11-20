@@ -11,6 +11,7 @@ import sys
 from studio import validate_url
 from premium import normalize_style
 from smartcrop import normalize_crop_mode
+from speech_quality import normalize_language
 
 
 FORM_LABELS = {
@@ -20,6 +21,7 @@ FORM_LABELS = {
     "Maximum clip length (seconds)": "MAX_SECONDS",
     "Highlight style": "STYLE",
     "Smart crop mode": "CROP",
+    "Speech language": "LANGUAGE",
 }
 RIGHTS_LABEL = "Content ownership and permission"
 RIGHTS_TEXT = "I own this video or have permission to edit and republish its content."
@@ -53,7 +55,7 @@ def issue_form_fields(body: str) -> dict[str, str]:
 def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
-        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP):[ \t]*(.+?)[ \t]*", line.strip())
+        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE):[ \t]*(.+?)[ \t]*", line.strip())
         if match and match[1] not in fields:
             fields[match[1]] = match[2]
     return fields
@@ -86,6 +88,13 @@ def parse_issue(body: str) -> dict:
         "center — always center crop": "center",
     }
     crop = normalize_crop_mode(crop_labels.get(raw_crop, raw_crop))
+    raw_language = fields.get("LANGUAGE", "auto").strip().lower()
+    language_labels = {
+        "auto — detect language": "auto",
+        "hindi — prefer hindi speech": "hi",
+        "english — prefer english speech": "en",
+    }
+    language = normalize_language(language_labels.get(raw_language, raw_language))
     try:
         clip_count = int(fields["CLIPS"])
         min_seconds = int(fields["MIN_SECONDS"])
@@ -101,6 +110,7 @@ def parse_issue(body: str) -> dict:
         "max_sec": max_seconds,
         "style": style,
         "crop": crop,
+        "language": language,
     }
 
 
