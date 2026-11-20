@@ -170,9 +170,14 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
         raise ValueError("Clip lengths must be 15-60 sec.")
     lens = sorted({min_seconds, max_seconds, 20, 30, 45}.intersection(
         range(min_seconds, max_seconds+1)))
+    starts = sorted(
+        {float(s) for s in range(0, max(1, math.floor(duration - min_seconds) + 1), 8)}
+        | {float(i * min_seconds) for i in range(max(1, int(duration // min_seconds)))}
+        | {round(max(0, duration - min_seconds), 2)}
+    )
     windows = [
         score_window(segments, scenes, float(start), float(start + length))
-        for start in range(0, max(1, math.ceil(duration-min_seconds)), 8)
+        for start in starts
         for length in lens if start + length <= duration + 0.001
     ]
     if not windows:
@@ -184,6 +189,18 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
         selected.append(cut)
         if len(selected) >= requested:
             break
+    # A greedy top-scoring 30s window can block two 15s clips.
+    # When user requested more clips and the source can fit more, use
+    # evenly spaced non-overlapping 15s candidates rather than silently under-fill.
+    capacity = min(requested, int(duration // min_seconds))
+    if len(selected) < capacity:
+        spaced = [
+            score_window(segments, scenes, float(i * min_seconds),
+                         float((i + 1) * min_seconds))
+            for i in range(capacity)
+        ]
+        if len(spaced) > len(selected):
+            selected = spaced
     return sorted(selected, key=lambda c: c.start)
 
 def stamp(sec: float) -> str:
