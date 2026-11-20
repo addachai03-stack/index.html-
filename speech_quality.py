@@ -6,6 +6,34 @@ faster-whisper when available; fallback remains segment-level estimates.
 from __future__ import annotations
 
 from typing import Iterable
+from pathlib import Path
+import array
+import math
+import sys
+import wave
+
+
+def has_audible_speech_candidate(path: Path, minimum_rms: float = 100) -> bool:
+    """Basic signal activity gate for a retry without VAD; not speech detection.
+
+    Audio must have enough amplitude to justify another ASR attempt. Quiet
+    tracks without a voice may still pass and are not considered confirmed speech.
+    """
+    try:
+        with wave.open(str(path), "rb") as wav:
+            if wav.getsampwidth() != 2 or wav.getnchannels() != 1:
+                return False
+            samples = wav.readframes(min(wav.getnframes(), wav.getframerate() * 25))
+        pcm = array.array("h")
+        pcm.frombytes(samples[:len(samples) // 2 * 2])
+        if sys.byteorder != "little":
+            pcm.byteswap()
+        if not pcm:
+            return False
+        rms = math.sqrt(sum(int(x) ** 2 for x in pcm) / len(pcm))
+        return rms >= minimum_rms
+    except (OSError, EOFError, ValueError, wave.Error):
+        return False
 
 LANGUAGES = ("auto", "hi", "en")
 
