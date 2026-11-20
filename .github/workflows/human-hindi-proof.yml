@@ -1,0 +1,69 @@
+name: CutNova - Licensed Human Hindi Speech Caption Proof
+
+on:
+  push:
+    paths:
+      - "smoke/human-hindi-run-once.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  licensed-human-hindi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install licensed test dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-noto-core curl
+          ffmpeg -hide_banner -filters | grep subtitles
+      - name: Install Whisper and caption dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Confirm deterministic tests
+        run: python -m unittest discover -s tests -v
+      - name: Fetch openly licensed human Hindi speech and build test source
+        run: |
+          curl --fail --location --retry 3 --connect-timeout 25 --max-time 180 \
+            --user-agent "CutNovaGithubTest/1.0 (https://github.com/addachai03-stack/index.html-)" \
+            "https://upload.wikimedia.org/wikipedia/commons/f/fe/Hindi_Dengue_Introduction.ogg" \
+            --output commons_hindi.ogg
+          ffprobe -v error -show_entries format=duration,size -of json commons_hindi.ogg
+          ffmpeg -nostdin -hide_banner -v error -y \
+            -ss 6 -i commons_hindi.ogg \
+            -f lavfi -i "testsrc2=duration=20:size=960x540:rate=25" \
+            -t 20 -map 1:v:0 -map 0:a:0 \
+            -c:v libx264 -preset veryfast -pix_fmt yuv420p \
+            -c:a aac -b:a 128k -movflags +faststart hindi_source.mp4
+          mkdir -p output
+          cat > output/ATTRIBUTION.txt <<'LICENSE'
+          Source audio: "Hindi Dengue Introduction.ogg", originally recorded by Satyam Singh (Satyam.mgs)
+          Original: https://commons.wikimedia.org/wiki/File:Hindi_Dengue_Introduction.ogg
+          License: Creative Commons Attribution-ShareAlike 3.0 Unported
+          License URL: https://creativecommons.org/licenses/by-sa/3.0/
+          Changes: 20-second excerpt starting at approx. 00:06 mixed with an original FFmpeg test pattern; automatic captions may be added by Whisper ASR.
+          The adapted example video in this test is made available under CC BY-SA 3.0. Original audio and adapted output are separate from CutNova MIT-licensed application code.
+          LICENSE
+      - name: Run Hindi Whisper ASR and visible MP4 caption proof
+        env:
+          CUTNOVA_TEST_SOURCE: "licensed human speech - Wikimedia Commons CC BY-SA 3.0"
+        run: python hindi_smoke.py
+      - name: Upload video and transcript with attribution
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutnova-human-hindi-proof
+          path: |
+            output/*.mp4
+            output/*.srt
+            output/*.json
+            output/ATTRIBUTION.txt
+          retention-days: 4
+          if-no-files-found: warn
