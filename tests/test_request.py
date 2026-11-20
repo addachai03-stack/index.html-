@@ -30,6 +30,10 @@ https://remotion.media/video-30s.mp4
 
 Funny — jokes and reactions
 
+### Smart crop mode
+
+Auto — face-aware static framing
+
 ### Content ownership and permission
 
 - [X] I own this video or have permission to edit and republish its content.
@@ -67,6 +71,26 @@ class TestIssueRequest(unittest.TestCase):
     def test_unknown_style_rejected(self, _):
         with self.assertRaises(ValueError):
             parse_issue(NATIVE_FORM.replace("Funny — jokes and reactions", "Viral guaranteed"))
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_default_auto_crop_native(self, _):
+        result = parse_issue(NATIVE_FORM)
+        self.assertEqual(result["crop"], "auto")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_legacy_auto_crop(self, _):
+        result = parse_issue(LEGACY)
+        self.assertEqual(result["crop"], "auto")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_explicit_center_crop(self, _):
+        body = NATIVE_FORM.replace("Auto — face-aware static framing", "Center — always center crop")
+        self.assertEqual(parse_issue(body)["crop"], "center")
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
+    def test_reject_bad_crop(self, _):
+        with self.assertRaises(ValueError):
+            parse_issue(NATIVE_FORM.replace("Auto — face-aware static framing", "unsafe"))
 
     @patch("studio.socket.getaddrinfo", return_value=[(0, 0, 0, "", ("1.1.1.1", 443))])
     def test_native_no_rights(self, _):
