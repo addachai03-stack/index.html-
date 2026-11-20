@@ -50,6 +50,7 @@ jobs:
           MIN_SEC: ${{ steps.request.outputs.min_sec }}
           MAX_SEC: ${{ steps.request.outputs.max_sec }}
           STYLE: ${{ steps.request.outputs.style }}
+          CROP: ${{ steps.request.outputs.crop }}
         run: |
           python studio.py \
             --url "$VIDEO_URL" \
@@ -57,6 +58,7 @@ jobs:
             --min-seconds "$MIN_SEC" \
             --max-seconds "$MAX_SEC" \
             --style "$STYLE" \
+            --crop "$CROP" \
             --rights-confirmed
       - name: Upload MP4, captions and diagnosis
         if: always()
