@@ -41,6 +41,27 @@ To optionally enable GitHub Pages yourself:
 3. Open [Deploy Mobile Studio workflow](https://github.com/addachai03-stack/index.html-/actions/workflows/pages.yml) and tap **Run workflow**.
 4. Only after a successful deployment, use the GitHub Pages URL shown in the job result. This optional website is still hosted exclusively on GitHub—no Apper.
 
+## Premium Shorts — new features
+
+The native [CutNova GitHub URL form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml) now offers four selectable **content-based highlight styles**:
+
+- **Engagement:** Hooks, questions, reveals, and surprising moments (default)
+- **Funny:** Comedy, reactions, and humor-related transcript cues
+- **Facts:** Explainers, reasons, and useful information
+- **Story:** Story transitions, suspense, and twists
+
+These are heuristic text/scene scores, **not real-time trend tracking** or predictions of guaranteed views. Ranking and titles cannot be accurate where the source contains no usable transcription. Short videos may produce fewer cuts than requested.
+
+For each successful render, the GitHub Artifact and `CutNova_Shorts.zip` include:
+
+- `short_01.mp4` etc. — actual H.264/AAC portrait MP4
+- `short_01.srt` etc. — generated only if the source has recognized speech
+- `Posting_Guide.md` — proposed title, grounded speech hook, generic caption CTA, hashtag suggestions and caution
+- `Shorts_Plan.csv` — editable cut timings, mode, scores, notes, draft metadata
+- `manifest.json` — machine-readable source and cut information
+
+Captions are split into short lines without dropping the ASR transcript words; **sub-fragment timing is estimated** from the ASR segment bounds, and Hindi/English speech recognition may contain mistakes. The visual crop is presently center-based, not face-tracking. Review before posting.
+
 ## Features
 
 - Mobile-focused source URL recognition and official social-video iframe preview (no video extraction or editing in the iframe)
