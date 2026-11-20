@@ -4,6 +4,16 @@
 
 **Important:** The engine ranks moments using Whisper speech recognition, hook/topic keywords and scene changes. These scores are heuristic; they do **not** measure current social trends or guarantee virality. The UI is a static dashboard, not a service that silently downloads YouTube/Instagram content.
 
+## Real YouTube user URL diagnostic — 21 Nov 2026
+
+The repository owner submitted [Issue #5](https://github.com/addachai03-stack/index.html-/issues/5) with a rights-confirmed public YouTube URL (`youtu.be/49D3EK0B1OY`), requesting **6 clips of 30–60 seconds**, engagement mode, auto crop and auto speech language.
+
+The actual [GitHub Actions Shorts run](https://github.com/addachai03-stack/index.html-/actions/runs/44840282772) failed **during YouTube source extraction** with `Sign in to confirm you're not a bot`. A separate [read-only metadata preflight](https://github.com/addachai03-stack/index.html-/actions/runs/44840433627) hit the same block even without video downloading.
+
+**Result:** zero user-source MP4s rendered. This does not indicate that the crop or caption renderer is broken; the renderer never received source media. The project does not bypass YouTube sign-in, DRM or anti-bot access restrictions, and it should not request passwords or raw session cookies.
+
+**GitHub-only supported next route:** If you own or are authorized to use the source, supply a public direct **HTTPS .mp4/.mov/.webm** file URL that allows automated access (or use a rights-cleared source with suitable public access). In a new native GitHub Issue request, select the same desired settings. Do not share a private link or upload footage to a public place unless you intend it to be public.
+
 ## Start now — 100% GitHub, no Apper, no external app
 
 **[✂ Open GitHub's native CutNova URL form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml)**
