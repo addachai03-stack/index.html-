@@ -29,7 +29,7 @@ def verify_video(path: Path) -> dict:
             "width": stream.get("width"), "height": stream.get("height")}
 
 
-def compare_hindi_raster(source: Path, with_hindi: Path, temp: Path) -> float:
+def compare_hindi_raster(source: Path, with_hindi: Path, temp: Path, at_time: float = 2.0) -> float:
     """Check text changed the lower safe caption region at matched timestamps."""
     try:
         import cv2
@@ -38,7 +38,7 @@ def compare_hindi_raster(source: Path, with_hindi: Path, temp: Path) -> float:
         b = temp / "with_hindi.png"
         for video, image in ((source, a), (with_hindi, b)):
             run(["ffmpeg", "-nostdin", "-v", "error", "-y",
-                 "-ss", "2", "-i", str(video), "-frames:v", "1", str(image)], timeout=60)
+                 "-ss", str(at_time), "-i", str(video), "-frames:v", "1", str(image)], timeout=60)
         x = cv2.imread(str(a))
         y = cv2.imread(str(b))
         if x is None or y is None:
