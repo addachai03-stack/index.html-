@@ -149,6 +149,12 @@ def transcribe(source: Path, work: Path, language: str = "auto") -> tuple[list[S
         kwargs = {"vad_filter": True, "beam_size": 2, "word_timestamps": True}
         if hint is not None:
             kwargs["language"] = hint
+        if choice == "hi":
+            # Script guidance only; not a transcript. ASR still derives all
+            # words from the audio, and output is verified before claiming Hindi.
+            kwargs["initial_prompt"] = (
+                "यह हिन्दी भाषा की आवाज़ है। हिन्दी प्रतिलेखन देवनागरी लिपि में लिखें।"
+            )
 
         def collect(parts) -> tuple[list[Segment], int]:
             found: list[Segment] = []
