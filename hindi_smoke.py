@@ -6,6 +6,7 @@ nor current social-video downloadability.
 """
 from __future__ import annotations
 import json
+import os
 import re
 from pathlib import Path
 
@@ -22,8 +23,10 @@ def main() -> None:
     out.mkdir(exist_ok=True)
     work = out / "_hindi_work"
     work.mkdir(exist_ok=True)
-    report = {"source_type": "original espeak-ng Hindi synthetic audio",
-              "natural_speech_test": False, "status": "started"}
+    source_type = os.environ.get("CUTNOVA_TEST_SOURCE", "synthetic espeak-ng Hindi speech")
+    report = {"source_type": source_type,
+              "natural_speech_test": source_type.startswith("licensed human speech"),
+              "status": "started"}
     try:
         speech, meta = transcribe(source, work, language="hi")
         full_text = " ".join(s.text for s in speech)
@@ -49,7 +52,12 @@ def main() -> None:
         clean = out / "hindi_unsubtitled_reference.mp4"
         render(source, captioned, clip, sub, crop["crop_x"])
         render(source, clean, clip, None, crop["crop_x"])
-        pixel_difference = compare_hindi_raster(clean, captioned, work)
+        sample_points = (2.0, 5.0, 8.0, 11.5)
+        pixel_deltas = [compare_hindi_raster(clean, captioned, work, at_time=t)
+                        for t in sample_points]
+        pixel_difference = max(pixel_deltas)
+        report["caption_sample_times_seconds"] = list(sample_points)
+        report["caption_pixel_deltas"] = [round(x, 3) for x in pixel_deltas]
         report["caption_pixel_delta"] = round(pixel_difference, 3)
         report["video"] = verify_video(captioned)
         report["status"] = "completed" if pixel_difference > 0.5 else "failed"
