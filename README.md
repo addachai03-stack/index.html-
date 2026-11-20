@@ -52,6 +52,20 @@ To optionally enable GitHub Pages yourself:
 
 Actual MP4 files were inspected with FFprobe. The royalty-free test video yielded no detected speech, so no invented SRT captions or fabricated scene-specific claims were added. A source containing speech is still needed to verify burned-in Hindi/English subtitles end-to-end.
 
+## Verified — Hindi speech captured from a licensed human narrator
+
+[Successful GitHub Actions human Hindi voice proof](https://github.com/addachai03-stack/index.html-/actions/runs/44824099925) used [Wikimedia Commons — Hindi Dengue Introduction.ogg](https://commons.wikimedia.org/wiki/File:Hindi_Dengue_Introduction.ogg), by **Satyam Singh (Satyam.mgs)**, under **Creative Commons Attribution-ShareAlike 3.0**. The sample derivative includes `ATTRIBUTION.txt` and is shared under that compatible CC BY-SA license, not the CutNova code's MIT license. Audio was trimmed to a ~20-second excerpt and set over an original FFmpeg video test pattern.
+
+Verified from the completed artifact and FFprobe, not merely claimed by job status:
+
+- Whisper **small**, with Hindi language hint and Devanagari guidance: recognized **8 word-timed caption phrases** with **130 Devanagari codepoints**. Not perfect transcription: multiple Hindi words were misspelled, so users **must review subtitles before posting**.
+- `hindi_asr_recognized.srt` contains real ASR-derived Hindi caption lines with timestamps.
+- `hindi_asr_captioned_short.mp4` is **15.0 seconds, 720×1280, H.264/AAC**.
+- Compared with an uncaptioned reference, lower-region subtitle pixel differences ranged **9.215–22.108** over several frames, confirming visible burned captions.
+- The artifact includes MP4, SRT, `hindi_asr_report.json`, uncaptioned reference and creator attribution. GitHub artifact retention was configured for **4 days**; downloads may expire.
+
+Earlier synthetic Hindi voice attempts failed because Whisper returned no Devanagari or sometimes rendered Urdu script. The licensed *human* Hindi proof above succeeded; **this is an integration proof, not a measured accuracy benchmark**. Natural voices/accent differences and Hinglish words still require manual QA. URL importer restrictions and center/face-aware cropping limits remain.
+
 ## New: Hindi/English speech recognition + word-aligned captions
 
 The GitHub-only URL form now has **Speech language**:
