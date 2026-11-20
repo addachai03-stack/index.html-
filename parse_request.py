@@ -9,6 +9,7 @@ import re
 import sys
 
 from studio import validate_url
+from premium import normalize_style
 
 
 FORM_LABELS = {
@@ -16,6 +17,7 @@ FORM_LABELS = {
     "Number of Shorts": "CLIPS",
     "Minimum clip length (seconds)": "MIN_SECONDS",
     "Maximum clip length (seconds)": "MAX_SECONDS",
+    "Highlight style": "STYLE",
 }
 RIGHTS_LABEL = "Content ownership and permission"
 RIGHTS_TEXT = "I own this video or have permission to edit and republish its content."
@@ -49,7 +51,7 @@ def issue_form_fields(body: str) -> dict[str, str]:
 def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
-        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS):[ \t]*(.+?)[ \t]*", line.strip())
+        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE):[ \t]*(.+?)[ \t]*", line.strip())
         if match and match[1] not in fields:
             fields[match[1]] = match[2]
     return fields
@@ -68,6 +70,14 @@ def parse_issue(body: str) -> dict:
     if fields["RIGHTS"].upper() != "YES":
         raise ValueError("Content ownership or edit permission is required.")
     url = validate_url(fields["URL"])
+    raw_style = fields.get("STYLE", "engagement").strip().lower()
+    display_styles = {
+        "engagement — strong hooks and reveals": "engagement",
+        "funny — jokes and reactions": "funny",
+        "facts — interesting explainers": "facts",
+        "story — suspense and twists": "story",
+    }
+    style = normalize_style(display_styles.get(raw_style, raw_style))
     try:
         clip_count = int(fields["CLIPS"])
         min_seconds = int(fields["MIN_SECONDS"])
@@ -81,6 +91,7 @@ def parse_issue(body: str) -> dict:
         "clips": clip_count,
         "min_sec": min_seconds,
         "max_sec": max_seconds,
+        "style": style,
     }
 
 
