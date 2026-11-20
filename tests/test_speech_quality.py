@@ -1,9 +1,11 @@
 import unittest
 from types import SimpleNamespace
-from speech_quality import normalize_language, whisper_settings, group_word_timings
+from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
 from studio import Segment, Candidate, captions_for
 from pathlib import Path
 import tempfile
+import wave
+import struct
 
 
 def word(start, end, text):
@@ -22,6 +24,36 @@ class TestSpeechLanguage(unittest.TestCase):
         self.assertEqual(whisper_settings("hi"), ("base", "hi"))
         self.assertEqual(whisper_settings("en"), ("tiny", "en"))
         self.assertEqual(whisper_settings("auto"), ("tiny", None))
+
+
+class TestAudibleRetrySafety(unittest.TestCase):
+    def test_silent_clip_is_not_retried(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "silent.wav"
+            with wave.open(str(path), "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(16000)
+                wav.writeframes(bytes(32000))
+            self.assertFalse(has_audible_speech_candidate(path))
+
+    def test_audible_clip_can_be_retried(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "audible.wav"
+            samples = b"".join(struct.pack("<h", 5000 if i % 2 else -5000)
+                               for i in range(16000))
+            with wave.open(str(path), "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(16000)
+                wav.writeframes(samples)
+            self.assertTrue(has_audible_speech_candidate(path))
+
+    def test_invalid_wave_is_not_retried(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "bad.wav"
+            path.write_bytes(b"not wave")
+            self.assertFalse(has_audible_speech_candidate(path))
 
 
 class TestWhisperWordTimings(unittest.TestCase):
