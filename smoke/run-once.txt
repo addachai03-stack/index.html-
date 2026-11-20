@@ -1,0 +1,1 @@
+One-time smoke test (2026-11-20): validate actual portrait MP4 rendering from royalty-free remotion.media sample, no social video redistribution.
