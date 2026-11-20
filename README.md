@@ -52,6 +52,17 @@ To optionally enable GitHub Pages yourself:
 
 Actual MP4 files were inspected with FFprobe. The royalty-free test video yielded no detected speech, so no invented SRT captions or fabricated scene-specific claims were added. A source containing speech is still needed to verify burned-in Hindi/English subtitles end-to-end.
 
+## Smart portrait framing — GitHub-only next phase
+
+The GitHub-native [CutNova Shorts form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml) now includes **Smart crop mode**:
+
+- **Auto** (default): sample several frames within each selected Short, detect frontal faces using OpenCV's local classifier, compute a stable horizontal crop around the median detected face; fallback to centered crop when faces cannot be identified.
+- **Center**: always produce a centered 9:16 crop as before.
+
+**Scope:** this is per-clip **static face-aware re-framing**, **not continuous tracking**. It may not detect side profiles, faces inside cartoons, multiple speakers, or small/occluded faces. Each clip's `manifest.json` now records `framing.method`, `crop_x`, and the number of detected face-containing sample frames so you can verify whether face detection worked. No face model is uploaded or sent to a third party.
+
+A separate repository-local GitHub Actions workflow also tests synthesized spoken-video transcription, timing, SRT export, FFmpeg burnt captions and a **manually supplied Hindi Devanagari font sample**. That font sample must not be confused with proof of Hindi ASR accuracy.
+
 ## Premium Shorts — new features
 
 The native [CutNova GitHub URL form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml) now offers four selectable **content-based highlight styles**:
