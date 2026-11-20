@@ -52,6 +52,18 @@ To optionally enable GitHub Pages yourself:
 
 Actual MP4 files were inspected with FFprobe. The royalty-free test video yielded no detected speech, so no invented SRT captions or fabricated scene-specific claims were added. A source containing speech is still needed to verify burned-in Hindi/English subtitles end-to-end.
 
+## New: Hindi/English speech recognition + word-aligned captions
+
+The GitHub-only URL form now has **Speech language**:
+
+- **Auto** (default): detect language with Whisper `tiny`.
+- **Hindi**: use Whisper `base` on CPU with an explicit Hindi (`hi`) hint for improved Devanagari transcription.
+- **English**: use Whisper `tiny` with English (`en`) hint.
+
+Whisper word-level timestamps, when returned, are grouped into short readable caption phrases with their actual recognized word start/end times. When a speech segment has no usable word timings, the renderer falls back to the existing approximate segment timing. This is **ASR-generated text**, so names, Hinglish, background sounds and nonstandard accents can still be wrong.
+
+A dedicated [synthetic Hindi audio proof workflow](https://github.com/addachai03-stack/index.html-/actions/workflows/hindi-proof.yml) checks original synthesized Hindi speech → Whisper recognition → Devanagari text → caption SRT → portrait MP4. It is *not* a natural human Hindi speech benchmark. The completed run's verification report records actual results; no success is assumed before it passes.
+
 ## Verified caption + portrait smoke test (GitHub Actions)
 
 [Successful speech-caption and smart crop proof run](https://github.com/addachai03-stack/index.html-/actions/runs/44820527736) generated a synthetic 16-second source video with a spoken voice using GitHub Actions, then independently checked:
