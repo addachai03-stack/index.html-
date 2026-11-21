@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.6</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.7</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -166,6 +166,10 @@
           <p id="edit-check-status" role="status" aria-live="polite">Checking local browser recording features…</p>
           <a id="edit-export-fallback" class="job-link" href="#studio" hidden>OPEN AI TAB FOR AUTHORIZED PUBLIC VIDEO ↗</a>
           <p class="footnote">Tests synthetic video and audio only. No uploads or access to your Photos. Browser support and full-video editing may differ from this short test.</p>
+          <div class="full-export-demo">
+            <button id="edit-prepare-test" type="button" class="btn btn-lime">PREPARE FULL EXPORT TEST VIDEO</button>
+            <p id="edit-prepare-status" role="status" aria-live="polite">Creates an original 5-second video on your phone, then opens it in the real editor for a 3-second MP4/WebM export. Your rights checkbox and download remain manual.</p>
+          </div>
         </section>
         <label class="edit-file-label">CHOOSE VIDEO <input id="edit-file" type="file" accept="video/*,.mp4,.mov,.webm"/></label>
         <div id="edit-fields" hidden>
@@ -256,6 +260,7 @@
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>
   <script defer src="./export-check.js"></script>
+  <script defer src="./full-export-test.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
   <script defer src="./launch.js"></script>
