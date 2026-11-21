@@ -116,6 +116,8 @@ class TestCreatorCopy(unittest.TestCase):
             self.assertIn("caption", row)
             self.assertIn("description", row)
             self.assertIn("hook", row)
+            self.assertEqual(len(row["hook_options"]), 3)
+            self.assertTrue(all(row["hook"] in row["hook_options"] for _ in [0]))
             self.assertTrue(row["source_speech_detected"])
             self.assertTrue(all(h in row["caption"] for h in row["hashtags"].split()))
         with tempfile.TemporaryDirectory() as folder:
@@ -134,10 +136,13 @@ class TestCreatorCopy(unittest.TestCase):
         self.assertIn("Review the footage", row["description"])
         self.assertNotIn("#river", row["hashtags"])
         self.assertIn("add a verified hook", row["hook"])
+        self.assertEqual(len(row["hook_options"]), 1)
 
     def test_hindi_and_hinglish_hashtags_are_not_generic_only(self):
         self.assertIn("#कहानी", topic_hashtags("एक कहानी जिसमें कहानी बदलती है", "story"))
         self.assertIn("#jaipur", topic_hashtags("Jaipur Jaipur travel sunset view", "engagement"))
+        hindi=build_creator_records([Candidate(0,30,.6,"source","क्या आप जानते हैं यह कहानी?", "speech")], "story", "https://example.com/own.mp4")[0]
+        self.assertTrue(hindi["hook"].startswith("ये सुनिए"))
 
     def test_exact_duration_and_source_too_short(self):
         self.assertTrue(all(round(c.end-c.start, 2)==30 for c in
