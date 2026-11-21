@@ -15,7 +15,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
-from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
+from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack, build_creator_records
 from tracking_crop import crop_filter
 from hook_rank import tokens, hook_strength, opening_strength, speech_coverage, strongest_phrase, best_nonoverlap
 from pacing import normalize_pacing, detect_silences, keep_intervals, remap_speech, trim_media
@@ -354,6 +354,7 @@ def main() -> int:
         scenes = detect_scenes(video)
         speech, asr = transcribe(video, work, a.language)
         choices = pick_clips(speech, scenes, duration, a.clips, a.min_seconds, a.max_seconds, a.style)
+        creator_records = build_creator_records(choices, a.style, url)
         manifest = {"source": url, "duration": duration, "asr": asr, "scenes": len(scenes),
                     "style": a.style,
                     "crop_mode": a.crop,
@@ -421,8 +422,9 @@ def main() -> int:
             item["animated_timing_events"] = timing
             item["pacing"] = {"mode":a.pacing,"note":pacing_note,"kept_source_relative_intervals":kept,"duration_before":duration_before,"duration_after":render_cut.end-render_cut.start}
             item["framing"] = crop_info
+            item["creator"] = {name: creator_records[i-1][name] for name in ("title","hook","description","caption","hashtags","topic_keywords","disclaimer")}
             manifest["clips"].append(item)
-        create_creator_pack(choices, output, a.style, url)
+        create_creator_pack(choices, output, a.style, url, records=creator_records)
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False),
                                               encoding="utf-8")
         archive = output / "CutNova_Shorts.zip"
