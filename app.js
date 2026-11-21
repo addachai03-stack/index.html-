@@ -304,7 +304,8 @@ function buildIssueUrl() {
 }
 
 function updateRights() {
-  const validDuration = Number(elements.min.value) <= Number(elements.max.value);
+  const min=Number(elements.min.value),max=Number(elements.max.value),count=Number(elements.clips.value);
+  const validDuration = Number.isInteger(min)&&Number.isInteger(max)&&min>=15&&max<=60&&min<=max&&Number.isInteger(count)&&count>=1&&count<=10;
   const accepted = !!(current && elements.rights.checked && validDuration);
   const downloadable=!!(current&&["video","candidate","github-upload"].includes(current.kind));
   elements.action.textContent=downloadable?"✦ IMPORT VIDEO & PREPARE CUTS →":"✂ CHOOSE SAVED VIDEO TO EDIT →";
@@ -314,7 +315,7 @@ function updateRights() {
   quick.advanced.setAttribute("aria-disabled", String(!accepted));
   quick.advanced.href = accepted ? buildIssueUrl() : "#";
   elements.rightsTip.textContent = !validDuration
-    ? "Minimum clip length maximum se badi nahi ho sakti."
+    ? "Use 1–10 clips and min/max lengths from 15–60 seconds. Set both to 30 for exact 30-second clips."
     : accepted
       ? (downloadable ? "Imports an authorized video into CutNova if the source allows browser downloads (CORS). No GitHub redirect." : "Social URL can be previewed but not converted here. This button opens your phone's file picker for your own saved video.")
       : "Confirm rights to enable local editing. Social links need an authorized saved video; direct links need browser CORS access.";
@@ -329,7 +330,7 @@ elements.form.addEventListener("submit", event => {
     drawSource(current);
     const downloadable=["video","candidate","github-upload"].includes(current.kind);
     if(!elements.rights.checked){
-      showMessage("Link recognized, but clips are not started. Tick the rights checkbox above and tap CHECK & PREPARE CUTS again.",false);
+      showMessage("Link recognized, but clips are not started. Tick the rights checkbox above and tap LOCAL CUTS again.",false);
       elements.rights.focus({preventScroll:true});
       return;
     }
@@ -338,7 +339,7 @@ elements.form.addEventListener("submit", event => {
       elements.action.click();
     }else{
       quick.count.value=String(elements.clips.value);
-      quick.length.value=String([15,30,45,60].reduce((a,b)=>Math.abs(b-Number(elements.max.value))<Math.abs(a-Number(elements.max.value))?b:a,15));
+      quick.length.value=String(Number(elements.max.value));
       quick.rights.checked=true;
       awaitingSocialFile=true;
       showMessage("This is a social video page, not an MP4 file. CutNova cannot auto-download its video. Choose an authorized saved video from your phone to create timed cuts now.",false);
@@ -352,14 +353,34 @@ elements.form.addEventListener("submit", event => {
   }
 });
 
+
+// Separate owner-only server-side AI path. Social URLs may be blocked upstream.
+byId("ai-url-start")?.addEventListener("click",()=>{
+  clearMessage();
+  try{
+    current=providerFor(elements.input.value);
+    awaitingSocialFile=false;
+    drawSource(current);
+    const ownerPanel=byId("owner-render-tools");
+    if(ownerPanel)ownerPanel.open=true;
+    if(!elements.rights.checked){
+      showMessage("AI render requires editing/republishing rights. Tick the rights checkbox, set your clip seconds and use START PRIVATE AI RENDER with the saved owner key.",false);
+      elements.rights.focus({preventScroll:true});
+    }else{
+      showMessage("AI Shorts setup ready. Customize count and seconds below. In the secure owner panel enter your saved owner key and tap START PRIVATE AI RENDER. Platforms may block video downloading.",true);
+    }
+    (ownerPanel||elements.panel).scrollIntoView({block:"start",behavior:"smooth"});
+  }catch(error){current=null;elements.panel.hidden=true;showMessage(error.message||"Enter a valid public HTTPS video URL.",false);}
+});
+
 elements.rights.addEventListener("change", updateRights);
 [elements.clips,elements.min,elements.max,elements.style,elements.language,elements.crop,elements.script,elements.captionStyle,elements.pacing].forEach(field => field.addEventListener("change", updateRights));
 elements.action.addEventListener("click", async () => {
-  if(!current||!elements.rights.checked||Number(elements.min.value)>Number(elements.max.value)){
+  if(!current||!elements.rights.checked||!Number.isInteger(Number(elements.min.value))||Number(elements.min.value)<15||Number(elements.max.value)>60||Number(elements.min.value)>Number(elements.max.value)||!Number.isInteger(Number(elements.clips.value))||Number(elements.clips.value)<1||Number(elements.clips.value)>10){
     showMessage("Choose a valid source and confirm rights.",false);return;
   }
-  quick.count.value=String([1,3,6,10].reduce((a,b)=>Math.abs(b-Number(elements.clips.value))<Math.abs(a-Number(elements.clips.value))?b:a,1));
-  quick.length.value=String([15,30,45,60].reduce((a,b)=>Math.abs(b-Number(elements.max.value))<Math.abs(a-Number(elements.max.value))?b:a,15));
+  quick.count.value=String(Number(elements.clips.value));
+  quick.length.value=String(Number(elements.max.value));
   quick.rights.checked=true;
   if(!["video","candidate","github-upload"].includes(current.kind)){
     awaitingSocialFile=true;
@@ -379,7 +400,7 @@ elements.action.addEventListener("click", async () => {
   }finally{quickBusy=false;updateRights();}
 });
 quick.advanced.addEventListener("click",event=>{
-  if(!current||!elements.rights.checked||Number(elements.min.value)>Number(elements.max.value)){
+  if(!current||!elements.rights.checked||!Number.isInteger(Number(elements.min.value))||Number(elements.min.value)<15||Number(elements.max.value)>60||Number(elements.min.value)>Number(elements.max.value)||!Number.isInteger(Number(elements.clips.value))||Number(elements.clips.value)<1||Number(elements.clips.value)>10){
     event.preventDefault();showMessage("Confirm rights first. GitHub is public.",false);
   }
 });
