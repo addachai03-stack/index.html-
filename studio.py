@@ -18,6 +18,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
+from roman_captions import caption_text
 from github_media import is_github_attachment_url, download_github_attachment
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
@@ -270,7 +271,7 @@ def stamp(sec: float) -> str:
     ms = int(round(max(0, sec)*1000))
     return f"{ms//3600000:02}:{ms//60000%60:02}:{ms//1000%60:02},{ms%1000:03}"
 
-def captions_for(cut: Candidate, segments: list[Segment], target: Path) -> bool:
+def captions_for(cut: Candidate, segments: list[Segment], target: Path, script: str = "original") -> bool:
     """Readable short subtitles that keep all recognized words.
 
     Word timings inside each ASR segment are approximations; review them.
@@ -278,7 +279,7 @@ def captions_for(cut: Candidate, segments: list[Segment], target: Path) -> bool:
     lines = []
     for seg in segments:
         for s, e, text in distribute_subtitles(
-            seg.start, seg.end, seg.text, cut.start, cut.end, max_chars=32
+            seg.start, seg.end, caption_text(seg.text, script), cut.start, cut.end, max_chars=32
         ):
             if e > s:
                 lines.append(f"{len(lines)+1}\n{stamp(s)} --> {stamp(e)}\n{text}\n")
@@ -317,6 +318,7 @@ def main() -> int:
     p.add_argument("--style", choices=["engagement","funny","facts","story"], default="engagement")
     p.add_argument("--crop", choices=["auto", "center"], default="auto")
     p.add_argument("--language", choices=["auto", "hi", "en"], default="auto")
+    p.add_argument("--caption-script", choices=["original", "roman"], default="original")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -347,12 +349,15 @@ def main() -> int:
                     "style": a.style,
                     "crop_mode": a.crop,
                     "speech_language": a.language,
+                    "caption_script": a.caption_script,
                     "note": "AI-assisted cues, not a guarantee of views or shares.",
                     "clips": []}
         for i, cut in enumerate(choices, 1):
             base = f"short_{i:02}"
             sub = output / (base + ".srt")
-            has_captions = captions_for(cut, speech, sub)
+            has_captions = captions_for(cut, speech, sub, a.caption_script)
+            original = output / (base + ".original.srt")
+            original_saved = a.caption_script == "roman" and captions_for(cut, speech, original)
             target = output / (base + ".mp4")
             crop_info = compute_crop(video, width, height, cut.start, cut.end, a.crop)
             print(f"Rendering Short #{i}: {cut.start}s -> {cut.end}s; crop: {crop_info['method']} at x={crop_info['crop_x']}", flush=True)
@@ -360,6 +365,7 @@ def main() -> int:
             item = asdict(cut)
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None
+            item["original_captions"] = original.name if original_saved else None
             item["framing"] = crop_info
             manifest["clips"].append(item)
         create_creator_pack(choices, output, a.style, url)
