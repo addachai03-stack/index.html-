@@ -64,11 +64,11 @@
           <label class="quick-source-label" for="quick-file">CHOOSE VIDEO FROM PHONE<input id="quick-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm"/></label>
           <div class="quick-select-row">
             <label>HOW MANY CUTS<select id="quick-count"><option value="1">1 Short</option><option value="3" selected>3 Shorts</option><option value="6">6 Shorts</option><option value="10">10 Shorts</option></select></label>
-            <label>LENGTH PER CUT<select id="quick-length"><option value="15" selected>15 seconds</option><option value="30">30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></label>
+            <label>MAX LENGTH / CUT<select id="quick-length"><option value="15" selected>15 seconds</option><option value="30">30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></label>
           </div>
           <label class="rights"><input type="checkbox" id="quick-rights"/><span>I own or have permission to edit this footage.</span></label>
           <button type="button" id="quick-generate" class="btn btn-lime">✦ PREPARE SHORTS ON PHONE</button>
-          <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. No uploads and no automatic AI highlight detection here. Actual Shorts are exported one at a time in the editor.</p>
+          <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. The number of feasible, mostly non-overlapping clips depends on video duration. Actual Shorts must be exported one at a time in the editor.</p>
           <div id="quick-results" class="quick-results" hidden></div>
         </div>
         <details id="source-url-tools" class="url-tools" open>
@@ -90,10 +90,10 @@
           <div id="embed-wrapper" class="embed-wrapper" hidden></div>
           <p id="source-clarity" class="source-clarity">This preview is the original source, not a generated Short. To export an MP4 from social video you own, select your saved source file.</p>
           <div class="settings-panel">
-            <div class="settings-title">CLIP SETTINGS <span>LOCAL TRIMMING</span></div>
-            <p class="footnote">On-phone clips use the number and maximum length settings below. Other highlight/caption/crop choices are for the separate owner-only GitHub AI workflow; they do not run automatically in Safari.</p>
+            <div class="settings-title">CLIP SETTINGS <span>LOCAL TIMED CUTS</span></div>
+            <p class="footnote">Local cutting uses requested clip count and minimum/maximum length to create feasible timed sections, not AI-ranked highlights. If your video is too short, fewer distinct cuts are made. Highlight, caption, pacing and crop controls below apply only to the owner-only GitHub AI renderer—not to the phone editor.</p>
             <div class="field-grid">
-              <label>NUMBER OF SHORTS<select id="clips-count"><option value="3">3 clips</option><option selected value="6">6 clips</option><option value="10">10 clips</option></select></label>
+              <label>REQUESTED SHORTS<select id="clips-count"><option value="3">3 clips</option><option selected value="6">6 clips</option><option value="10">10 clips</option></select></label>
               <label>MINIMUM LENGTH<select id="min-seconds"><option selected value="15">15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option></select></label>
               <label>MAXIMUM LENGTH<select id="max-seconds"><option value="30">30 seconds</option><option value="45">45 seconds</option><option selected value="60">60 seconds</option></select></label>
               <label>HIGHLIGHT STYLE<select id="highlight-style"><option selected value="engagement">Engagement & hooks</option><option value="funny">Funny moments</option><option value="facts">Facts & explainers</option><option value="story">Story & suspense</option></select></label>
