@@ -1,5 +1,14 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V4.1 — Actual social-video codec audit (on-device)
+
+After a local editor export, CutNova inspects **actual ISO BMFF/MP4 track descriptions** (the `stsd` atom inside each track), rather than trusting the filename, advertised MIME, or MediaRecorder.isTypeSupported. The checker skips media-data atoms without loading them and reads only MP4 headers plus a bounded `moov` box (up to 8 MiB). It also detects a WebM file hidden under an MP4 extension. It reports the observed video/audio codec names, e.g. `VP9 + Opus`, warns when the result is not a broadly compatible H.264/AAC combination, and reports unknown or malformed containers as **NOT VERIFIED**. A basic H.264/HEVC + `mp4a` sample-entry match is **not an upload guarantee**: the audio object type, actual bitrate, frame rate, profile, edit lists and platform-specific requirements are not fully checked. No video is uploaded, converted, shared or stored.
+
+This directly addresses the independently verified Chromium phone-sized browser export: the file was an MP4 container, but FFprobe found **VP9 video + Opus audio**, so posting compatibility cannot be assumed. Meta's Instagram Reels publishing reference lists H.264/HEVC video and AAC audio for publishing. A social upload is never attempted by the codec checker. The optional private GitHub AI renderer is separate, requires an authorized accessible public source, and is not triggered.
+
+Unit tests cover synthetic real MP4 track structures, H.264/AAC-compatible sample entries, VP9/Opus false confidence, moov at the end, unknown codecs and spoofed WebM containers. The mobile Chromium end-to-end QA verifies the on-screen verdict against independent FFprobe decoding. Headless WebKit may lack recording support; that is not falsely counted as confirmed iPhone Safari upload compatibility.
+
+
 ## V4.0 — iPhone Share Sheet / Save to Files (user-initiated)
 
 In LOCAL EDITOR, after a successful export the user can tap **SHARE / SAVE TO FILES**. CutNova sends the exact exported in-memory `File` through the native Web Share API (`navigator.canShare({files})` and `navigator.share({files})`), invoked only from a direct tap. The iOS share target is entirely user-controlled; choose **Save to Files** when it appears. No automatic transfer, sharing to other applications, upload, or background saving happens. Closing the Share Sheet does **not** prove that Files saved the video. The user can still use **DOWNLOAD SHORT**, then reselect the saved file in the V3.9 byte-for-byte verification control. When file sharing is unsupported, cancelled, or rejected, an accurate error and download fallback are shown. Audio audibility, H.264/AAC codec compatibility, iOS file persistence and social upload remain independently unverified until user-side checks.
