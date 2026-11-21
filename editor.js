@@ -12,10 +12,33 @@
     const scale=Math.max(ow/w,oh/h), sw=ow/scale, sh=oh/scale;
     return [(w-sw)/2,(h-sh)/2,sw,sh];
   }
-  function supportedType(recorder) {
-    if (!recorder || typeof recorder.isTypeSupported!=="function") return "";
-    return ["video/mp4;codecs=avc1.42001f,mp4a.40.2","video/mp4",
-      "video/webm;codecs=vp8,opus","video/webm"].find(t=>recorder.isTypeSupported(t))||"";
+  // Ask explicitly for both codecs when the browser reports support.
+  // Generic video/mp4 alone is not a codec request: Chromium has returned
+  // VP9/Opus inside an MP4 for a real CutNova export.
+  const SOCIAL_TYPES=[
+    "video/mp4;codecs=avc1.42001f,mp4a.40.2",
+    "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+    "video/mp4;codecs=avc1.424028,mp4a.40.2",
+    "video/mp4;codecs=avc1,mp4a.40.2"
+  ];
+  function requestedSocialType(recorder){
+    if(!recorder||typeof recorder.isTypeSupported!=="function")return "";
+    for(const type of SOCIAL_TYPES){
+      try{if(recorder.isTypeSupported(type))return type}catch(_){}
+    }
+    return "";
+  }
+  function supportedType(recorder){
+    if(!recorder||typeof recorder.isTypeSupported!=="function")return "";
+    const preferred=requestedSocialType(recorder);
+    if(preferred)return preferred;
+    for(const type of ["video/mp4","video/webm;codecs=vp8,opus","video/webm"]){
+      try{if(recorder.isTypeSupported(type))return type}catch(_){}
+    }
+    return "";
+  }
+  function selectedRecordingType(recorder,requireSocial){
+    return requireSocial?requestedSocialType(recorder):supportedType(recorder);
   }
   const PRESETS=["original","vivid","warm","mono"];
   function bounded(value,low,high,fallback){
@@ -84,13 +107,14 @@
       history.push({at:previous.updatedAt||now,settings:draftSettings(previous.settings)});
     return history.slice(-10);
   }
-  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,settings,durationValid,applyPixels,textLines,mixGains,musicOffset,draftName,draftSettings,nextHistory};return}
+  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,requestedSocialType,selectedRecordingType,settings,durationValid,applyPixels,textLines,mixGains,musicOffset,draftName,draftSettings,nextHistory};return}
   const id=name=>document.getElementById(name);
   const file=id("edit-file"),video=id("edit-video"),start=id("edit-start"),end=id("edit-end"),
     preview=id("edit-play"),save=id("edit-export"),cancel=id("edit-cancel"),
     message=id("edit-status"),result=id("edit-result"),download=id("edit-download"),
     progress=id("edit-progress"),fields=id("edit-fields"),durationLabel=id("edit-duration"),
     rights=id("edit-rights"),format=id("edit-format"),output=id("edit-output"),
+    requireSocial=id("edit-require-h264"),
     brightness=id("edit-brightness"),contrast=id("edit-contrast"),preset=id("edit-preset"),speed=id("edit-speed"),
     overlay=id("edit-text"),position=id("edit-position"),reset=id("edit-reset-effects"),
     musicFile=id("edit-music-file"),musicVolume=id("edit-music-volume"),originalVolume=id("edit-original-volume"),
@@ -109,8 +133,21 @@
   const ctx=canvas.getContext("2d",{alpha:false});
   const Audio=window.AudioContext||window.webkitAudioContext;
   const mime=supportedType(window.MediaRecorder);
+  const socialMime=requestedSocialType(window.MediaRecorder);
   const compatible=!!(mime&&Audio&&ctx&&typeof canvas.captureStream==="function");
-  format.textContent=compatible?(mime.startsWith("video/mp4")?"MP4 container supported — H.264/AAC codecs and social upload compatibility are not guaranteed; verify the saved file.":"WebM supported — MP4 unavailable. Social uploads may require conversion."):"Local preview supported, but export not supported by this browser (canvas recording/codec unavailable). For cloud AI export, use a permitted public HTTPS video URL in the AI tab. Saved phone files are not uploaded.";
+  function currentMime(){return selectedRecordingType(window.MediaRecorder,requireSocial.checked)}
+  function formatGuidance(){
+    if(!compatible)return "Local preview supported, but recording is not available on this browser. Only permitted publicly downloadable media URLs can use the private cloud AI renderer; iPhone files are not uploaded.";
+    if(requireSocial.checked){
+      return socialMime
+        ?"STRICT H.264/AAC REQUEST AVAILABLE — asks the browser to record both codecs. The actual MP4 tracks will be inspected after export. This is not transcoding or an Instagram upload guarantee."
+        :"STRICT MODE UNSUPPORTED — this browser does not advertise H.264 + AAC recording. Uncheck to allow its normal recording codecs. No conversion has been performed.";
+    }
+    return mime.startsWith("video/mp4")
+      ?"MP4 recording available. An MP4 container may still contain VP9/Opus; check SOCIAL VIDEO FORMAT CHECK after export."
+      :"WebM recording available. Social platforms may require H.264 + AAC MP4 conversion before posting.";
+  }
+  format.textContent=formatGuidance();
   function say(s){message.textContent=s}
   function times(){return [Number(start.value),Number(end.value),video.duration]}
   function options(){return settings({brightness:brightness.value,contrast:contrast.value,preset:preset.value,speed:speed.value,text:overlay.value,position:position.value})}
@@ -125,6 +162,8 @@
     draftRestore.disabled=locked||!activeDraft||!draftHistory.value;
     drafts.querySelectorAll("button").forEach(b=>b.disabled=locked);
     file.disabled=locked;start.disabled=locked;end.disabled=locked;rights.disabled=locked;
+    requireSocial.disabled=locked;
+    format.textContent=formatGuidance();
     [musicFile,musicVolume,originalVolume,mute,loop].forEach(el=>el.disabled=locked||!Audio);
     removeMusic.disabled=locked||!music;
     id("edit-original-volume-value").textContent=mute.checked?"Muted":originalVolume.value+"%";
@@ -132,10 +171,14 @@
     [brightness,contrast,preset,speed,overlay,position,reset].forEach(el=>el.disabled=locked);
     id("edit-brightness-value").textContent=brightness.value+"%";id("edit-contrast-value").textContent=contrast.value+"%";
     preview.disabled=locked||!ready||!valid();
-    save.disabled=locked||!ready||!valid()||!compatible||!rights.checked;
+    save.disabled=locked||!ready||!valid()||!compatible||!currentMime()||!rights.checked;
     cancel.disabled=!busy;
     durationLabel.textContent=valid()?((Number(end.value)-Number(start.value))/options().speed).toFixed(2)+" sec estimated output at "+options().speed+"×":"Select a valid trim with 1–60 seconds output";
   }
+  requireSocial.addEventListener("change",()=>{
+    if(busy||preparing||draftBusy)return;
+    resetPreview();clearOutput();update();
+  });
   function clearOutput(){
     window.dispatchEvent(new Event("cutnova:export-reset"));
     output.pause();output.removeAttribute("src");output.load();
@@ -484,7 +527,7 @@
     }
   }
   save.addEventListener("click",async()=>{
-    if(busy||preparing||draftBusy||pendingDraft||!compatible||!valid()||!rights.checked)return;
+    if(busy||preparing||draftBusy||pendingDraft||!compatible||!valid()||!currentMime()||!rights.checked)return;
     // Start AudioContext from the user's click; never silently export
     // without the browser's required audio support.
     busy=true;aborted=false;progress.value=0;resetPreview();clearOutput();update();
@@ -509,14 +552,16 @@
       tracks.push(...audioTracks);
       audioTracks.forEach(t=>stream.addTrack(t));
       if(!stream.getAudioTracks().length||!stream.getVideoTracks().length)throw Error("Audio/video capture unavailable.");
-      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:2200000,audioBitsPerSecond:128000});
+      const requestedMime=currentMime();
+      if(!requestedMime)throw Error("Strict H.264/AAC recording is unsupported on this browser. Uncheck strict mode to use normal export.");
+      recorder=new MediaRecorder(stream,{mimeType:requestedMime,videoBitsPerSecond:2200000,audioBitsPerSecond:128000});
       const rec=recorder;
       rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
       rec.onerror=()=>{aborted=true;if(finish)finish(true);say("Recording error; no file created.")};
       rec.onstop=()=>{
         try{
           if(aborted||!chunks.length){say("Export cancelled or failed. No file created.");return}
-          const type=rec.mimeType||chunks[0].type||mime;
+          const type=rec.mimeType||chunks[0].type||requestedMime;
           const blob=new Blob(chunks,{type});
           if(blob.size<1024)throw Error("Recorded output is empty.");
           const ext=type.toLowerCase().includes("mp4")?"mp4":type.toLowerCase().includes("webm")?"webm":"";
@@ -524,8 +569,8 @@
           outputUrl=URL.createObjectURL(blob);output.src=outputUrl;
           download.href=outputUrl;download.download="CutNova_Manual_Short."+ext;
           result.hidden=false;progress.value=100;
-          window.dispatchEvent(new CustomEvent("cutnova:export-ready",{detail:{blob}}));
-          say("Export recorded: "+ext.toUpperCase()+" · "+(blob.size/1048576).toFixed(2)+" MiB. Preview and play the downloaded file. MP4 extension alone does not guarantee H.264/AAC or compatibility with every social platform.");
+          window.dispatchEvent(new CustomEvent("cutnova:export-ready",{detail:{blob,strictSocial:requireSocial.checked,requestedMime}}));
+          say("Export recorded: "+ext.toUpperCase()+" · "+(blob.size/1048576).toFixed(2)+" MiB. "+(requireSocial.checked?"H.264 + AAC explicitly requested; confirm actual codecs in SOCIAL VIDEO FORMAT CHECK. ":"")+"Preview and play the downloaded file. MP4 extension alone is not an Instagram compatibility guarantee.");
         }catch(e){say(e.message||"Export failed.")}
         finally{cleanup()}
       };
