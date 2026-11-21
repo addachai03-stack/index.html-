@@ -12,7 +12,8 @@ const elements = {
   provider: byId("source-provider"), original: byId("source-original"),
   frame: byId("embed-wrapper"), message: byId("message"), rights: byId("rights-confirm"),
   rightsTip: byId("rights-tip"), action: byId("submit-request"),
-  clips: byId("clips-count"), min: byId("min-seconds"), max: byId("max-seconds")
+  clips: byId("clips-count"), min: byId("min-seconds"), max: byId("max-seconds"),
+  style: byId("highlight-style"), language: byId("speech-language"), crop: byId("smart-crop")
 };
 let current = null;
 
@@ -138,6 +139,9 @@ function buildIssueUrl() {
     "CLIPS: "+elements.clips.value,
     "MIN_SECONDS: "+elements.min.value,
     "MAX_SECONDS: "+elements.max.value,
+    "STYLE: "+elements.style.value,
+    "LANGUAGE: "+elements.language.value,
+    "CROP: "+elements.crop.value,
     "RIGHTS: YES",
     "",
     "I own this video or have permission to edit and republish its content.",
@@ -177,11 +181,11 @@ elements.form.addEventListener("submit", event => {
 });
 
 elements.rights.addEventListener("change", updateRights);
-[elements.clips,elements.min,elements.max].forEach(field => field.addEventListener("change", updateRights));
+[elements.clips,elements.min,elements.max,elements.style,elements.language,elements.crop].forEach(field => field.addEventListener("change", updateRights));
 elements.action.addEventListener("click", event => {
-  if (!current || !elements.rights.checked) {
+  if (!current || !elements.rights.checked || Number(elements.min.value) > Number(elements.max.value)) {
     event.preventDefault();
-    showMessage("Video ke editing rights confirm karo.",false);
+    showMessage("Valid clip duration aur video editing rights confirm karo.",false);
   }
 });
 byId("copy-url").addEventListener("click", async () => {
