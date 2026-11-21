@@ -18,6 +18,10 @@ on:
       - "app.js"
       - "jobs.js"
       - "editor.js"
+      - "pwa.js"
+      - "sw.js"
+      - "manifest.webmanifest"
+      - "icons/**"
       - "index.html"
       - "styles.css"
       - "tests/**"
@@ -52,3 +56,6 @@ jobs:
           node tests/test_jobs.cjs
           node --check editor.js
           node tests/test_editor.cjs
+          node --check pwa.js
+          node --check sw.js
+          node tests/test_pwa.cjs

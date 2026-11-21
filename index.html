@@ -6,19 +6,27 @@
   <meta name="theme-color" content="#0c0d11"/>
   <meta name="description" content="CutNova — premium AI-assisted 15–60 second Shorts from long videos. iPhone-friendly URL-to-clips workflow powered by GitHub Actions."/>
   <title>CutNova — AI Shorts Studio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="manifest" href="./manifest.webmanifest"/>
+  <link rel="icon" href="./icons/icon-192.png" type="image/png"/>
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="CutNova"/>
   <link rel="stylesheet" href="./styles.css"/>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.3</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.4</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
+      <aside class="pwa-panel" aria-label="Install and offline status">
+        <div><strong>CutNova mobile app</strong><p id="pwa-status" role="status" aria-live="polite">Checking offline availability…</p><p id="pwa-instructions">Open in Safari to add CutNova to your Home Screen.</p></div>
+        <button id="pwa-install" type="button" class="btn btn-outline">INSTALL / ADD TO HOME</button>
+        <a href="#local-editor" class="btn btn-lime">LOCAL EDITOR ↓</a>
+      </aside>
       <div class="eyebrow"><span class="eyebrow-line"></span> CREATE. CLIP. GO VIRAL-READY.</div>
       <section class="hero">
         <div class="hero-copy">
@@ -162,5 +170,6 @@
   <script type="module" src="./app.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>
+  <script defer src="./pwa.js"></script>
 </body>
 </html>
