@@ -72,7 +72,19 @@
     if(loop)return elapsed%musicDuration;
     return elapsed<musicDuration?elapsed:null;
   }
-  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,settings,durationValid,applyPixels,textLines,mixGains,musicOffset};return}
+  function draftName(value){return String(value??"").trim().replace(/\s+/g," ").slice(0,60)||"Untitled Short"}
+  function draftSettings(raw={}){
+    return {...settings(raw),start:bounded(raw.start,0,86400,0),end:bounded(raw.end,0,86400,15),
+      originalVolume:bounded(raw.originalVolume,0,100,100),musicVolume:bounded(raw.musicVolume,0,100,20),
+      mute:raw.mute===true,loop:raw.loop!==false};
+  }
+  function nextHistory(previous,current,now){
+    const history=Array.isArray(previous?.history)?previous.history.slice(-9):[];
+    if(previous?.settings&&JSON.stringify(previous.settings)!==JSON.stringify(current))
+      history.push({at:previous.updatedAt||now,settings:draftSettings(previous.settings)});
+    return history.slice(-10);
+  }
+  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,settings,durationValid,applyPixels,textLines,mixGains,musicOffset,draftName,draftSettings,nextHistory};return}
   const id=name=>document.getElementById(name);
   const file=id("edit-file"),video=id("edit-video"),start=id("edit-start"),end=id("edit-end"),
     preview=id("edit-play"),save=id("edit-export"),cancel=id("edit-cancel"),
@@ -85,6 +97,8 @@
     mute=id("edit-mute"),loop=id("edit-music-loop"),removeMusic=id("edit-remove-music"),musicStatus=id("edit-music-status");
   if(!file||!video)return;
   let sourceUrl="",outputUrl="",audioContext=null,audioSource=null,audioDestination=null;
+  let sourceFile=null,activeDraft=null,pendingDraft=null,dbPromise=null,draftBusy=false;
+  const drafts=id("edit-draft-list"),draftTitle=id("edit-draft-title"),draftSave=id("edit-draft-save"),draftNew=id("edit-draft-new"),draftStatus=id("edit-draft-status"),draftHistory=id("edit-draft-history"),draftRestore=id("edit-draft-restore");
   let busy=false,preparing=false,previewEnd=null,recorder=null,aborted=false,finish=null,raf=0,stalledTimer=0;
   let originalGain=null,musicGain=null,mixBus=null,music=null,musicBuffer=null,musicNode=null,mixStart=null;
   const canvas=id("edit-canvas");
@@ -105,7 +119,11 @@
   function update(){
     const d=video.duration;
     const ready=Number.isFinite(d)&&d>0;
-    const locked=busy||preparing;
+    const locked=busy||preparing||draftBusy;
+    draftSave.disabled=locked||!sourceFile||!ready||!valid()||!window.indexedDB;
+    draftTitle.disabled=locked;draftNew.disabled=locked;draftHistory.disabled=locked;
+    draftRestore.disabled=locked||!activeDraft||!draftHistory.value;
+    drafts.querySelectorAll("button").forEach(b=>b.disabled=locked);
     file.disabled=locked;start.disabled=locked;end.disabled=locked;rights.disabled=locked;
     [musicFile,musicVolume,originalVolume,mute,loop].forEach(el=>el.disabled=locked||!Audio);
     removeMusic.disabled=locked||!music;
@@ -186,27 +204,160 @@
       try{video.currentTime=t}catch(e){fail()}
     })
   }
-  file.addEventListener("change",()=>{
-    if(busy||preparing)return;
+  // A draft is one record, containing local media blobs and explicit settings.
+  // No cloud synchronization and no automatic storage of media.
+  function openDraftDB(){
+    if(!window.indexedDB)return Promise.reject(Error("Local draft storage unavailable"));
+    if(!dbPromise){
+      dbPromise=new Promise((resolve,reject)=>{
+        const req=indexedDB.open("CutNovaLocalDrafts",1);
+        req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("drafts"))req.result.createObjectStore("drafts",{keyPath:"id"})};
+        req.onsuccess=()=>{const db=req.result;db.onversionchange=()=>{db.close();dbPromise=null};resolve(db)};
+        req.onerror=()=>reject(req.error||Error("Cannot open draft storage"));
+        req.onblocked=()=>reject(Error("Close other CutNova tabs and retry"));
+      }).catch(e=>{dbPromise=null;throw e});
+    }
+    return dbPromise;
+  }
+  async function localDraft(mode,operation){
+    const db=await openDraftDB();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction("drafts",mode);
+      const req=operation(tx.objectStore("drafts"));
+      let value;
+      req.onsuccess=()=>{value=req.result};
+      tx.oncomplete=()=>resolve(value);
+      tx.onerror=()=>reject(tx.error||Error("Draft storage error"));
+      tx.onabort=()=>reject(tx.error||Error("Draft storage aborted"));
+    });
+  }
+  function draftSay(t){draftStatus.textContent=t}
+  function snapshot(){
+    return draftSettings({...options(),start:start.value,end:end.value,originalVolume:originalVolume.value,
+      musicVolume:musicVolume.value,mute:mute.checked,loop:loop.checked});
+  }
+  function restoreSettings(raw){
+    const o=draftSettings(raw);
+    const d=video.duration;
+    start.value=String(Math.min(o.start,Math.max(0,d-1)));
+    end.value=String(Math.min(o.end,d));
+    if(!durationValid(Number(start.value),Number(end.value),d,o.speed)){
+      start.value="0";end.value=String(Math.min(60,d));o.speed=1;
+    }
+    brightness.value=o.brightness;contrast.value=o.contrast;preset.value=o.preset;speed.value=o.speed;
+    overlay.value=o.text;position.value=o.position;originalVolume.value=o.originalVolume;musicVolume.value=o.musicVolume;
+    mute.checked=o.mute;loop.checked=o.loop;rights.checked=false;
+    resetPreview();clearOutput();setSpeed();applyMix();paint();update();
+  }
+  function historyUI(){
+    draftHistory.replaceChildren();
+    const placeholder=document.createElement("option");placeholder.value="";placeholder.textContent="Choose a saved settings revision";draftHistory.append(placeholder);
+    (activeDraft?.history||[]).forEach((item,i)=>{
+      const option=document.createElement("option");option.value=String(i);
+      option.textContent="Revision · "+new Date(item.at).toLocaleString();draftHistory.append(option);
+    });
+    update();
+  }
+  async function refreshDrafts(){
+    try{
+      const records=await localDraft("readonly",s=>s.getAll());
+      drafts.replaceChildren();
+      records.sort((a,b)=>b.updatedAt-a.updatedAt);
+      if(!records.length){drafts.textContent="No saved drafts yet.";return}
+      for(const row of records){
+        const item=document.createElement("div");item.className="draft-row";
+        const info=document.createElement("div");const title=document.createElement("strong");
+        title.textContent=row.name;const date=document.createElement("small");
+        date.textContent=new Date(row.updatedAt).toLocaleString()+" · "+((row.video.size+(row.music?.size||0))/1048576).toFixed(1)+" MB";
+        info.append(title,date);
+        const open=document.createElement("button");open.type="button";open.className="btn btn-outline";open.textContent="RESUME";
+        open.addEventListener("click",()=>resumeDraft(row.id));
+        const del=document.createElement("button");del.type="button";del.className="btn btn-outline";del.textContent="DELETE";
+        del.addEventListener("click",async()=>{
+          if(busy||preparing||draftBusy||!window.confirm("Delete this saved draft and its local media copy?"))return;
+          draftBusy=true;update();
+          try{await localDraft("readwrite",s=>s.delete(row.id));if(activeDraft?.id===row.id){activeDraft=null;historyUI()}await refreshDrafts();draftSay("Draft deleted. Original device files unchanged.")}
+          catch(e){draftSay("Delete failed: "+e.message)}finally{draftBusy=false;update()}
+        });
+        item.append(info,open,del);drafts.append(item);
+      }
+    }catch(e){draftSay("Draft storage unavailable: "+e.message)}
+    finally{update()}
+  }
+  function clearSource(){
     resetPreview();clearOutput();rights.checked=false;fields.hidden=true;clearMusic();
     if(ctx)ctx.clearRect(0,0,720,1280);
     video.removeAttribute("src");video.load();
     if(sourceUrl)URL.revokeObjectURL(sourceUrl);
-    sourceUrl="";
+    sourceUrl="";sourceFile=null;file.value="";
+  }
+  function loadSource(blob){
+    sourceFile=blob;sourceUrl=URL.createObjectURL(blob);video.src=sourceUrl;video.load();
+    say("Opening local file…");
+  }
+  async function resumeDraft(key){
+    if(busy||preparing||draftBusy)return;
+    if(sourceFile&&!window.confirm("Resume this draft? Unsaved edits in your current editor will be replaced."))return;
+    draftBusy=true;update();
+    try{
+      const row=await localDraft("readonly",s=>s.get(key));
+      if(!row||!(row.video instanceof Blob))throw Error("Saved video unavailable");
+      clearSource();activeDraft=row;pendingDraft=row;draftTitle.value=row.name;
+      loadSource(row.video);historyUI();draftSay("Opening saved draft…");
+    }catch(e){pendingDraft=null;activeDraft=null;draftSay("Resume failed: "+e.message)}
+    finally{draftBusy=false;update()}
+  }
+  draftSave.addEventListener("click",async()=>{
+    if(busy||preparing||draftBusy||!sourceFile||!valid())return;
+    if(sourceFile.size+(music?.size||0)>150*1024*1024){draftSay("Draft limit is 150 MB combined media. Use a smaller source file.");return}
+    draftBusy=true;update();
+    try{
+      const now=Date.now(),current=snapshot();
+      let previous=activeDraft?await localDraft("readonly",s=>s.get(activeDraft.id)):null;
+      const row={id:previous?.id||(window.crypto?.randomUUID?.()||"draft-"+now+"-"+Math.random().toString(36).slice(2)),
+        name:draftName(draftTitle.value),updatedAt:now,video:sourceFile,music:music||null,
+        settings:current,history:nextHistory(previous,current,now)};
+      // History only represents settings; it is reset if the media changes.
+      if(previous&&(previous.video.size!==sourceFile.size||previous.video.name!==sourceFile.name||
+          (previous.music?.size||0)!==(music?.size||0)||previous.music?.name!==music?.name))row.history=[];
+      await localDraft("readwrite",s=>s.put(row));activeDraft=row;draftTitle.value=row.name;
+      historyUI();await refreshDrafts();draftSay("Saved on this device. "+row.history.length+" previous settings revisions.");
+    }catch(e){draftSay("Save failed (storage may be full): "+e.message)}
+    finally{draftBusy=false;update()}
+  });
+  draftNew.addEventListener("click",()=>{
+    if(busy||preparing||draftBusy)return;
+    activeDraft=null;pendingDraft=null;draftTitle.value="";historyUI();draftSay("Save will create a separate draft from the current edit.");
+  });
+  draftHistory.addEventListener("change",update);
+  draftRestore.addEventListener("click",()=>{
+    if(busy||preparing||draftBusy||!activeDraft||!draftHistory.value)return;
+    const rev=activeDraft.history[Number(draftHistory.value)];
+    if(rev&&Number.isFinite(video.duration)){restoreSettings(rev.settings);draftSay("Revision restored in editor. Save draft to keep this change.")}
+  });
+  file.addEventListener("change",()=>{
+    if(busy||preparing)return;
     const selected=file.files[0];
+    if(sourceFile&&!window.confirm("Replace current video? Unsaved edits will be lost.")){file.value="";return}
+    clearSource();activeDraft=null;pendingDraft=null;draftTitle.value="";historyUI();
     if(!selected){say("Choose a video from your device.");return}
     if(selected.size>500*1024*1024){say("Choose a video under 500 MB to reduce device memory pressure.");return}
-    sourceUrl=URL.createObjectURL(selected);video.src=sourceUrl;video.load();
-    say("Opening local file…");
+    loadSource(selected);
   });
   video.addEventListener("loadedmetadata",()=>{
     if(!Number.isFinite(video.duration)||video.duration<1){say("Video duration unavailable or under one second.");return}
     start.value="0";end.value=String(Math.floor(Math.min(60,video.duration)*100)/100);
     start.max=String(video.duration);end.max=String(video.duration);
-    fields.hidden=false;say("Local video ready. Set your trim in seconds.");
+    fields.hidden=false;
+    if(pendingDraft){
+      const row=pendingDraft;pendingDraft=null;
+      music=row.music instanceof Blob?row.music:null;musicBuffer=null;
+      musicStatus.textContent=music?(music.name||"Saved audio")+" · restored; decode on preview/export.":"No background track selected.";
+      restoreSettings(row.settings);historyUI();draftSay("Draft resumed. Reconfirm media rights before export.");say("Saved edit restored.");
+    }else say("Local video ready. Set your trim in seconds.");
     update();
   });
-  video.addEventListener("error",()=>{if(sourceUrl&&!busy)say("Cannot decode this video. Try an MP4 compatible with your browser.");});
+  video.addEventListener("error",()=>{if(sourceUrl&&!busy){pendingDraft=null;say("Cannot decode this video. Try an MP4 compatible with your browser.");update()}});
   [start,end,rights].forEach(el=>el.addEventListener("input",()=>{if(!busy){resetPreview();clearOutput();update()}}));
   [brightness,contrast,preset,speed,overlay,position].forEach(el=>el.addEventListener("input",()=>{
     if(!busy){clearOutput();try{setSpeed();paint()}catch(e){say("Effect preview unavailable: "+e.message)}update()}
@@ -352,4 +503,5 @@
   cancel.addEventListener("click",()=>{aborted=true;if(finish)finish(true);say("Cancelling export…")});
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&busy){aborted=true;if(finish)finish(true);say("Export cancelled when app went into background.")}});
   update();
+  refreshDrafts();
 })();

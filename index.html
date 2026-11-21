@@ -15,7 +15,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.2</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.3</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -81,6 +81,17 @@
         <div class="section-head"><span class="section-number">02 / LOCAL SHORTS EDITOR</span><span class="section-pill">ON DEVICE</span></div>
         <h2>Manual <span>video editor.</span></h2>
         <p class="section-sub">Choose your own video directly from iPhone Files or Photos. Preview, trim and record a 9:16 center-cropped Short locally. No video upload to this public repository. Browser recording support varies.</p>
+        <div class="local-drafts">
+          <h3>Saved projects</h3>
+          <p class="footnote">Explicit local saves include media and settings, not cloud backups. Combined media limit: 150 MB per draft. Browser storage can be cleared or evicted. Keep your original files.</p>
+          <label>DRAFT NAME<input id="edit-draft-title" type="text" maxlength="60" placeholder="My Short"/></label>
+          <div class="history-toolbar"><button id="edit-draft-save" class="btn btn-lime" type="button" disabled>SAVE DRAFT</button><button id="edit-draft-new" class="btn btn-outline" type="button">SAVE AS NEW</button></div>
+          <p id="edit-draft-status" class="footnote" role="status" aria-live="polite">Drafts stay in this browser.</p>
+          <div id="edit-draft-list"></div>
+          <label>EDIT HISTORY<select id="edit-draft-history"><option value="">Choose a saved settings revision</option></select></label>
+          <button id="edit-draft-restore" class="btn btn-outline" type="button" disabled>RESTORE SETTINGS</button>
+          <p class="footnote">History stores up to ten previous settings revisions, not older media or exported videos. Rights confirmation is not stored.</p>
+        </div>
         <label class="edit-file-label">CHOOSE VIDEO <input id="edit-file" type="file" accept="video/*,.mp4,.mov,.webm"/></label>
         <div id="edit-fields" hidden>
           <div class="edit-preview"><canvas id="edit-canvas" aria-label="Edited portrait video preview"></canvas></div>

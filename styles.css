@@ -202,3 +202,6 @@ button:disabled{cursor:not-allowed;opacity:.5}
 
 /* Local audio mixer */
 .edit-audio{border:1px solid var(--border);border-radius:12px;padding:14px;margin:16px 0;background:var(--panel2)}.edit-audio h3{font-size:17px;margin:0 0 10px}.edit-audio .audio-check{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.4;min-height:44px}.edit-audio .audio-check input{width:20px;height:20px;accent-color:var(--lime);flex-shrink:0}#edit-music-status{overflow-wrap:anywhere}
+
+/* Local draft management */
+.local-drafts{border:1px solid var(--border);border-radius:12px;padding:14px;margin:16px 0;background:var(--panel2)}.local-drafts label{display:grid;gap:8px;margin:12px 0;font-size:12px;font-weight:700}.local-drafts input,.local-drafts select{min-width:0;width:100%;padding:12px;background:var(--panel2);color:var(--ink);border:1px solid var(--border);border-radius:8px;font-size:16px}.draft-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--border);padding:12px 0}.draft-row>div{flex:1 1 140px;overflow-wrap:anywhere}.draft-row strong,.draft-row small{display:block}.draft-row small{font-size:11px;color:var(--muted)}.draft-row .btn{min-height:44px}#edit-draft-list{font-size:13px}

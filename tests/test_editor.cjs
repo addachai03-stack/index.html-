@@ -44,3 +44,14 @@ assert.equal(musicOffset(16,10,1,4,false),null);
 assert.equal(musicOffset(10,10,1,0,true),null);
 for(const id of ["edit-music-file","edit-music-volume","edit-original-volume","edit-mute","edit-music-loop","edit-remove-music","edit-music-status"])assert.ok(html.includes('id="'+id+'"'));
 console.log("PASS: audio gain bounds, mute, headroom, speed-adjusted offset, loop and UI.");
+
+const {draftName,draftSettings,nextHistory}=require("../editor.js");
+assert.equal(draftName("   "),"Untitled Short");assert.equal(draftName("A  B"),"A B");assert.equal(draftName("x".repeat(90)).length,60);
+const first=draftSettings({start:2,end:18,brightness:105,mute:true,loop:false});
+assert.equal(first.start,2);assert.equal(first.mute,true);assert.equal(first.loop,false);assert.equal(first.originalVolume,100);
+assert.deepEqual(nextHistory({settings:first,history:[],updatedAt:10},first,20),[]);
+const second=draftSettings({...first,brightness:125});
+assert.deepEqual(nextHistory({settings:first,history:[],updatedAt:10},second,20),[{at:10,settings:first}]);
+assert.equal(nextHistory({settings:first,history:Array(12).fill({at:1,settings:first})},second,20).length,10);
+for(const id of ["edit-draft-title","edit-draft-save","edit-draft-new","edit-draft-list","edit-draft-history","edit-draft-restore"])assert.ok(html.includes('id="'+id+'"'));
+console.log("PASS: draft naming, settings snapshot, bounded revision history and controls.");

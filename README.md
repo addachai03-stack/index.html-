@@ -206,3 +206,7 @@ Choose Original, Vivid, Warm or Black & White; adjust brightness and contrast, s
 ## V2.2 — On-device audio mixer
 
 Select your authorized local audio file (up to 20 MB, decoded duration at most ten minutes). Independently control original sound and background music, mute the original, optionally loop the track, or remove it. The same Web Audio mix is routed to monitoring and the recorder; playback and recording restart music at the selected trim's output-time offset with speed adjustment. Combined gain is normalized to avoid excessive summing. Files are not uploaded by this editor. Browser decoding and audio recording support vary; interrupted or real-time recording requires review for timing and sound quality. No bundled copyrighted music or paid music service.
+
+## V2.3 — Local project drafts
+
+Use Save Draft to store the current video and optional audio blob, trim and effect/audio settings in this browser's IndexedDB. Resume replaces unsaved editor state only after confirmation. Save As New detaches the active draft; the next Save creates a separate record. Delete requires confirmation and removes only the stored copy, not the original device file. Combined media limit is 150 MB per draft; storage quota errors are displayed. Up to ten settings revisions are available for matching media, without preserving old media or exports. Rights confirmation must be renewed for export. No automatic cloud backup: browser data may be cleared/evicted, so keep original files. Actual iPhone IndexedDB and recording behavior needs device verification.
