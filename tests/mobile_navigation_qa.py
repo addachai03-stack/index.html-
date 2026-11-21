@@ -149,6 +149,23 @@ try:
         mobile_tab(page, "editor", "local-editor")
         expect(page.locator("#edit-export")).to_be_disabled()
         REPORT["checks"]["editor_idle_safe"] = "PASS"
+        expect(page.locator("#edit-check-export")).to_be_visible()
+        page.locator("#edit-check-export").click()
+        # The probe starts from the user's click; report success, unsupported
+        # capabilities, or genuine runtime recording failure distinctly.
+        page.wait_for_function("""() => /^(RECORDED TEST CLIP|UNSUPPORTED|RECORDING FAILED)/.test(
+          document.querySelector('#edit-check-status')?.textContent || '')""", timeout=12000)
+        diagnostic=page.locator("#edit-check-status").inner_text()
+        if diagnostic.startswith("RECORDING FAILED"):
+            REPORT["checks"]["synthetic_export_probe"]="FAIL: "+diagnostic
+            raise AssertionError(diagnostic)
+        if diagnostic.startswith("UNSUPPORTED"):
+            REPORT["checks"]["synthetic_export_probe"]="NOT SUPPORTED: "+diagnostic
+        else:
+            assert "No file was stored/uploaded" in diagnostic
+            REPORT["checks"]["synthetic_export_probe"]="PASS: local test clip recorded"
+        assert all(r["method"] == "GET" for r in requests), "No export check may dispatch a cloud render"
+        visible_width(page)
         page.screenshot(path=str(ROOT / f"{ENGINE}-editor.png"), full_page=False)
         mobile_tab(page, "projects", "local-editor")
         expect(page.locator("#project-manager")).to_be_visible()
