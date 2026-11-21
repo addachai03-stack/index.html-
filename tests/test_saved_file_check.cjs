@@ -24,6 +24,10 @@ const {sameSize,equalMedia,playablePortrait,MAX_BYTES}=require("../saved-file-ch
   assert.ok(html.includes('src="./saved-file-check.js"'),"Missing script");
   assert.ok(sw.includes('"./saved-file-check.js"'),"Missing offline shell");
   assert.ok(code.includes('currentHref.startsWith("blob:")'),"May only read current local export");
+  assert.doesNotMatch(code,/\\bfetch\\s*\\(/,"Comparing files must never fetch from any URL");
+  assert.match(code,/originalBlob=event.detail\\?\\.blob/,"Must use the actual in-memory output from recorder");
+  assert.match(fs.readFileSync("editor.js","utf8"),/cutnova:export-ready.*detail:\\{blob\\}/,"Export must provide its original Blob");
+
   assert.ok(code.includes("File contents match exactly"),"Must accurately describe bytes check progress");
   assert.equal(MAX_BYTES,512*1024*1024);
   console.log("PASS: saved iPhone file verification compares every byte (rejects same-size mutations), validates playback format, never accesses arbitrary URLs.");
