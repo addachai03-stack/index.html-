@@ -212,7 +212,8 @@ try:
             if not saved_status.startswith("SAVED FILE VERIFIED"):
                 REPORT["checks"]["saved_file_roundtrip"]="FAIL: "+saved_status
                 raise AssertionError(saved_status)
-            REPORT["checks"]["saved_file_roundtrip"]="PASS: actual downloaded file byte-for-byte matched the export and played"
+            assert "byte-for-byte" in saved_status, "Verifier must explicitly prove content equality"
+            REPORT["checks"]["saved_file_roundtrip"]="PASS: actual downloaded file matched original in-memory export byte-for-byte and played"
             # Same-size mutation is NOT the exported file: reject it even if
             # name, MIME extension, and byte count are unchanged.
             bad_path=ROOT/(ENGINE+"-corrupt-same-size.mp4")
