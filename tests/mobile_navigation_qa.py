@@ -186,6 +186,34 @@ try:
             page.locator("#edit-export").click()
             expect(page.locator("#edit-result")).to_be_visible(timeout=45000)
             assert (page.locator("#edit-download").get_attribute("href") or "").startswith("blob:"), "Export provided no local download blob"
+            expect(page.locator("#edit-share-file")).to_be_enabled()
+            # Headless browser cannot display the real iOS OS Share Sheet.
+            # Test unsupported behavior, then mock ONLY the navigator.share API
+            # and verify the exact generated File is passed upon a click.
+            page.evaluate("""() => {
+              Object.defineProperty(navigator, 'canShare', {value: undefined, configurable: true});
+              Object.defineProperty(navigator, 'share', {value: undefined, configurable: true});
+            }""")
+            page.locator("#edit-share-file").click()
+            expect(page.locator("#edit-share-status")).to_contain_text("NATIVE FILE SHARE UNAVAILABLE")
+            REPORT["checks"]["share_sheet_unavailable_fallback"]="PASS: DOWNLOAD SHORT remains available"
+            page.evaluate("""() => {
+              window.__cutnovaShareCalls=0;
+              Object.defineProperty(navigator,'canShare',{configurable:true,
+                value:({files})=>Array.isArray(files)&&files.length===1});
+              Object.defineProperty(navigator,'share',{configurable:true,
+                value:async ({files})=>{
+                  window.__cutnovaShareCalls++;
+                  window.__cutnovaShared={name:files[0].name,size:files[0].size,type:files[0].type};
+                }});
+            }""")
+            page.locator("#edit-share-file").click()
+            expect(page.locator("#edit-share-status")).to_contain_text("SHARE SHEET CLOSED")
+            shared=page.evaluate("({calls:window.__cutnovaShareCalls, file:window.__cutnovaShared})")
+            assert shared["calls"]==1,shared
+            assert shared["file"]["name"].startswith("CutNova_Manual_Short."),shared
+            assert shared["file"]["size"]>1024,shared
+            REPORT["checks"]["native_share_api_mock"]="PASS: user-click provided real exported File to mocked native API; no physical iPhone test"
             # Real decoded video must actually play and advance; recorder success alone
             # is not equivalent to a playable media export.
             page.locator("#edit-verify-playback").click()
