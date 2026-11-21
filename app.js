@@ -1,7 +1,8 @@
 /**
  * CutNova static project dashboard.
- * The browser does NOT download social-platform videos or start GitHub Actions.
- * It validates/embeds public links and directs users to the authorized GitHub Action.
+ * Local-first: own video files are segmented into editable cut suggestions on-device.
+ * Social links are preview-only; CORS-enabled direct media URLs may be fetched
+ * locally. No GitHub Issue is opened by the main Generate button.
  */
 const ACTIONS_URL = "https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml";
 const EXAMPLE_URL = "https://youtu.be/XD-6LDZzXJ0";
@@ -16,6 +17,120 @@ const elements = {
   style: byId("highlight-style"), language: byId("speech-language"), crop: byId("smart-crop"), script: byId("caption-script"), captionStyle: byId("caption-style"), pacing: byId("pacing")
 };
 let current = null;
+const quick = {
+  file: byId("quick-file"),count: byId("quick-count"),length: byId("quick-length"),
+  rights: byId("quick-rights"),start: byId("quick-generate"),
+  status: byId("quick-status"),results: byId("quick-results"),
+  advanced: byId("owner-github-render")
+};
+let quickFile = null, quickBusy = false;
+function quickMessage(message) { quick.status.textContent = message; }
+function cutWindows(duration,count,length) {
+  if(!Number.isFinite(duration)||duration<1)throw Error("Video must be at least 1 second.");
+  const clipLength=Math.max(1,Math.min(60,Number(length)||15,duration));
+  const space=Math.max(0,duration-clipLength);
+  const requested=Math.max(1,Math.min(6,Math.trunc(Number(count)||1)));
+  // Never show multiple duplicate intervals from an ultra-short video.
+  const n=Math.min(requested,Math.max(1,Math.floor(space/2)+1));
+  return Array.from({length:n},(_,i)=>{
+    const start=Number((n===1?0:(space*i/(n-1))).toFixed(2));
+    const end=Number(Math.min(duration,start+clipLength).toFixed(2));
+    return {start,end};
+  });
+}
+function readVideoDuration(file){
+  return new Promise((resolve,reject)=>{
+    const video=document.createElement("video"),url=URL.createObjectURL(file);
+    let done=false;
+    const cleanup=()=>{video.removeAttribute("src");video.load();URL.revokeObjectURL(url)};
+    const finish=(value,error)=>{
+      if(done)return;done=true;clearTimeout(timer);cleanup();
+      if(error)reject(error);else resolve(value);
+    };
+    const timer=setTimeout(()=>finish(0,Error("Video metadata timed out. Try a browser-compatible MP4.")),25000);
+    video.preload="metadata";
+    video.onloadedmetadata=()=>{
+      if(!Number.isFinite(video.duration)||video.duration<1)finish(0,Error("Video duration is unavailable or too short."));
+      else finish(video.duration);
+    };
+    video.onerror=()=>finish(0,Error("Cannot read video. Try an MP4 with H.264/AAC encoding."));
+    video.src=url;video.load();
+  });
+}
+function showQuickCuts(file,windows){
+  quick.results.replaceChildren();
+  windows.forEach((segment,index)=>{
+    const item=document.createElement("div");item.className="quick-cut";
+    const info=document.createElement("div"),name=document.createElement("strong"),detail=document.createElement("small");
+    name.textContent="CUT "+String(index+1).padStart(2,"0");
+    detail.textContent=time(segment.start)+"–"+time(segment.end)+" · "+(segment.end-segment.start).toFixed(1)+" sec";
+    info.append(name,detail);
+    const button=document.createElement("button");button.className="btn btn-lime";
+    button.type="button";button.textContent="EDIT & EXPORT";
+    button.addEventListener("click",()=>{
+      window.dispatchEvent(new CustomEvent("cutnova:open-cut",{detail:{file,start:segment.start,end:segment.end}}));
+      location.hash="#local-editor";
+    });
+    item.append(info,button);quick.results.append(item);
+  });
+  quick.results.hidden=false;
+}
+async function prepareLocal(file,count,length){
+  if(!file)throw Error("Choose your own video from your phone first.");
+  if(file.size>500*1024*1024)throw Error("Video must be under 500 MB for mobile editing.");
+  if(!/^video\//i.test(file.type||"")&&!/\.(mp4|mov|webm|m4v)$/i.test(file.name))throw Error("Select an MP4, MOV, M4V or WebM video.");
+  quickMessage("Reading video duration on this phone…");
+  const duration=await readVideoDuration(file);
+  const windows=cutWindows(duration,count,length);
+  quickFile=file;showQuickCuts(file,windows);
+  quickMessage("Prepared "+windows.length+" local cut"+(windows.length===1?"":"s")+". Select EDIT & EXPORT to render a Short. Timed suggestions only, not automatic AI highlights.");
+  return windows;
+}
+async function fetchDirectMedia(url){
+  const limit=100*1024*1024, controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),60000);
+  try{
+    const response=await fetch(url,{method:"GET",mode:"cors",credentials:"omit",signal:controller.signal});
+    if(!response.ok)throw Error("HTTP "+response.status);
+    const reported=Number(response.headers.get("content-length")||0);
+    if(reported>limit)throw Error("Video exceeds the 100 MB direct-link limit.");
+    const contentType=(response.headers.get("content-type")||"").split(";")[0];
+    if(contentType&&!contentType.startsWith("video/")&&contentType!=="application/octet-stream")
+      throw Error("That URL did not return a video.");
+    const chunks=[];let bytes=0;
+    if(response.body&&response.body.getReader){
+      const reader=response.body.getReader();
+      while(true){
+        const {done,value}=await reader.read();if(done)break;
+        bytes+=value.byteLength;
+        if(bytes>limit){controller.abort();throw Error("Video exceeds the 100 MB direct-link limit.")}
+        chunks.push(value);
+      }
+    }else{
+      const blob=await response.blob();bytes=blob.size;if(bytes>limit)throw Error("Direct video is too large.");chunks.push(blob);
+    }
+    if(bytes<1024)throw Error("The video file is empty.");
+    const rawName=url.split("/").pop().split("?")[0]||"source.mp4";
+    const safeName=rawName.replace(/[^a-zA-Z0-9_.-]/g,"_").slice(0,80)||"source.mp4";
+    return new File(chunks,safeName,{type:contentType||"video/mp4"});
+  } finally{clearTimeout(timeout)}
+}
+quick.file.addEventListener("change",()=>{
+  quickFile=quick.file.files?.[0]||null;
+  quick.results.hidden=true;
+  quick.results.replaceChildren();
+  quickMessage(quickFile?quickFile.name+" selected. Confirm rights and tap PREPARE SHORTS ON PHONE.":"Choose your own video to begin.");
+});
+quick.start.addEventListener("click",async()=>{
+  if(quickBusy)return;
+  if(!quick.rights.checked){quickMessage("Confirm your editing rights first.");return}
+  const file=quick.file.files?.[0]||quickFile;
+  if(!file){quickMessage("Choose a video file from your phone first.");quick.file.click();return}
+  quickBusy=true;quick.start.disabled=true;
+  try{await prepareLocal(file,quick.count.value,quick.length.value)}
+  catch(e){quickMessage(e.message||"Could not prepare this video.")}
+  finally{quickBusy=false;quick.start.disabled=false}
+});
 
 const clipsExample = [
   {title:"Shinchan ki asli awaaz!", start:189, end:223,
@@ -160,14 +275,16 @@ function buildIssueUrl() {
 function updateRights() {
   const validDuration = Number(elements.min.value) <= Number(elements.max.value);
   const accepted = !!(current && elements.rights.checked && validDuration);
-  elements.action.classList.toggle("disabled-link", !accepted);
+  elements.action.disabled = !accepted;
   elements.action.setAttribute("aria-disabled", String(!accepted));
-  elements.action.href = accepted ? buildIssueUrl() : "#";
+  quick.advanced.classList.toggle("disabled-link", !accepted);
+  quick.advanced.setAttribute("aria-disabled", String(!accepted));
+  quick.advanced.href = accepted ? buildIssueUrl() : "#";
   elements.rightsTip.textContent = !validDuration
     ? "Minimum clip length maximum se badi nahi ho sakti."
     : accepted
-      ? "Generate My Shorts opens a pre-filled PUBLIC GitHub Issue. Tap Submit new issue to trigger owner-only processing. No token or password needed."
-      : "Confirm content rights to unlock the Generate button. Public GitHub Issues will show your URL/settings. Do not share private links or GitHub tokens.";
+      ? "This stays inside CutNova. For a social URL, choose your own saved video; for direct MP4 links, browser permissions decide access."
+      : "Confirm rights to enable the on-phone button. GitHub is an optional owner-only advanced route.";
 }
 
 elements.form.addEventListener("submit", event => {
@@ -177,7 +294,7 @@ elements.form.addEventListener("submit", event => {
     current = providerFor(elements.input.value);
     elements.rights.checked = false;
     drawSource(current);
-    showMessage(current.kind === "youtube" ? "YouTube link format valid hai, lekin YouTube GitHub downloads ko bot verification se block kar sakta hai. Agar blocked ho, neeche UPLOAD OWN VIDEO option se apni MP4 upload karo." : "Public source recognized: "+current.name+". GitHub Issue submit karne par authorized media process hogi. Ye original preview hai, rendered Short nahi.",true);
+    showMessage(current.kind === "video" ? "Direct video link recognized. Tap PREPARE IN CUTNOVA to try loading it here (host must permit browser CORS)." : "Source preview ready. Social URLs cannot become local Shorts directly in Safari/Chrome. Save your own video to the phone and choose it above. No GitHub upload needed.",true);
   } catch (error) {
     current = null;
     elements.panel.hidden = true;
@@ -187,17 +304,39 @@ elements.form.addEventListener("submit", event => {
 
 elements.rights.addEventListener("change", updateRights);
 [elements.clips,elements.min,elements.max,elements.style,elements.language,elements.crop,elements.script,elements.captionStyle,elements.pacing].forEach(field => field.addEventListener("change", updateRights));
-elements.action.addEventListener("click", event => {
-  if (!current || !elements.rights.checked || Number(elements.min.value) > Number(elements.max.value)) {
-    event.preventDefault();
-    showMessage("Valid clip duration aur video editing rights confirm karo.",false);
+elements.action.addEventListener("click", async () => {
+  if(!current||!elements.rights.checked||Number(elements.min.value)>Number(elements.max.value)){
+    showMessage("Choose a valid source and confirm rights.",false);return;
+  }
+  quick.count.value=String([1,3,6].reduce((a,b)=>Math.abs(b-Number(elements.clips.value))<Math.abs(a-Number(elements.clips.value))?b:a,1));
+  quick.length.value=String([15,30,45,60].reduce((a,b)=>Math.abs(b-Number(elements.max.value))<Math.abs(a-Number(elements.max.value))?b:a,15));
+  quick.rights.checked=true;
+  if(current.kind!=="video"&&current.kind!=="github-upload"){
+    showMessage("This social link is preview-only. Choose your own saved video above: it stays on your phone.",false);
+    quick.file.click();return;
+  }
+  if(quickBusy)return;
+  elements.action.disabled=true;quickBusy=true;
+  showMessage("Trying to load this direct video on your phone. Host CORS rules apply…",true);
+  try{
+    const file=await fetchDirectMedia(current.url.href);
+    await prepareLocal(file,quick.count.value,quick.length.value);
+    document.getElementById("quick-shorts").scrollIntoView({block:"start",behavior:"smooth"});
+    showMessage("Video loaded locally. Choose EDIT & EXPORT above. GitHub was not opened.",true);
+  }catch(e){
+    showMessage("Direct-link import unavailable: "+(e.message||"browser blocked it")+". Save your own video and choose it above.",false);
+  }finally{quickBusy=false;updateRights();}
+});
+quick.advanced.addEventListener("click",event=>{
+  if(!current||!elements.rights.checked||Number(elements.min.value)>Number(elements.max.value)){
+    event.preventDefault();showMessage("Confirm rights first. GitHub is public.",false);
   }
 });
 byId("copy-url").addEventListener("click", async () => {
   if (!current) return;
   try {
     await navigator.clipboard.writeText(current.url.href);
-    showMessage("URL copied. GitHub Action ke manual URL field mein paste kar sakte ho.", true);
+    showMessage("Source URL copied.", true);
   } catch (error) {
     const temp = document.createElement("textarea");
     temp.value = current.url.href;
