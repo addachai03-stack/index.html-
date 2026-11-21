@@ -21,17 +21,17 @@ jobs:
           java-version: '17'
       - uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.10.2'
+          gradle-version: '8.13'
       - name: Build installable test APK
         run: gradle -p android :app:assembleDebug --no-daemon --stacktrace
       - name: Verify APK and signing
         run: |
           mkdir -p dist
           cp android/app/build/outputs/apk/debug/app-debug.apk dist/CutNova-Android-Beta.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-Beta.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-Beta.apk
           test -s dist/CutNova-Android-Beta.apk
           sha256sum dist/CutNova-Android-Beta.apk > dist/CutNova-Android-Beta.apk.sha256
       - name: Store installable APK
