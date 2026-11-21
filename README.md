@@ -1,5 +1,12 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V3.8 — Verify that the exported Short actually plays
+
+The local editor now offers **VERIFY EXPORTED VIDEO PLAYBACK** after a successful render, in addition to **DOWNLOAD SHORT**. On user tap, CutNova tests the in-browser `blob:` exported video: 720×1280 metadata, finite duration of at least one second, and actual decoded playback time advancing at least 0.25 second. Failure reports `LOCAL PLAYBACK FAILED`; successful observation reports `LOCAL PLAYBACK PASS`. Neither condition verifies audible audio, specific H.264/AAC codecs, successful save in iPhone Files, or that Instagram accepts the video. These still require checking the downloaded file on the phone.
+
+This remains local-only: the exported video and Owner Access Key are not uploaded or persisted by this check. If iPhone Safari opens a preview rather than saving automatically, use its Share → Save to Files action. Test synthetic content rather than private video when diagnosing browser capabilities. GitHub Actions exercises the real downloaded 9:16 export, starts playback and verifies the same explicit UI status in mobile Chromium; WebKit may lack `MediaRecorder` in headless automation and is honestly marked unsupported.
+
+
 ## V3.7 — Real local iPhone editor export test (no uploaded footage)
 
 The EDITOR now has **PREPARE FULL EXPORT TEST VIDEO** below the 1-second device compatibility check. A user tap creates a NEW five-second original synthetic video + sine audio **inside the phone browser** (no Photos access, no GitHub/cloud upload), passes that temporary video through the same `cutnova:open-cut` event bridge as the real local editor, and requests a 0–3-second trim. This intentionally does not accept editing rights, start a render, or download automatically. The user confirms rights explicitly, taps **EXPORT SHORT**, then **DOWNLOAD SHORT** and plays the file on their device to test the complete path. Browser interruption, missing media metadata or unsupported codecs are reported as failures, not successes.
