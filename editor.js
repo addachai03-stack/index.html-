@@ -375,6 +375,7 @@
       music=row.music instanceof Blob?row.music:null;musicBuffer=null;
       musicStatus.textContent=music?(music.name||"Saved audio")+" · restored; decode on preview/export.":"No background track selected.";
       restoreSettings(row.settings);historyUI();draftSay("Draft resumed. Reconfirm media rights before export.");say("Saved edit restored.");
+      window.dispatchEvent(new Event("cutnova:draft-loaded"));
     }else say("Local video ready. Set your trim in seconds.");
     update();
   });
