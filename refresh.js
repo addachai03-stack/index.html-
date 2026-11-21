@@ -47,7 +47,7 @@
         const success=await changed;
         if(!success&&registration.waiting)throw Error("Update waiting. Close other CutNova tabs and retry.");
       }
-      say("Updated! Opening CutNova V2.7.1…");
+      say("Updated! Opening CutNova latest URL flow…");
       returnToApp();
     }catch(error){
       say("Could not update: "+(error.message||"unknown browser error")+". Try again with internet.");
