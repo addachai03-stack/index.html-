@@ -1,0 +1,71 @@
+import json,os,subprocess,threading
+from pathlib import Path
+from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
+from playwright.sync_api import sync_playwright
+root=Path("release-proof");root.mkdir(exist_ok=True)
+sample=root/"sample.mp4"
+subprocess.run(["ffmpeg","-v","error","-y","-f","lavfi","-i","testsrc2=size=320x240:rate=25:duration=4","-f","lavfi","-i","sine=frequency=440:duration=4","-c:v","libx264","-pix_fmt","yuv420p","-c:a","aac","-shortest",str(sample)],check=True)
+server=ThreadingHTTPServer(("127.0.0.1",0),SimpleHTTPRequestHandler)
+threading.Thread(target=server.serve_forever,daemon=True).start()
+url=f"http://127.0.0.1:{server.server_port}/"
+engine=os.environ.get("ENGINE","chromium")
+report={"browser":engine,"physical_iphone":False,"checks":{}}
+with sync_playwright() as p:
+    browser=getattr(p,engine).launch()
+    context=browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,accept_downloads=True)
+    page=context.new_page()
+    errors=[]
+    page.on("pageerror",lambda error:errors.append(str(error)))
+    try:
+        page.goto(url,wait_until="domcontentloaded")
+        page.wait_for_function("navigator.serviceWorker.controller !== null",timeout=30000)
+        page.wait_for_function("document.querySelector('#pwa-status').textContent.includes('ready')")
+        report["checks"]["service_worker"]="PASS"
+        context.set_offline(True)
+        page.reload(wait_until="domcontentloaded")
+        page.locator("#edit-file").wait_for()
+        report["checks"]["offline_reload"]="PASS"
+        page.locator("#edit-file").set_input_files(str(sample))
+        page.locator("#edit-fields").wait_for(timeout=20000)
+        page.wait_for_function("document.querySelector('#edit-video').readyState >= 2",timeout=20000)
+        page.locator("#edit-end").fill("3")
+        page.locator("#edit-text").fill("Release proof")
+        page.locator("#edit-draft-title").fill("Offline test")
+        page.locator("#edit-draft-save").click()
+        page.wait_for_function("document.querySelector('#edit-draft-status').textContent.includes('Saved on this device')")
+        report["checks"]["offline_draft_save"]="PASS"
+        page.reload(wait_until="domcontentloaded")
+        page.get_by_role("button",name="RESUME",exact=True).click()
+        page.wait_for_function("document.querySelector('#edit-text').value === 'Release proof'")
+        page.wait_for_function("document.querySelector('#edit-video').readyState >= 2")
+        report["checks"]["offline_draft_resume"]="PASS"
+        page.locator("#edit-rights").check()
+        if page.locator("#edit-export").is_disabled():
+            report["checks"]["recording"]="NOT SUPPORTED: "+page.locator("#edit-format").inner_text()
+        else:
+            page.locator("#edit-export").click()
+            page.locator("#edit-result").wait_for(timeout=40000)
+            with page.expect_download() as info:
+                page.locator("#edit-download").click()
+            download=info.value
+            out=root/download.suggested_filename
+            download.save_as(str(out))
+            media=json.loads(subprocess.check_output(["ffprobe","-v","error","-show_entries","stream=codec_type,width,height:format=duration","-of","json",str(out)]))
+            assert any(s["codec_type"]=="video" and s["width"]==720 and s["height"]==1280 for s in media["streams"]),media
+            assert any(s["codec_type"]=="audio" for s in media["streams"]),media
+            # WebM live recordings may not carry a duration in container headers.
+            if "duration" in media.get("format",{}):
+                duration=float(media["format"]["duration"]);assert 1.8<=duration<=5,media
+            report["checks"]["recording"]="PASS";report["media"]=media
+        page.screenshot(path=str(root/"editor.png"),full_page=True)
+        assert not errors,errors
+        report["checks"]["javascript"]="PASS"
+    except Exception as e:
+        report["error"]=str(e);report["page_errors"]=errors
+        page.screenshot(path=str(root/"failure.png"),full_page=True)
+        raise
+    finally:
+        (root/"report.json").write_text(json.dumps(report,indent=2))
+        print(json.dumps(report,indent=2))
+        browser.close()
+        server.shutdown()
