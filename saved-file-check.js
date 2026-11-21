@@ -36,7 +36,7 @@
   const video=document.getElementById("edit-saved-preview");
   const exportLink=document.getElementById("edit-download");
   if(!fileInput||!button||!status||!video||!exportLink)return;
-  let activeUrl="",busy=false,revision=0;
+  let activeUrl="",busy=false,revision=0,originalBlob=null;
   const say=t=>{status.textContent=t};
   function clearSelected(){
     revision++;
@@ -45,8 +45,13 @@
     video.hidden=true;
     say("Not verified. Download your Short, then select that exact file from iPhone Files.");
   }
-  root.addEventListener("cutnova:export-reset",clearSelected);
-  root.addEventListener("cutnova:export-ready",clearSelected);
+  root.addEventListener("cutnova:export-reset",()=>{originalBlob=null;clearSelected()});
+  root.addEventListener("cutnova:export-ready",event=>{
+    // Keep only the original in-memory Blob while this tab has this export.
+    // Do not fetch the blob: URL: iOS and download workflows may invalidate it.
+    originalBlob=event.detail?.blob instanceof Blob?event.detail.blob:null;
+    clearSelected();
+  });
   fileInput.addEventListener("change",()=>{
     revision++;
     if(activeUrl){video.pause();video.removeAttribute("src");video.load();URL.revokeObjectURL(activeUrl);activeUrl="";}
@@ -97,7 +102,7 @@
     const saved=fileInput.files?.[0];
     const currentHref=exportLink.getAttribute("href")||"";
     if(!saved){say("SELECT FILE FIRST — use CHOOSE SAVED VIDEO FROM FILES.");return;}
-    if(!currentHref.startsWith("blob:")){
+    if(!currentHref.startsWith("blob:")||!originalBlob){
       say("NO CURRENT EXPORT — create and download a Short in this same open editor tab, then choose its saved file.");
       return;
     }
@@ -109,11 +114,9 @@
     say("Comparing your selected saved file with the current export, one small chunk at a time. All processing stays on this phone…");
     try{
       if(saved.size===0||saved.size>MAX_BYTES)throw Error("Selected file is empty or larger than 512 MiB");
-      // Refuse external network fetches entirely. A blob: URL is a local
-      // object URL created by our editor in this document's browser session.
-      const source=await fetch(currentHref);
-      if(!source.ok)throw Error("Export is no longer accessible in this tab");
-      const original=await source.blob();
+      // Compare against the exact in-memory export Blob from our recorder.
+      // No fetch (not even blob:), networking, or credential access.
+      const original=originalBlob;
       if(version!==revision)throw Error("File selection changed during verification");
       const matched=await equalMedia(original,saved);
       if(version!==revision)throw Error("File selection changed during verification");
