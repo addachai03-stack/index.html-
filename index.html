@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.5</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.6</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -158,6 +158,15 @@
           <p class="footnote">History stores up to ten previous settings revisions, not older media or exported videos. Rights confirmation is not stored.</p>
         </div>
         <div class="editor-workspace">
+        <section class="device-export-check" aria-label="Device export compatibility">
+          <div class="export-check-head">
+            <strong>iPHONE EXPORT CHECK</strong>
+            <button id="edit-check-export" class="btn btn-outline" type="button">TEST 1-SECOND RECORDING</button>
+          </div>
+          <p id="edit-check-status" role="status" aria-live="polite">Checking local browser recording features…</p>
+          <a id="edit-export-fallback" class="job-link" href="#studio" hidden>OPEN AI TAB FOR AUTHORIZED PUBLIC VIDEO ↗</a>
+          <p class="footnote">Tests synthetic video and audio only. No uploads or access to your Photos. Browser support and full-video editing may differ from this short test.</p>
+        </section>
         <label class="edit-file-label">CHOOSE VIDEO <input id="edit-file" type="file" accept="video/*,.mp4,.mov,.webm"/></label>
         <div id="edit-fields" hidden>
           <div class="edit-preview"><canvas id="edit-canvas" aria-label="Edited portrait video preview"></canvas></div>
@@ -246,6 +255,7 @@
   <script defer src="./owner-render.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>
+  <script defer src="./export-check.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
   <script defer src="./launch.js"></script>
