@@ -127,6 +127,13 @@ try:
 
         mobile_tab(page, "results", "render-history")
         expect(page.locator("#job-results .job-row")).to_have_count(1, timeout=16000)
+        # The actual job must be visible without scrolling through a full-page
+        # paragraph; collapsed help keeps the first mobile screen actionable.
+        expect(page.locator(".results-help")).not_to_have_attribute("open", "")
+        box = page.locator("#job-results .job-row").bounding_box()
+        assert box is not None and box["y"] < 660, (
+            "Results job buried below mobile fold: " + str(box))
+        REPORT["checks"]["results_card_above_fold"] = "PASS"
         expect(page.locator("#job-results .job-owner-note")).to_contain_text("YOUR LATEST OWNER RENDER")
         expect(page.locator("#job-results .job-success")).to_have_text("SUCCESS")
         expect(page.locator("#job-results .artifact-file")).to_have_count(1, timeout=16000)
@@ -147,7 +154,6 @@ try:
         expect(page.locator("#project-manager")).to_be_visible()
         REPORT["checks"]["projects_navigation"] = "PASS"
 
-        mobile_tab(page, "home", "studio") if False else None
         page.locator('#mobile-nav [data-nav="home"]').click()
         expect(page.locator(".hero")).to_be_visible()
         visible_width(page)
