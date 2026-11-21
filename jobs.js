@@ -46,6 +46,20 @@
     };
   }
 
+  function expiresSoon(file,now=Date.now()){
+    if(!file||!file.ready||file.expired)return false;
+    const ts=Date.parse(file.expiry);
+    return Number.isFinite(ts)&&ts>now&&(ts-now)<=24*60*60*1000;
+  }
+
+  function artifactLabel(file,run){
+    // GitHub workflow success + genuine archive metadata is not proof of MP4 content.
+    if(!file?.ready)return "File unavailable";
+    if(run?.conclusion==="success"&&/^(cutnova-shorts-|cutnova-issue-)/i.test(file.name))
+      return "Open rendered files ZIP ↗";
+    return "Open GitHub artifact ZIP ↗";
+  }
+
   function matchingOwnerRun(runs,id) {
     if(!Array.isArray(runs)||typeof id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return null;
     return runs.find(run=>run?.display_title==="CutNova owner "+id)||null;
@@ -74,7 +88,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun, promoteTrackedRun, pollingNeeded};
+    module.exports = {labelFor, combineRuns, artifactFor, expiresSoon, artifactLabel, failedJobSteps, matchingOwnerRun, promoteTrackedRun, pollingNeeded};
     return;
   }
   const list = document.getElementById("job-results");
@@ -103,52 +117,66 @@
       return await response.json();
     } finally { clearTimeout(timer); }
   }
-  function attachResults(run, right, row) {
+  function attachResults(run, right, row, autoInspect=false) {
     const button = el("button", "btn btn-outline artifact-toggle", "CHECK FILES ↓");
     button.type = "button";
     button.setAttribute("aria-expanded", "false");
     const panel = el("div", "artifact-panel");
     panel.hidden = true;
     panel.setAttribute("aria-live", "polite");
-    button.addEventListener("click", async () => {
+    let checking = false;
+    async function inspect() {
+      if (checking) return;
+      checking = true;
+      panel.hidden = false;
+      button.disabled = true;
+      button.setAttribute("aria-expanded", "true");
+      button.textContent = "HIDE FILES ↑";
+      panel.textContent = "Checking actual GitHub ZIP artifacts and expiry…";
+      try {
+        const data = await readJson(RUN_API + run.id + "/artifacts?per_page=30");
+        const files = (Array.isArray(data.artifacts) ? data.artifacts : []).map(item => artifactFor(item)).filter(Boolean);
+        panel.replaceChildren();
+        if (!files.length) {
+          panel.textContent = "GitHub returned no downloadable artifacts for this run. A green SUCCESS badge alone does not verify MP4 files.";
+        }
+        for (const file of files) {
+          const box = el("div", "artifact-file");
+          box.append(el("strong", "", file.name),
+            el("span", "", file.size + " · " + (file.expired ? "Expired" : file.ready ? "Expires " + file.expiry : "Availability not confirmed")));
+          if (file.ready) {
+            if(expiresSoon(file))box.append(el("span","artifact-expiring","Expires within 24 hours — save your ZIP now."));
+            const anchor = el("a", "job-link", artifactLabel(file,run));
+            anchor.href = ROOT + "/actions/runs/" + run.id + "/artifacts/" + file.id;
+            anchor.target = "_blank";
+            anchor.rel = "noopener noreferrer";
+            box.append(anchor);
+          } else if(!file.expired){
+            box.append(el("small","","GitHub did not confirm this ZIP is available. Open the run in GitHub to verify."));
+          }
+          panel.append(box);
+        }
+        if (files.some(file => file.ready)) {
+          panel.append(el("small", "", "GitHub may require sign-in to download. ZIP listing confirms an archived artifact, not the MP4 contents. Check video playback and captions after download."));
+        }
+      } catch (_) {
+        panel.textContent = "Artifact check unavailable (GitHub network/rate limit). Open the run to inspect the real ZIP; do not assume a download exists.";
+      } finally {checking = false;button.disabled = false;}
+    }
+    button.addEventListener("click", () => {
       if (!panel.hidden) {
         panel.hidden = true;
         button.setAttribute("aria-expanded", "false");
         button.textContent = "CHECK FILES ↓";
         return;
       }
-      panel.hidden = false;
-      button.disabled = true;
-      button.setAttribute("aria-expanded", "true");
-      button.textContent = "HIDE FILES ↑";
-      panel.textContent = "Checking actual GitHub artifacts…";
-      try {
-        const data = await readJson(RUN_API + run.id + "/artifacts?per_page=30");
-        const files = (Array.isArray(data.artifacts) ? data.artifacts : []).map(item => artifactFor(item)).filter(Boolean);
-        panel.replaceChildren();
-        if (!files.length) {
-          panel.textContent = "No artifacts returned by GitHub. Files may have expired or been deleted.";
-        }
-        for (const file of files) {
-          const box = el("div", "artifact-file");
-          box.append(el("strong", "", file.name),
-            el("span", "", file.size + " · " + (file.expired ? "Expired" : file.ready ? "Expires " + file.expiry : "Availability unknown")));
-          if (file.ready) {
-            const anchor = el("a", "job-link", "Open ZIP artifact ↗");
-            anchor.href = ROOT + "/actions/runs/" + run.id + "/artifacts/" + file.id;
-            anchor.target = "_blank";
-            anchor.rel = "noopener noreferrer";
-            box.append(anchor);
-          }
-          panel.append(box);
-        }
-        if (files.some(file => file.ready)) panel.append(el("small", "", "GitHub sign-in may be required. Successful renders include MP4s; failed jobs may contain diagnostics only."));
-      } catch (_) {
-        panel.textContent = "Could not check files. Open the GitHub run to review Artifacts or logs.";
-      } finally { button.disabled = false; }
+      inspect();
     });
     right.append(button);
     row.append(panel);
+    // Inspect only the session-matched successful owner render; never scrape every
+    // successful/failed job or fabricate a link from the job's green badge.
+    if(autoInspect && run.status==="completed" && run.conclusion==="success") inspect();
   }
   function attachDiagnosis(run, right, row) {
     if(run.conclusion!=="failure"&&run.conclusion!=="timed_out")return;
@@ -213,7 +241,7 @@
       link.rel = "noopener noreferrer";
       right.append(link);
       row.append(info,right);
-      if (run.status === "completed"){ attachDiagnosis(run, right, row);attachResults(run, right, row); }
+      if (run.status === "completed"){ attachDiagnosis(run, right, row);attachResults(run, right, row, tracked); }
       list.append(row);
     }
   }
