@@ -4,6 +4,19 @@
 
 **Important:** The engine ranks moments using Whisper speech recognition, hook/topic keywords and scene changes. These scores are heuristic; they do **not** measure current social trends or guarantee virality. The UI is a static dashboard, not a service that silently downloads YouTube/Instagram content.
 
+## New: Upload your own iPhone video directly inside GitHub
+
+**No Apper, paid tools or separate hosting required.** The native [CutNova GitHub Issue form](https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml) now offers two mutually exclusive source methods:
+
+- **Video URL:** Paste a public HTTPS supported URL, including direct MP4/MOV/WebM files.
+- **Upload your video file:** Tap the GitHub upload field and choose an **MP4/MOV/WebM** file you own or are authorized to edit from the iPhone Files app. GitHub's issue-form upload limit for video is **100 MB**. If it is larger, export a shorter or more compressed copy first.
+
+Only use **one** of those source fields. Confirm permission, choose 3/6/10 Shorts and duration, and tap **Submit new issue**. The GitHub Actions runner parses the resulting GitHub user-attachment URL, downloads authorized public media from GitHub's asset service with a 100 MB limit, then uses the same FFmpeg/Whisper Shorts engine. No YouTube anti-bot bypass is involved.
+
+**Privacy & copyright:** This repo and the Issue are **PUBLIC**. GitHub upload attachments and source links are not a private storage vault, so **never attach private recordings, credentials, paid/private videos or material you may not share publicly.** If publishing your original on a public Issue is unsuitable, don't use this route.
+
+A source-hosted upload test cannot be completed without an actual owner-supplied attachment. The existing unit tests cover upload syntax, link provenance, ownership confirmation, public-IP checks, redirect allowlists, and mocked streaming; a fresh real MP4 end-to-end run will be the remaining acceptance test.
+
 ## Real YouTube user URL diagnostic — 21 Nov 2026
 
 The repository owner submitted [Issue #5](https://github.com/addachai03-stack/index.html-/issues/5) with a rights-confirmed public YouTube URL (`youtu.be/49D3EK0B1OY`), requesting **6 clips of 30–60 seconds**, engagement mode, auto crop and auto speech language.
