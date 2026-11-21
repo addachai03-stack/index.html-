@@ -47,7 +47,7 @@ for (const id of ["highlight-style","speech-language","smart-crop","caption-scri
   assert.ok(html.includes('id="' + id + '"'), "Missing control " + id);
 const local=vm.runInContext("cutWindows(60,3,15)",ctx);
 assert.equal(local.length,3);
-assert.deepEqual(local.map(c=>[c.start,c.end]),[[0,15],[22.5,37.5],[45,60]]);
+assert.deepEqual(JSON.parse(JSON.stringify(local.map(c=>[c.start,c.end]))),[[0,15],[22.5,37.5],[45,60]]);
 assert.equal(vm.runInContext("cutWindows(6,6,15).length",ctx),1);
 assert.ok(html.includes('id="quick-generate"')&&html.includes('id="quick-file"'));
 assert.ok(html.includes('id="owner-render-tools"'));
