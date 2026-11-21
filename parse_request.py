@@ -12,6 +12,7 @@ from studio import validate_url
 from premium import normalize_style
 from smartcrop import normalize_crop_mode
 from speech_quality import normalize_language
+from roman_captions import normalize_caption_script
 from github_media import is_github_attachment_url
 
 
@@ -23,6 +24,7 @@ FORM_LABELS = {
     "Highlight style": "STYLE",
     "Smart crop mode": "CROP",
     "Speech language": "LANGUAGE",
+    "Caption script": "CAPTION_SCRIPT",
 }
 RIGHTS_LABEL = "Content ownership and permission"
 UPLOAD_LABEL = "Upload your video file"
@@ -80,7 +82,7 @@ def issue_form_fields(body: str) -> dict[str, str]:
 def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
-        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE):[ \t]*(.+?)[ \t]*", line.strip())
+        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE|CAPTION_SCRIPT):[ \t]*(.+?)[ \t]*", line.strip())
         if match and match[1] not in fields:
             fields[match[1]] = match[2]
     return fields
@@ -122,6 +124,8 @@ def parse_issue(body: str) -> dict:
         "english — prefer english speech": "en",
     }
     language = normalize_language(language_labels.get(raw_language, raw_language))
+    raw_script = fields.get("CAPTION_SCRIPT", "original").strip().lower()
+    script = normalize_caption_script({"original — keep original script": "original", "roman — hinglish (approximate)": "roman"}.get(raw_script, raw_script))
     try:
         clip_count = int(fields["CLIPS"])
         min_seconds = int(fields["MIN_SECONDS"])
@@ -138,6 +142,7 @@ def parse_issue(body: str) -> dict:
         "style": style,
         "crop": crop,
         "language": language,
+        "caption_script": script,
     }
 
 
