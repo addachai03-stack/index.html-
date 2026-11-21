@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.1</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.2</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -200,7 +200,9 @@
           <div class="edit-trim"><label>START (seconds)<input id="edit-start" type="number" min="0" step="0.01" inputmode="decimal" value="0"/></label><label>END (seconds)<input id="edit-end" type="number" min="1" step="0.01" inputmode="decimal" value="15"/></label></div>
           <p id="edit-duration" class="footnote"></p>
           <label class="rights"><input type="checkbox" id="edit-rights"/><span>I own or have permission to edit the video and selected audio.</span></label>
-          <p id="edit-format" class="footnote"></p>
+          <label class="social-encoder-setting"><input type="checkbox" id="edit-require-h264"/><span><strong>REQUIRE H.264 + AAC EXPORT</strong> (strict, no fallback)</span></label>
+          <p class="footnote">Only enable this when you need a widely compatible social video. If your phone cannot explicitly request both codecs, EXPORT SHORT is disabled in strict mode. Uncheck to use regular export. This does not re-encode an existing file; actual output codecs are checked below.</p>
+          <p id="edit-format" class="footnote" aria-live="polite"></p>
           <div class="history-toolbar"><button class="btn btn-outline" id="edit-play" type="button" disabled>PLAY SELECTION</button><button class="btn btn-lime" id="edit-export" type="button" disabled>EXPORT SHORT</button><button class="btn btn-outline" id="edit-cancel" type="button" disabled>CANCEL</button></div>
           <progress id="edit-progress" max="100" value="0" aria-label="Export playback progress"></progress>
         </div>
