@@ -186,6 +186,16 @@ try:
             page.locator("#edit-export").click()
             expect(page.locator("#edit-result")).to_be_visible(timeout=45000)
             assert (page.locator("#edit-download").get_attribute("href") or "").startswith("blob:"), "Export provided no local download blob"
+            # Real decoded video must actually play and advance; recorder success alone
+            # is not equivalent to a playable media export.
+            page.locator("#edit-verify-playback").click()
+            page.wait_for_function("""() => /^(LOCAL PLAYBACK PASS|LOCAL PLAYBACK FAILED)/.test(
+              document.querySelector('#edit-verify-status')?.textContent || '')""", timeout=16000)
+            playback_status=page.locator("#edit-verify-status").inner_text()
+            if not playback_status.startswith("LOCAL PLAYBACK PASS"):
+                REPORT["checks"]["exported_video_playback"]="FAIL: "+playback_status
+                raise AssertionError(playback_status)
+            REPORT["checks"]["exported_video_playback"]="PASS: actual exported blob decoded and advanced in browser"
             with page.expect_download(timeout=15000) as download_info:
                 page.locator("#edit-download").click()
             downloadable=download_info.value
