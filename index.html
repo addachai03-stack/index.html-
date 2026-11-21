@@ -72,13 +72,14 @@
           <div id="quick-results" class="quick-results" hidden></div>
         </div>
         <details id="source-url-tools" class="url-tools" open>
-          <summary>PASTE VIDEO LINK · PREVIEW OR IMPORT</summary>
-          <p class="footnote">Direct public MP4/MOV/WebM URLs: try importing into the editor when browser CORS permits. YouTube, Instagram and Facebook URLs: PREVIEW ONLY, not downloadable Shorts. To export Shorts from those, choose your own saved video from the phone. No GitHub redirect for local editing.</p>
+          <summary>VIDEO URL → PREPARE LOCAL CUTS</summary>
+          <p class="footnote"><strong>Direct MP4/MOV/WebM link:</strong> after confirming your video rights, CHECK &amp; PREPARE CUTS tries to import and create timed clips (up to 100 MB, CORS required). <strong>YouTube/Instagram/Facebook link:</strong> browser cannot directly extract video. Choose an authorized saved copy when prompted. Timed cuts are not AI-selected highlights.</p>
         <form id="url-form" class="url-form" novalidate>
           <label for="video-url">PASTE LONG VIDEO LINK</label>
+          <label class="rights"><input id="rights-confirm" type="checkbox"/><span>I own this video or have permission to edit and republish its content.</span></label>
           <div class="url-row">
             <div class="url-input-wrap"><span class="link-symbol">↗</span><input id="video-url" type="url" inputmode="url" placeholder="https://youtu.be/…" autocomplete="url" required/></div>
-            <button type="submit" class="btn btn-lime">CHECK LINK <span>→</span></button>
+            <button type="submit" class="btn btn-lime">CHECK &amp; PREPARE CUTS <span>→</span></button>
           </div>
         </form>
         <p class="footnote">For your own YouTube upload: YouTube Studio → Content → Save to device, then choose the saved file to edit. <a href="https://support.google.com/youtube/answer/56100?co=GENIE.Platform%3DiOS" target="_blank" rel="noopener noreferrer">Official YouTube instructions ↗</a>. Do not enter passwords or cookies.</p>
@@ -101,12 +102,11 @@
               <label>PACING<select id="pacing"><option selected value="original">Original timing</option><option value="tight">Tight — remove quiet pauses</option></select></label>
               <label>PORTRAIT FRAMING<select id="smart-crop"><option selected value="auto">Auto face-aware crop</option><option value="track">Moving face crop (beta)</option><option value="center">Center crop</option></select></label>
             </div>
-            <label class="rights"><input id="rights-confirm" type="checkbox"/><span>I own this video or have permission to edit and republish its content.</span></label>
             <div class="action-row">
               <button id="submit-request" class="btn btn-lime" type="button" disabled>✦ PREPARE IN CUTNOVA <span>→</span></button>
               <button id="copy-url" class="btn btn-outline" type="button">COPY SOURCE URL <span>↗</span></button>
             </div>
-            <p id="rights-tip" class="footnote">Confirm rights first. For social links, select your authorized saved video. Direct MP4 links import only if allowed by the video host.</p>
+            <p id="rights-tip" class="footnote">Confirm ownership above before checking the URL. This is a backup manual action for local import or selecting your saved file.</p>
             <details class="owner-render-tools" id="owner-render-tools">
               <summary>Advanced: GitHub AI rendering (owner only)</summary>
               <p class="footnote">Separate server processing, not available as public instant generation. GitHub Issues are PUBLIC: the source URL/settings and any uploaded file may be visible to everyone. Only send material you can publish.</p>
