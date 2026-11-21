@@ -330,7 +330,7 @@ elements.form.addEventListener("submit", event => {
     drawSource(current);
     const downloadable=["video","candidate","github-upload"].includes(current.kind);
     if(!elements.rights.checked){
-      showMessage("Link recognized, but clips are not started. Tick the rights checkbox above and tap LOCAL CUTS again.",false);
+      showMessage("Local cuts need your editing rights. For cloud AI use ✦ AI SHORTS FROM URL. Tick the URL form rights checkbox above only for footage you may edit; a YouTube preview cannot be downloaded locally.",false);
       elements.rights.focus({preventScroll:true});
       return;
     }
@@ -364,12 +364,13 @@ byId("ai-url-start")?.addEventListener("click",()=>{
     const ownerPanel=byId("owner-render-tools");
     if(ownerPanel)ownerPanel.open=true;
     if(!elements.rights.checked){
-      showMessage("AI render requires editing/republishing rights. Tick the rights checkbox, set your clip seconds and use START PRIVATE AI RENDER with the saved owner key.",false);
+      showMessage("AI not started: tick the URL form's editing-rights checkbox (directly below PASTE LONG VIDEO LINK) for footage you can lawfully edit. The local backup checkbox is separate.",false);
       elements.rights.focus({preventScroll:true});
+      elements.rights.scrollIntoView({block:"center",behavior:"smooth"});
     }else{
       showMessage("Owner AI settings opened. Set the clip count/seconds, paste your saved owner key, then START PRIVATE AI RENDER. A public social link is not guaranteed downloadable; GitHub will show real success or failure.",true);
     }
-    (ownerPanel||elements.panel).scrollIntoView({block:"start",behavior:"smooth"});
+    if(elements.rights.checked)(ownerPanel||elements.panel).scrollIntoView({block:"start",behavior:"smooth"});
   }catch(error){current=null;elements.panel.hidden=true;showMessage(error.message||"Enter a valid public HTTPS video URL.",false);}
 });
 
@@ -418,6 +419,29 @@ byId("copy-url").addEventListener("click", async () => {
     const copied = document.execCommand("copy");
     temp.remove();
     showMessage(copied ? "Link copied." : "Browser clipboard blocked; URL field se manually copy karo.",copied);
+  }
+});
+byId("load-ai-test-video")?.addEventListener("click",()=>{
+  // Select an original authorized fixture; do not imply rights or start cloud jobs.
+  elements.input.value=SAMPLE_URL;
+  elements.clips.value="2";
+  elements.min.value="30";
+  elements.max.value="30";
+  elements.style.value="engagement";
+  elements.crop.value="center";
+  current=providerFor(SAMPLE_URL);
+  awaitingSocialFile=false;
+  drawSource(current);
+  const ownerPanel=byId("owner-render-tools");
+  if(ownerPanel)ownerPanel.open=true;
+  updateRights();
+  if(!elements.rights.checked){
+    showMessage("Royalty-free sample MP4 selected: 2 Shorts × 30 seconds. Review and tick the URL form's rights checkbox just below the link, then enter your Owner Access Key and press START PRIVATE AI RENDER. No render has started.",true);
+    elements.rights.focus({preventScroll:true});
+    elements.rights.scrollIntoView({block:"center",behavior:"smooth"});
+  }else{
+    showMessage("Sample MP4 selected: 2 × 30 seconds. Enter your Owner Access Key in the expanded panel and press START PRIVATE AI RENDER. No render has started.",true);
+    ownerPanel?.scrollIntoView({block:"start",behavior:"smooth"});
   }
 });
 byId("load-example").addEventListener("click", () => {
