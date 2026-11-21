@@ -87,6 +87,20 @@ async function run(){
  assert.match(el("secure-verify-status").textContent,/Verification failed/);
  assert.equal(el("secure-render-key").value,"");
  assert.equal(requests.filter(x=>x.url.endsWith("/render")).length,0);
+ // Offline iPhone app must not make cross-origin owner health calls.
+ const countBeforeOffline=requests.length;
+ context.navigator.onLine=false;
+ el("secure-render-key").value="test-private-owner-key-123456789";
+ events.get("secure-render-refresh:click")();
+ await new Promise(setImmediate);
+ assert.equal(requests.length,countBeforeOffline,"Offline check must make no network requests");
+ assert.equal(el("secure-render-key").value,"");
+ assert.match(el("secure-render-health").textContent,/Offline/);
+ assert.equal(el("secure-render-start").disabled,true);
+ context.navigator.onLine=true;
+ events.get("secure-render-refresh:click")();
+ await new Promise(setImmediate);
+ assert.equal(el("secure-render-start").disabled,false,"Owner panel should recover after reconnect");
  // Explicit owner render submits the real settings in mocked context.
  el("secure-render-key").value="test-private-owner-key-123456789";
  await events.get("secure-render-start:click")();
