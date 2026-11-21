@@ -6,17 +6,30 @@ body:
     attributes:
       value: |
         ## CutNova AI Shorts Studio
-        Paste a **public video URL that you own or may edit**. The GitHub workflow checks access, uses speech and scene analysis to rank interesting moments, renders 9:16 MP4s and posts a ZIP artifact link back to this issue.
+        Paste a **public video URL or attach your own video file** that you own or may edit. The GitHub workflow checks access, uses speech and scene analysis to rank interesting moments, renders 9:16 MP4s and posts a ZIP artifact link back to this issue.
 
         **Important:** This is a PUBLIC GitHub Issue. Do not paste private or sensitive URLs, passwords, tokens or content you lack permission to republish. YouTube/Instagram often restrict downloads. AI scores are estimates, not proof of real-time trends or viral success.
+  - type: markdown
+    attributes:
+      value: |
+        ### New: Upload from your iPhone (GitHub-only)
+        **Choose ONE source:** paste a publicly accessible direct video URL **or** attach your own MP4/MOV/WebM below. If YouTube says "Sign in to confirm you're not a bot", use your own exported video file instead. **Uploaded videos and links in this public repository may be visible to anyone.** No private footage, login details or copyrighted videos without permission.
   - type: input
     id: video-url
     attributes:
       label: Video URL
-      description: "Your own public video, YouTube, Instagram, or a direct MP4/MOV/WebM (HTTPS only)."
-      placeholder: "https://example.com/your-video.mp4"
+      description: "Optional if attaching a video below. Public HTTPS direct MP4/MOV/WebM works best. YouTube sometimes blocks server downloads."
+      placeholder: "https://example.com/my-owned-video.mp4"
     validations:
-      required: true
+      required: false
+  - type: upload
+    id: upload-your-video
+    attributes:
+      label: Upload your video file
+      description: "Optional if providing a URL above. Choose a public-to-share MP4/MOV/WebM from iPhone Files/Photos. Max 100 MB per GitHub form limits. Video is public in this issue."
+    validations:
+      required: false
+      accept: ".mp4,.mov,.webm"
   - type: dropdown
     id: shorts-count
     attributes:
@@ -98,4 +111,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        After tapping **Submit new issue**, the repository owner's GitHub Action will run. A bot will comment with a link to the run (success or failure). For a successful run, open **Artifacts → cutnova-issue-...** and download the ZIP. No Apper or external website needed.
+        Before submitting, enter **exactly one** source: Video URL OR an uploaded video. After tapping **Submit new issue**, the repository owner's GitHub Action will run. A bot will comment with a link to the run (success or failure). For a successful run, open **Artifacts → cutnova-issue-...** and download the ZIP. No Apper or external website needed.
