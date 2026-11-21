@@ -6,6 +6,8 @@ on:
       - "studio.py"
       - "roman_captions.py"
       - "caption_styles.py"
+      - "animated_captions.py"
+      - "speech_quality.py"
       - "parse_request.py"
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"

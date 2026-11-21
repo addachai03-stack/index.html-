@@ -178,3 +178,7 @@ python studio.py --url "https://remotion.media/video-30s.mp4" --clips 1 --min-se
 `studio.py` (transcription, ranking and portrait render); `parse_request.py` (safe issue input parser); `index.html`, `app.js`, `styles.css` (responsive URL dashboard); `.github/workflows/shorts.yml` (manual), `issue-shorts.yml` (automatic owner requests), `pages.yml` (manual Pages deployment), `checks.yml` (CI), `smoke.yml` (sample).
 
 MIT license covers original application code, **not** third-party video or audio rights.
+
+## V1.6 — Active-word captions
+
+Select **Caption style → Karaoke — active word** to burn yellow word highlights into MP4s. Uses Whisper word timestamps where available, with evenly spaced estimates when only segment timestamps exist. The exported `.ass` animation, ordinary `.srt`, and manifest timing-event counts are retained. Roman Hindi is optional and approximate. This is not forced-alignment accuracy or a viral-performance guarantee.

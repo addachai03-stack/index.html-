@@ -20,6 +20,7 @@ from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
 from roman_captions import caption_text
 from caption_styles import subtitle_style
+from animated_captions import write_animated
 from github_media import is_github_attachment_url, download_github_attachment
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
@@ -37,6 +38,7 @@ class Segment:
     start: float
     end: float
     text: str
+    words: tuple = ()
 
 @dataclass
 class Candidate:
@@ -166,9 +168,10 @@ def transcribe(source: Path, work: Path, language: str = "auto") -> tuple[list[S
             found: list[Segment] = []
             aligned_parts = 0
             for part in parts:
-                timed = group_word_timings(getattr(part, "words", None) or [])
+                word_groups = []
+                timed = group_word_timings(getattr(part, "words", None) or [], word_groups=word_groups)
                 if timed:
-                    found.extend(Segment(start, stop, text) for start, stop, text in timed)
+                    found.extend(Segment(start, stop, text, words) for (start, stop, text), words in zip(timed, word_groups))
                     aligned_parts += 1
                 elif getattr(part, "text", "").strip():
                     found.append(Segment(round(float(part.start), 2),
@@ -296,7 +299,9 @@ def render(source: Path, target: Path, cut: Candidate, sub: Path | None,
     crop_expr = "crop=720:1280" if crop_x is None else f"crop=720:1280:{int(crop_x)}:0"
     vf = "scale=720:1280:force_original_aspect_ratio=increase," + crop_expr + ",setsar=1"
     if sub:
-        vf += ",subtitles=" + sub.name + ":force_style='" + subtitle_style(caption_style) + "'"
+        vf += ",subtitles=" + sub.name
+        if sub.suffix.lower() != ".ass":
+            vf += ":force_style='" + subtitle_style(caption_style) + "'"
     cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
            "-ss", str(cut.start), "-i", str(source), "-t", str(cut.end-cut.start),
            "-map", "0:v:0", "-map", "0:a:0?", "-vf", vf,
@@ -318,7 +323,7 @@ def main() -> int:
     p.add_argument("--crop", choices=["auto", "center"], default="auto")
     p.add_argument("--language", choices=["auto", "hi", "en"], default="auto")
     p.add_argument("--caption-script", choices=["original", "roman"], default="original")
-    p.add_argument("--caption-style", choices=["classic", "yellow", "boxed"], default="classic")
+    p.add_argument("--caption-style", choices=["classic", "yellow", "boxed", "karaoke"], default="classic")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -362,11 +367,20 @@ def main() -> int:
             target = output / (base + ".mp4")
             crop_info = compute_crop(video, width, height, cut.start, cut.end, a.crop)
             print(f"Rendering Short #{i}: {cut.start}s -> {cut.end}s; crop: {crop_info['method']} at x={crop_info['crop_x']}", flush=True)
-            render(video, target, cut, sub if has_captions else None, crop_info["crop_x"], a.caption_style)
+            render_sub = sub if has_captions else None
+            animated = output / (base + ".ass")
+            timing = None
+            if a.caption_style == "karaoke":
+                timing = write_animated(cut, speech, animated, a.caption_script)
+                if sum(timing.values()):
+                    render_sub = animated
+            render(video, target, cut, render_sub, crop_info["crop_x"], a.caption_style)
             item = asdict(cut)
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None
             item["original_captions"] = original.name if original_saved else None
+            item["animated_captions"] = animated.name if timing and sum(timing.values()) else None
+            item["animated_timing_events"] = timing
             item["framing"] = crop_info
             manifest["clips"].append(item)
         create_creator_pack(choices, output, a.style, url)

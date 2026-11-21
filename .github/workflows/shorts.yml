@@ -68,6 +68,7 @@ on:
           - "classic"
           - "yellow"
           - "boxed"
+          - "karaoke"
         default: "classic"
         required: true
       crop:
@@ -150,6 +151,7 @@ jobs:
           path: |
             output/*.mp4
             output/*.srt
+            output/*.ass
             output/*.zip
             output/*.json
             output/*.md

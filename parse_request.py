@@ -129,7 +129,7 @@ def parse_issue(body: str) -> dict:
     raw_script = fields.get("CAPTION_SCRIPT", "original").strip().lower()
     script = normalize_caption_script({"original — keep original script": "original", "roman — hinglish (approximate)": "roman"}.get(raw_script, raw_script))
     raw_preset = fields.get("CAPTION_STYLE", "classic").strip().lower()
-    preset = normalize_caption_style({"classic — bold white":"classic","yellow — bright yellow":"yellow","boxed — high contrast":"boxed"}.get(raw_preset, raw_preset))
+    preset = normalize_caption_style({"classic — bold white":"classic","yellow — bright yellow":"yellow","boxed — high contrast":"boxed","karaoke — active word":"karaoke"}.get(raw_preset, raw_preset))
     try:
         clip_count = int(fields["CLIPS"])
         min_seconds = int(fields["MIN_SECONDS"])

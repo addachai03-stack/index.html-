@@ -54,7 +54,7 @@ def whisper_settings(language: str) -> tuple[str, str | None]:
 
 
 def group_word_timings(words: Iterable, *, max_chars: int = 32,
-                       max_words: int = 7, max_gap: float = 0.75
+                       max_words: int = 7, max_gap: float = 0.75, word_groups: list | None = None
                        ) -> list[tuple[float, float, str]]:
     """Group exact ASR word timestamps into ~1–2-line short caption phrases.
 
@@ -64,14 +64,18 @@ def group_word_timings(words: Iterable, *, max_chars: int = 32,
     """
     grouped: list[tuple[float, float, str]] = []
     current: list[str] = []
+    timings: list[tuple[float, float, str]] = []
     start = 0.0
     stop = 0.0
 
     def flush():
-        nonlocal current
+        nonlocal current, timings
         if current and stop > start:
             grouped.append((round(start, 3), round(stop, 3), " ".join(current)))
+            if word_groups is not None:
+                word_groups.append(tuple(timings))
         current = []
+        timings = []
 
     for word in words:
         try:
@@ -92,6 +96,7 @@ def group_word_timings(words: Iterable, *, max_chars: int = 32,
         if not current:
             start = begin
         current.append(token)
+        timings.append((begin, finish, token))
         stop = finish
     flush()
     return grouped

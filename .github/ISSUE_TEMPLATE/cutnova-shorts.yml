@@ -109,6 +109,7 @@ body:
         - "Classic — bold white"
         - "Yellow — bright yellow"
         - "Boxed — high contrast"
+        - "Karaoke — active word"
       default: 0
     validations:
       required: true
