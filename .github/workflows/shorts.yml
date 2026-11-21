@@ -61,6 +61,15 @@ on:
           - "roman"
         default: "original"
         required: true
+      caption_style:
+        description: "Burned-in caption appearance"
+        type: choice
+        options:
+          - "classic"
+          - "yellow"
+          - "boxed"
+        default: "classic"
+        required: true
       crop:
         description: "9:16 crop method (face-aware is a static per-clip reframe)"
         type: choice
@@ -96,6 +105,7 @@ jobs:
       CROP: ${{ inputs.crop }}
       LANGUAGE: ${{ inputs.language }}
       CAPTION_SCRIPT: ${{ inputs.caption_script }}
+      CAPTION_STYLE: ${{ inputs.caption_style }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -130,6 +140,7 @@ jobs:
             --crop "$CROP" \
             --language "$LANGUAGE" \
             --caption-script "$CAPTION_SCRIPT" \
+            --caption-style "$CAPTION_STYLE" \
             --rights-confirmed
       - name: Upload MP4 Shorts + transcripts + report
         if: always()
