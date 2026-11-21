@@ -1,0 +1,45 @@
+name: CutNova - Read-Only Mobile Browser QA
+
+on:
+  push:
+    paths:
+      - "tests/mobile_navigation_qa.py"
+      - ".github/workflows/cutnova-mobile-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    env:
+      ENGINE: ${{ matrix.engine }}
+    steps:
+      - name: Checkout real CutNova website source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Playwright and headless mobile browser
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps "$ENGINE"
+      - name: Verify mobile UI, navigation, safe AI sample and real-data mocked Results
+        run: python tests/mobile_navigation_qa.py
+      - name: Attach genuine browser screenshots and PASS/FAIL report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cutnova-mobile-qa-${{ matrix.engine }}
+          path: mobile-qa-proof/
+          retention-days: 7
+          if-no-files-found: warn
