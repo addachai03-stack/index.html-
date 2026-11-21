@@ -110,7 +110,7 @@
   const Audio=window.AudioContext||window.webkitAudioContext;
   const mime=supportedType(window.MediaRecorder);
   const compatible=!!(mime&&Audio&&ctx&&typeof canvas.captureStream==="function");
-  format.textContent=compatible?(mime.startsWith("video/mp4")?"MP4 supported":"WebM supported — MP4 unavailable"):"Local preview supported; export not supported by this browser";
+  format.textContent=compatible?(mime.startsWith("video/mp4")?"MP4 supported":"WebM supported — MP4 unavailable"):"Local preview supported, but export not supported by this browser (canvas recording/codec unavailable). For cloud AI export, use a permitted public HTTPS video URL in the AI tab. Saved phone files are not uploaded.";
   function say(s){message.textContent=s}
   function times(){return [Number(start.value),Number(end.value),video.duration]}
   function options(){return settings({brightness:brightness.value,contrast:contrast.value,preset:preset.value,speed:speed.value,text:overlay.value,position:position.value})}
