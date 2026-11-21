@@ -51,6 +51,18 @@
     return runs.find(run=>run?.display_title==="CutNova owner "+id)||null;
   }
 
+  function promoteTrackedRun(runs,id){
+    if(!Array.isArray(runs))return [];
+    const own=matchingOwnerRun(runs,id);
+    return own?[own,...runs.filter(run=>run.id!==own.id)]:runs;
+  }
+
+  function pollingNeeded(runs,id,onResults,attempts){
+    if(!onResults||attempts>=12||typeof id!=="string"||!id)return false;
+    const own=matchingOwnerRun(runs,id);
+    return !own||own.status!=="completed";
+  }
+
   function failedJobSteps(jobs) {
     if(!Array.isArray(jobs))return [];
     return jobs.flatMap(job=>{
@@ -62,7 +74,7 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun};
+    module.exports = {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun, promoteTrackedRun, pollingNeeded};
     return;
   }
   const list = document.getElementById("job-results");
@@ -205,7 +217,19 @@
       list.append(row);
     }
   }
-  let loading=false;
+  let loading=false,pollTimer=null,pollAttempts=0;
+  const onResults=()=>location.hash==="#render-history"||location.hash==="#results";
+  function cancelPoll(){
+    if(pollTimer!==null){clearTimeout(pollTimer);pollTimer=null;}
+  }
+  function schedulePoll(runs){
+    cancelPoll();
+    if(document.visibilityState==="hidden")return;
+    if(!pollingNeeded(runs,trackedId(),onResults(),pollAttempts))return;
+    // At most 12 bounded refreshes, and only while the owner views RESULTS.
+    // GitHub data is a real run state, never an invented percentage/progress bar.
+    pollTimer=setTimeout(()=>{pollTimer=null;pollAttempts++;load();},30000);
+  }
   async function load() {
     if(loading)return;
     if(navigator.onLine===false){status.textContent="Offline — GitHub renders require internet.";return}
@@ -217,20 +241,30 @@
       const good = res.filter(x => x.status === "fulfilled").map(x => x.value);
       if (!good.length) throw new Error("No GitHub response");
       const runs = combineRuns(good);
-      draw(runs);
       const latest=trackedId(),own=matchingOwnerRun(runs,latest);
+      draw(promoteTrackedRun(runs,latest));
       const trackedText=!latest?"":own
-        ?" · YOUR RENDER: "+labelFor(own)[0]
-        :" · Your submitted render is not listed yet (or is older than recent history). Refresh or open Actions.";
+        ?" · YOUR RENDER: "+labelFor(own)[0]+(own.status==="completed"&&own.conclusion==="success"
+          ?" — tap CHECK FILES to verify the actual ZIP."
+          :own.status==="completed"&&own.conclusion==="failure"
+            ?" — tap WHY FAILED? for GitHub diagnostics.":" — checking real GitHub status.")
+        :" · Your submitted render is not listed yet (or is older than recent history). Use Refresh or Open Actions.";
       status.textContent = (good.length < FILES.length ? "Partial history — one workflow unavailable. " : "") +
         (runs.length ? "Last checked " + new Date().toLocaleTimeString() + " · " + runs.length + " recent runs" : "No recent render jobs found.") + trackedText;
+      schedulePoll(runs);
     } catch (_) {
+      cancelPoll();
       status.textContent = "Couldn't refresh GitHub history (network or API rate limit). Use Open GitHub Actions; previously shown results may be stale.";
     } finally { loading=false;refresh.disabled = false; }
   }
-  refresh.addEventListener("click", load);
+  refresh.addEventListener("click",()=>{pollAttempts=0;load();});
   window.addEventListener("hashchange",()=>{
-    if(location.hash==="#render-history"||location.hash==="#results")load();
+    cancelPoll();
+    if(onResults()){pollAttempts=0;load();}
+  });
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="hidden")cancelPoll();
+    else if(onResults()){pollAttempts=0;load();}
   });
   load();
 })();
