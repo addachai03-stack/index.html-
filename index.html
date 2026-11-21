@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.9</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.0</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -209,7 +209,11 @@
           <div class="edit-preview"><video id="edit-output" controls playsinline></video></div>
           <button id="edit-verify-playback" class="btn btn-outline" type="button">VERIFY EXPORTED VIDEO PLAYBACK</button>
           <p id="edit-verify-status" class="footnote" role="status" aria-live="polite">Not verified. Test playback here; then download and open the saved file in Files.</p>
-          <a class="btn btn-lime" id="edit-download" download>DOWNLOAD SHORT ↓</a>
+          <div class="native-share-actions">
+            <button id="edit-share-file" type="button" class="btn btn-lime" disabled>SHARE / SAVE TO FILES</button>
+            <a class="btn btn-outline" id="edit-download" download>DOWNLOAD SHORT ↓</a>
+          </div>
+          <p id="edit-share-status" class="footnote" role="status" aria-live="polite">Share is available after exporting a Short. The iPhone Share Sheet requires your tap.</p>
           <div class="saved-file-check" aria-label="Verify video downloaded to Files">
             <strong>VERIFY IPHONE FILES DOWNLOAD</strong>
             <p class="footnote">After DOWNLOAD SHORT, choose that saved MP4/WebM from Files. CutNova compares it byte-for-byte with this tab's original export and checks actual playback. Nothing is uploaded.</p>
@@ -279,6 +283,7 @@
   <script defer src="./full-export-test.js"></script>
   <script defer src="./playback-check.js"></script>
   <script defer src="./saved-file-check.js"></script>
+  <script defer src="./native-share.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
   <script defer src="./launch.js"></script>
