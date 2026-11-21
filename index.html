@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.0</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.1</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -209,6 +209,11 @@
           <div class="edit-preview"><video id="edit-output" controls playsinline></video></div>
           <button id="edit-verify-playback" class="btn btn-outline" type="button">VERIFY EXPORTED VIDEO PLAYBACK</button>
           <p id="edit-verify-status" class="footnote" role="status" aria-live="polite">Not verified. Test playback here; then download and open the saved file in Files.</p>
+          <div class="social-codec-audit">
+            <strong>SOCIAL VIDEO FORMAT CHECK</strong>
+            <p id="edit-social-status" class="footnote" role="status" aria-live="polite" data-result="unverified">No export inspected. Record a Short to check its real video and audio codec entries.</p>
+            <p class="footnote">Reads your export locally; no upload. A codec match cannot guarantee Instagram/YouTube/TikTok will accept the file.</p>
+          </div>
           <div class="native-share-actions">
             <button id="edit-share-file" type="button" class="btn btn-lime" disabled>SHARE / SAVE TO FILES</button>
             <a class="btn btn-outline" id="edit-download" download>DOWNLOAD SHORT ↓</a>
@@ -284,6 +289,7 @@
   <script defer src="./playback-check.js"></script>
   <script defer src="./saved-file-check.js"></script>
   <script defer src="./native-share.js"></script>
+  <script defer src="./social-codec-check.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
   <script defer src="./launch.js"></script>
