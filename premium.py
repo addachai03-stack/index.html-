@@ -8,6 +8,7 @@ from __future__ import annotations
 import csv
 import re
 from pathlib import Path
+from hook_rank import cue_count, strongest_phrase
 
 STYLES = ("engagement", "funny", "facts", "story")
 
@@ -69,9 +70,7 @@ def highlight_bonus(transcript: str, style: str = "engagement") -> float:
     txt = (transcript or "").lower()
     if not txt:
         return 0.0
-    hits = sum(bool(re.search(
-        r"(?<!\w)" + re.escape(cue) + r"(?!\w)", txt, flags=re.UNICODE
-    )) for cue in CUES[style])
+    hits = cue_count(txt, CUES[style])
     question = 0.03 if "?" in txt or "？" in txt else 0
     return min(0.18, hits * 0.042 + question)
 
@@ -137,7 +136,7 @@ def choose_title(transcript: str, style: str = "engagement", index: int = 1) -> 
     cleaned = re.sub(r"\s+", " ", transcript or "").strip()
     if not cleaned:
         return "Short #" + str(index) + " | " + MODE_HEADLINES[style]
-    phrase = text_fragments(cleaned, max_chars=72, max_words=11)[0]
+    phrase = strongest_phrase(cleaned, CUES[style])
     return phrase.strip(" ,.:;-") or ("Short #" + str(index))
 
 
@@ -163,7 +162,8 @@ def create_creator_pack(
     ]
     for number, cut in enumerate(cuts, 1):
         title = choose_title(cut.transcript, mode, number)
-        hook = choose_title(cut.transcript, mode, number)
+        hook = strongest_phrase(cut.transcript) if cut.transcript.strip() else title
+        hook = hook or title
         cta = MODE_CTA[mode]
         # These tags are a generic starting point, not claimed live-trending tags.
         tags = "#Shorts #Reels #VideoHighlights #ContentCreator #CutNova"

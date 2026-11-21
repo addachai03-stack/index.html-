@@ -11,6 +11,8 @@ on:
       - "smartcrop.py"
       - "tracking_crop.py"
       - "pacing.py"
+      - "hook_rank.py"
+      - "premium.py"
       - "parse_request.py"
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"

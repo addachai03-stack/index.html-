@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 from tracking_crop import crop_filter
+from hook_rank import tokens, hook_strength, opening_strength, speech_coverage, strongest_phrase, best_nonoverlap
 from pacing import normalize_pacing, detect_silences, keep_intervals, remap_speech, trim_media
 from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
@@ -210,25 +211,32 @@ def detect_scenes(source: Path) -> list[float]:
 def score_window(segments: list[Segment], scenes: list[float],
                  start: float, end: float, style: str = "engagement") -> Candidate:
     relevant = [s for s in segments if s.end > start and s.start < end]
-    text = " ".join(s.text for s in relevant)
-    density = min(1.0, len(re.findall(r"\w+", text)) / max(1, (end-start)*2.25))
-    coverage = min(1.0, sum(max(0, min(end, s.end)-max(start, s.start))
-                            for s in relevant) / max(1, end-start))
-    cues = min(1.0, sum(w in text.lower() for w in HOOK_WORDS)/3)
-    motion = min(1.0, sum(start <= sc < end for sc in scenes) / max(1, (end-start)/9))
-    score = 0.31*density + 0.30*coverage + 0.19*cues + 0.20*motion
-    score += highlight_bonus(text, style)
-    if relevant and abs(relevant[0].start - start) <= 3:
-        score += 0.05
+    # Word-aligned ASR allows tighter source grounding at clip boundaries.
+    excerpts = []
+    for seg in relevant:
+        if seg.words:
+            phrase = " ".join(t for a,b,t in seg.words if b>start and a<end)
+        else:
+            phrase = seg.text
+        if phrase:
+            excerpts.append(phrase)
+    text = " ".join(excerpts)
+    density = min(1.,len(tokens(text))/max(1.,(end-start)*2.25))
+    coverage = speech_coverage([(s.start,s.end) for s in relevant],start,end)
+    opening = opening_strength(relevant,start,end)
+    cues = hook_strength(text)
+    motion = min(1.,sum(start<=sc<end for sc in scenes)/max(1.,(end-start)/9))
+    score = .22*density+.23*coverage+.25*opening+.12*cues+.10*motion
+    score += highlight_bonus(text,style)
+    if relevant and abs(relevant[0].start-start)<=.6:
+        score += .04
     if not relevant and not scenes:
-        score = 0.12
-    hook = re.sub(r"\s+", " ", text).strip()[:85]
-    if len(hook) == 85:
-        hook = hook.rsplit(" ", 1)[0]
-    return Candidate(round(start, 2), round(end, 2), round(score, 4),
-                     hook or "Scene highlight", text,
-                     "speech, hooks and scenes" if segments else
-                     ("scene changes" if scenes else "timed fallback"))
+        score = .12
+    hook = strongest_phrase(text)
+    reason = "speech, opening hooks and scenes" if relevant else ("scene changes" if scenes else "timed fallback")
+    return Candidate(round(start,2),round(end,2),round(min(1.,score),4),
+                     hook or "Scene highlight",text,reason)
+
 
 def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
                requested: int = 6, min_seconds: int = 15, max_seconds: int = 60,
@@ -244,6 +252,7 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
         {float(s) for s in range(0, max(1, math.floor(duration - min_seconds) + 1), 8)}
         | {float(i * min_seconds) for i in range(max(1, int(duration // min_seconds)))}
         | {round(max(0, duration - min_seconds), 2)}
+        | {round(max(0., seg.start-.15),2) for seg in sorted(segments,key=lambda seg:(-hook_strength(seg.text),seg.start))[:500] if hook_strength(seg.text)>0 and seg.start<=duration-min_seconds}
     )
     windows = [
         score_window(segments, scenes, float(start), float(start + length), style)
@@ -252,26 +261,7 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
     ]
     if not windows:
         windows = [score_window(segments, scenes, 0, min(duration, max_seconds), style)]
-    selected = []
-    for cut in sorted(windows, key=lambda c: (-c.score, c.start)):
-        if any(cut.start < prev.end and cut.end > prev.start for prev in selected):
-            continue
-        selected.append(cut)
-        if len(selected) >= requested:
-            break
-    # A greedy top-scoring 30s window can block two 15s clips.
-    # When user requested more clips and the source can fit more, use
-    # evenly spaced non-overlapping 15s candidates rather than silently under-fill.
-    capacity = min(requested, int(duration // min_seconds))
-    if len(selected) < capacity:
-        spaced = [
-            score_window(segments, scenes, float(i * min_seconds),
-                         float((i + 1) * min_seconds), style)
-            for i in range(capacity)
-        ]
-        if len(spaced) > len(selected):
-            selected = spaced
-    return sorted(selected, key=lambda c: c.start)
+    return best_nonoverlap(windows, requested)
 
 def stamp(sec: float) -> str:
     ms = int(round(max(0, sec)*1000))

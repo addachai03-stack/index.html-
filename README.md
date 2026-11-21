@@ -190,3 +190,7 @@ Choose **Portrait framing → Moving face crop**. OpenCV samples frontal faces a
 ## V1.8 — Tight pacing
 
 Optional **Pacing → Tight** detects quiet intervals of at least 0.8 seconds at -35 dB, retaining pause-edge padding and protecting recognized speech segments. Removes at most 35% of a clip and eight intervals, subject to the requested minimum length. Rebuilds the audio/video and remaps SRT and active-word timings on the edited timeline, then computes framing. Manifest records original-relative retained intervals and before/after duration. No speech, no suitable quiet pauses or a trim error retains original timing. Music and speech recognition errors can affect detection. Review cuts before publishing.
+
+## V1.9 — Hook-aware highlight ranking
+
+Multilingual cue matching preserves Hindi vowel marks, rewards hooks early in each clip, and considers speech-aligned candidate starts. Count-aware weighted interval scheduling finds high-scoring non-overlapping clips instead of replacing good highlights with arbitrary early windows when more clips are requested. Title and hook suggestions quote bounded source-ASR phrases. Scores are normalized content heuristics (0–1), not live viral prediction. Review all transcript suggestions and clip context before publishing.
