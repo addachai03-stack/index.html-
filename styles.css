@@ -178,6 +178,12 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .export-check-head button{min-height:43px;font-size:11px}
 #edit-check-status{font-size:12px;color:var(--ink);overflow-wrap:anywhere;margin:10px 0}
 
+.social-codec-audit{border:1px solid #66744e;background:#1b221d;border-radius:12px;padding:13px;margin:15px 0;overflow-wrap:anywhere}
+.social-codec-audit strong{font-size:11px;letter-spacing:.05em;color:var(--lime)}
+.social-codec-audit .footnote{font-size:12px;line-height:1.55;margin:8px 0 0}
+#edit-social-status[data-result="not-recommended"]{color:#ffca70}
+#edit-social-status[data-result="basic-match"]{color:var(--lime)}
+#edit-social-status[data-result="unverified"]{color:var(--muted)}
 .native-share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 6px}
 .native-share-actions .btn{min-height:46px;justify-content:center}
 .native-share-actions button:disabled{opacity:.55}
