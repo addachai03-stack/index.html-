@@ -53,6 +53,14 @@ on:
           - "en"
         default: "auto"
         required: true
+      caption_script:
+        description: "Caption script: original or approximate Roman Hindi (Hinglish)"
+        type: choice
+        options:
+          - "original"
+          - "roman"
+        default: "original"
+        required: true
       crop:
         description: "9:16 crop method (face-aware is a static per-clip reframe)"
         type: choice
@@ -87,6 +95,7 @@ jobs:
       STYLE: ${{ inputs.style }}
       CROP: ${{ inputs.crop }}
       LANGUAGE: ${{ inputs.language }}
+      CAPTION_SCRIPT: ${{ inputs.caption_script }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -120,6 +129,7 @@ jobs:
             --style "$STYLE" \
             --crop "$CROP" \
             --language "$LANGUAGE" \
+            --caption-script "$CAPTION_SCRIPT" \
             --rights-confirmed
       - name: Upload MP4 Shorts + transcripts + report
         if: always()
