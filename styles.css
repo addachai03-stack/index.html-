@@ -181,6 +181,10 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .social-encoder-setting{display:flex;align-items:center;gap:10px;min-height:46px;margin:12px 0 4px;padding:10px;border:1px solid #5d7053;border-radius:10px;background:#1b251f;font-size:12px;line-height:1.5}
 .social-encoder-setting input{width:18px;height:18px;flex:none;accent-color:var(--lime)}
 .social-encoder-setting strong{color:var(--lime)}
+.social-converter-help{margin-top:12px;padding-top:9px;border-top:1px solid #485b43;font-size:12px}
+.social-converter-help summary{cursor:pointer;padding:8px 0;color:var(--lime);font-weight:700;line-height:1.5}
+.social-converter-help summary:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.social-converter-help .job-link{display:inline-block;margin-top:8px;line-height:1.5}
 .social-codec-audit{border:1px solid #66744e;background:#1b221d;border-radius:12px;padding:13px;margin:15px 0;overflow-wrap:anywhere}
 .social-codec-audit strong{font-size:11px;letter-spacing:.05em;color:var(--lime)}
 .social-codec-audit .footnote{font-size:12px;line-height:1.55;margin:8px 0 0}
