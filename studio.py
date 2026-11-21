@@ -89,6 +89,25 @@ def validate_url(url: str) -> str:
     # should not be exposed as a general-purpose public web endpoint.
     return url
 
+def diagnose_source_failure(error: Exception) -> tuple[str, str]:
+    """Map real renderer exceptions to actionable, non-secret status labels."""
+    message = str(error).casefold()
+    if any(x in message for x in ("sign in to confirm", "not a bot", "bot check", "anti-bot", "login required", "login to view", "please sign in", "age-restricted", "sign in to watch")):
+        return ("SOURCE_PLATFORM_BLOCKED",
+                "The source platform requires a sign-in or bot verification for server downloads. CutNova cannot bypass this. For your own or licensed footage, supply a direct public media URL or an authorized saved file.")
+    if any(x in message for x in ("403 forbidden", "http error 403", "private video", "not available", "unavailable", "geo-restricted", "region blocked")):
+        return ("SOURCE_ACCESS_DENIED",
+                "The source did not allow this automated download. Confirm the URL is public and permitted, or use an authorized direct MP4.")
+    if any(x in message for x in ("no downloadable video", "no formats", "unsupported url", "unable to extract", "no video format", "downloaderror")):
+        return ("SOURCE_UNAVAILABLE",
+                "The source could not be downloaded or recognized. For a reliable test, use a rights-cleared direct public HTTPS video.")
+    if any(x in message for x in ("shorter than the selected minimum", "too short")):
+        return ("VIDEO_TOO_SHORT",
+                "Choose a source longer than the selected minimum clip length (15–60 seconds).")
+    return ("RENDER_FAILED",
+            "Review the Generate real portrait Shorts step and report.json in GitHub Actions. No MP4 success is claimed.")
+
+
 def run(args, timeout=600, check=True, cwd=None):
     proc = subprocess.run(args, text=True, capture_output=True, timeout=timeout, cwd=cwd)
     if check and proc.returncode:
@@ -439,9 +458,11 @@ def main() -> int:
         print("Created", archive, flush=True)
         return 0
     except Exception as error:
-        report.update(status="failed", error=str(error),
-                      recovery="Try a public HTTPS direct MP4 you own. Platform download restrictions cannot be bypassed.")
-        print("CUTNOVA ERROR:", error, file=sys.stderr)
+        failure_code, recovery = diagnose_source_failure(error)
+        report.update(status="failed", failure_code=failure_code, error=str(error),
+                      recovery=recovery)
+        print("CUTNOVA ERROR ["+failure_code+"]:", recovery, file=sys.stderr)
+        print("Underlying exception:", str(error)[:500], file=sys.stderr)
         traceback.print_exc(limit=2)
         return 1
     finally:
