@@ -110,7 +110,7 @@
   const Audio=window.AudioContext||window.webkitAudioContext;
   const mime=supportedType(window.MediaRecorder);
   const compatible=!!(mime&&Audio&&ctx&&typeof canvas.captureStream==="function");
-  format.textContent=compatible?(mime.startsWith("video/mp4")?"MP4 supported":"WebM supported — MP4 unavailable"):"Local preview supported, but export not supported by this browser (canvas recording/codec unavailable). For cloud AI export, use a permitted public HTTPS video URL in the AI tab. Saved phone files are not uploaded.";
+  format.textContent=compatible?(mime.startsWith("video/mp4")?"MP4 container supported — H.264/AAC codecs and social upload compatibility are not guaranteed; verify the saved file.":"WebM supported — MP4 unavailable. Social uploads may require conversion."):"Local preview supported, but export not supported by this browser (canvas recording/codec unavailable). For cloud AI export, use a permitted public HTTPS video URL in the AI tab. Saved phone files are not uploaded.";
   function say(s){message.textContent=s}
   function times(){return [Number(start.value),Number(end.value),video.duration]}
   function options(){return settings({brightness:brightness.value,contrast:contrast.value,preset:preset.value,speed:speed.value,text:overlay.value,position:position.value})}
@@ -523,7 +523,7 @@
           outputUrl=URL.createObjectURL(blob);output.src=outputUrl;
           download.href=outputUrl;download.download="CutNova_Manual_Short."+ext;
           result.hidden=false;progress.value=100;
-          say("Export recorded: "+ext.toUpperCase()+" · "+(blob.size/1048576).toFixed(2)+" MB. Preview before saving.");
+          say("Export recorded: "+ext.toUpperCase()+" · "+(blob.size/1048576).toFixed(2)+" MiB. Preview and play the downloaded file. MP4 extension alone does not guarantee H.264/AAC or compatibility with every social platform.");
         }catch(e){say(e.message||"Export failed.")}
         finally{cleanup()}
       };
