@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun} = require("../jobs.js");
+const {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun, promoteTrackedRun, pollingNeeded} = require("../jobs.js");
 assert.deepEqual(labelFor({status:"in_progress"}), ["PROCESSING","working"]);
 assert.deepEqual(labelFor({status:"queued"}), ["QUEUED / WAITING","working"]);
 assert.deepEqual(labelFor({status:"completed",conclusion:"success"}), ["SUCCESS","success"]);
@@ -37,3 +37,16 @@ assert.equal(matchingOwnerRun([otherRun],requestId),null);
 assert.equal(matchingOwnerRun([ownerRun],"invalid id"),null);
 assert.equal(matchingOwnerRun(null,requestId),null);
 console.log("PASS: tracked owner render requires exact UUID and real GitHub display title.");
+
+const runList=[otherRun,ownerRun];
+assert.deepEqual(promoteTrackedRun(runList,requestId).map(r=>r.id),[999,998]);
+assert.deepEqual(promoteTrackedRun(runList,"550e8400-e29b-41d4-a716-446655440001").map(r=>r.id),[998,999]);
+assert.deepEqual(promoteTrackedRun(null,requestId),[]);
+assert.equal(pollingNeeded([ownerRun],requestId,true,0),true);
+assert.equal(pollingNeeded([ownerRun],requestId,false,0),false);
+assert.equal(pollingNeeded([ownerRun],requestId,true,12),false);
+assert.equal(pollingNeeded([{...ownerRun,status:"completed",conclusion:"success"}],requestId,true,0),false);
+assert.equal(pollingNeeded([{...ownerRun,status:"completed",conclusion:"failure"}],requestId,true,0),false);
+assert.equal(pollingNeeded([],requestId,true,0),true);
+assert.equal(pollingNeeded([],null,true,0),false);
+console.log("PASS: tracked owner runs rise to top and read-only polling stops on completion or when hidden/off-screen/at limit.");
