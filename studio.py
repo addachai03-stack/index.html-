@@ -25,6 +25,7 @@ from roman_captions import caption_text
 from caption_styles import subtitle_style
 from animated_captions import write_animated
 from github_media import is_github_attachment_url, download_github_attachment
+from direct_media import download_direct, media_kind
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
@@ -97,6 +98,8 @@ def run(args, timeout=600, check=True, cwd=None):
 def download(url: str, work: Path) -> Path:
     if is_github_attachment_url(url):
         return download_github_attachment(url, work)
+    if re.search(r"\.(mp4|mov|m4v|webm)$", urlparse(url).path, flags=re.I):
+        return download_direct(url, work)
     from yt_dlp import YoutubeDL
     opts = {
         "format": "bv*[height<=720]+ba/b[height<=720]/best",
@@ -106,6 +109,7 @@ def download(url: str, work: Path) -> Path:
         "max_filesize": 650 * 1024 * 1024,
         "socket_timeout": 25, "retries": 2, "fragment_retries": 2,
         "no_warnings": True, "quiet": False, "ignoreerrors": False,
+        "allowed_extractors": ["default", "-generic"], "max_downloads": 1, "proxy": "",
     }
     print("Downloading authorized public video (no login/DRM bypass).", flush=True)
     with YoutubeDL(opts) as ydl:
@@ -122,7 +126,9 @@ def download(url: str, work: Path) -> Path:
     return files[0]
 
 def probe(source: Path, minimum: float = 15) -> float:
-    proc = run(["ffprobe", "-v", "error", "-show_entries",
+    with source.open("rb") as f:
+        media_kind(f.read(32))
+    proc = run(["ffprobe", "-v", "error", "-protocol_whitelist", "file,pipe", "-format_whitelist", "mov,matroska,webm", "-show_entries",
                 "format=duration:stream=codec_type", "-of", "json", str(source)], timeout=30)
     info = json.loads(proc.stdout)
     duration = float(info.get("format", {}).get("duration", 0))
