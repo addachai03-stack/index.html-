@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.7</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.8</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -205,7 +205,13 @@
           <progress id="edit-progress" max="100" value="0" aria-label="Export playback progress"></progress>
         </div>
         <p id="edit-status" role="status" aria-live="polite">Choose a local video to begin.</p>
-        <div id="edit-result" hidden><div class="edit-preview"><video id="edit-output" controls playsinline></video></div><a class="btn btn-lime" id="edit-download" download>DOWNLOAD SHORT ↓</a></div>
+        <div id="edit-result" hidden>
+          <div class="edit-preview"><video id="edit-output" controls playsinline></video></div>
+          <button id="edit-verify-playback" class="btn btn-outline" type="button">VERIFY EXPORTED VIDEO PLAYBACK</button>
+          <p id="edit-verify-status" class="footnote" role="status" aria-live="polite">Not verified. Test playback here; then download and open the saved file in Files.</p>
+          <a class="btn btn-lime" id="edit-download" download>DOWNLOAD SHORT ↓</a>
+          <p class="footnote">On iPhone, if your browser opens a preview instead of saving automatically, use Share → Save to Files. The site cannot see whether Files actually saved it. Play the saved video and listen for audio before posting.</p>
+        </div>
         <p class="footnote">Manual local export records video in real time; it is not cloud AI and adds no AI captions. Some iPhone/Safari browser versions cannot record a canvas video, so the Export button may be disabled. If unsupported, the AI tab can render only authorized publicly downloadable video URLs; saved iPhone video files are NOT automatically uploaded. MP4 when supported, otherwise WebM; MP4 may still use codecs that some social apps reject. Play the downloaded file before publishing, and keep this page open during recording.</p>
         </div>
       </section>
@@ -261,6 +267,7 @@
   <script defer src="./editor.js"></script>
   <script defer src="./export-check.js"></script>
   <script defer src="./full-export-test.js"></script>
+  <script defer src="./playback-check.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
   <script defer src="./launch.js"></script>
