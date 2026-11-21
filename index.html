@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.8</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.9</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -210,7 +210,17 @@
           <button id="edit-verify-playback" class="btn btn-outline" type="button">VERIFY EXPORTED VIDEO PLAYBACK</button>
           <p id="edit-verify-status" class="footnote" role="status" aria-live="polite">Not verified. Test playback here; then download and open the saved file in Files.</p>
           <a class="btn btn-lime" id="edit-download" download>DOWNLOAD SHORT ↓</a>
-          <p class="footnote">On iPhone, if your browser opens a preview instead of saving automatically, use Share → Save to Files. The site cannot see whether Files actually saved it. Play the saved video and listen for audio before posting.</p>
+          <div class="saved-file-check" aria-label="Verify video downloaded to Files">
+            <strong>VERIFY IPHONE FILES DOWNLOAD</strong>
+            <p class="footnote">After DOWNLOAD SHORT, choose that saved MP4/WebM from Files. CutNova compares it byte-for-byte with this tab's original export and checks actual playback. Nothing is uploaded.</p>
+            <label class="edit-file-label">CHOOSE SAVED VIDEO FROM FILES
+              <input id="edit-saved-file" type="file" accept="video/*,.mp4,.webm"/>
+            </label>
+            <video id="edit-saved-preview" playsinline controls preload="metadata" hidden aria-label="User-selected saved video playback preview"></video>
+            <button id="edit-saved-verify" type="button" class="btn btn-outline">VERIFY SAVED FILE</button>
+            <p id="edit-saved-status" role="status" aria-live="polite">Not verified. Download your Short, then select that exact file from iPhone Files.</p>
+          </div>
+          <p class="footnote">On iPhone, if your browser opens a preview instead of saving automatically, use Share → Save to Files. The website cannot access Files until you choose a file yourself. Play the saved video and listen for audio before posting.</p>
         </div>
         <p class="footnote">Manual local export records video in real time; it is not cloud AI and adds no AI captions. Some iPhone/Safari browser versions cannot record a canvas video, so the Export button may be disabled. If unsupported, the AI tab can render only authorized publicly downloadable video URLs; saved iPhone video files are NOT automatically uploaded. MP4 when supported, otherwise WebM; MP4 may still use codecs that some social apps reject. Play the downloaded file before publishing, and keep this page open during recording.</p>
         </div>
@@ -268,6 +278,7 @@
   <script defer src="./export-check.js"></script>
   <script defer src="./full-export-test.js"></script>
   <script defer src="./playback-check.js"></script>
+  <script defer src="./saved-file-check.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
   <script defer src="./launch.js"></script>
