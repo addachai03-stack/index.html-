@@ -210,7 +210,7 @@ def creator_hook_options(speech: str, style: str, index: int) -> list[str]:
     if not speech.strip():
         return ["Visual moment #" + str(index) + " — add a verified hook"]
     title = choose_title(speech, mode, index)
-    is_hindi = any("\\u0900" <= c <= "\\u097f" for c in title)
+    is_hindi = any(0x0900 <= ord(c) <= 0x097F for c in title)
     if is_hindi:
         frames = ["ये सुनिए", "यह बात ध्यान से सुनिए", "आपने ये सुना"]
     elif mode == "facts":
