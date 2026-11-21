@@ -42,8 +42,15 @@ export default {
     if(Number(request.headers.get("content-length")||0)>6000)return reply({error:"Request too large."},413,true);
     let v;try{v=await request.json()}catch{return reply({error:"Invalid JSON request."},400,true)}
     if(!v||typeof v!=="object"||!validSource(v.url)||v.rights_confirm!==true)return reply({error:"Use a public authorized video HTTPS link and confirm editing rights."},400,true);
-    const clips=String(v.clips||"3"),min=String(v.min_seconds||"15"),max=String(v.max_seconds||"30");
-    if(!allowed(clips,["3","6","10"])||!allowed(min,["15","20","30"])||!allowed(max,["30","45","60"])||Number(min)>Number(max))return reply({error:"Unsupported clip count or duration."},400,true);
+    // Allow any integer clip count 1–10 and exact/ranged seconds 15–60.
+    // Never coerce partial numerals, decimals or 0 into a valid request.
+    const clips=String(v.clips??"3"),min=String(v.min_seconds??"30"),max=String(v.max_seconds??"30");
+    const integer=s=>/^\d{1,2}$/.test(s);
+    if(!integer(clips)||!integer(min)||!integer(max)||
+       Number(clips)<1||Number(clips)>10||
+       Number(min)<15||Number(max)>60||Number(min)>Number(max)){
+      return reply({error:"Use 1–10 clips and integer min/max seconds from 15–60. Set both to 30 for exact 30-second clips."},400,true);
+    }
     const inputs={
       video_url:v.url,rights_confirm:"true",clips,min_seconds:min,max_seconds:max,
       style:allowed(v.style,["engagement","funny","facts","story"])?v.style:"engagement",
