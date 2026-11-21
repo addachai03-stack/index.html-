@@ -118,3 +118,43 @@ test("Known public social link can dispatch but is not a successful MP4",async()
   assert.equal((await r.json()).accepted,true);
  }
 });
+
+test("Read-only owner verify checks active GitHub workflow without dispatch",async()=>{
+ let calls=0;
+ const upstream=async(url,opts)=>{
+   calls++;assert.match(url,/\/actions\/workflows\/shorts.yml$/);
+   assert.equal(opts.method,"GET");
+   assert.equal(opts.headers.Authorization,"Bearer "+env.CUTNOVA_GITHUB_TOKEN);
+   return new Response(JSON.stringify({path:".github/workflows/shorts.yml",state:"active"}),{status:200,headers:{"content-type":"application/json"}});
+ };
+ const w=build(upstream);
+ const r=await w.fetch(http(null,{path:"/verify",key:KEY}),env);
+ assert.equal(r.status,200);
+ const data=await r.json();
+ assert.equal(data.verified,true);
+ assert.equal(data.no_render_started,true);
+ assert.equal(data.owner_key_accepted,true);
+ assert.equal(data.github_workflow_reachable,true);
+ assert.equal(calls,1);
+ assert.doesNotMatch(JSON.stringify(data),/github-token-placeholder-no-real-token/);
+});
+test("Read-only verify blocks wrong owner, origin and missing secrets",async()=>{
+ const w=build(nope);
+ assert.equal((await w.fetch(http(null,{path:"/verify",key:"wrong-owner-key-123456789-12345"}),env)).status,401);
+ assert.equal((await w.fetch(http(null,{path:"/verify",key:KEY,origin:"https://attacker.example"}),env)).status,403);
+ assert.equal((await w.fetch(http(null,{path:"/verify",key:KEY}),{})).status,503);
+ assert.equal((await w.fetch(http(null,{path:"/verify",key:KEY,method:"GET"}),env)).status,405);
+});
+test("Read-only verify reports GitHub token problems without rendering",async()=>{
+ for(const status of [401,403,404,500]){
+   const w=build(async(_url,opts)=>{assert.equal(opts.method,"GET");return new Response(null,{status})});
+   const r=await w.fetch(http(null,{path:"/verify",key:KEY}),env);
+   assert.equal(r.status,502);
+   const body=await r.json();
+   assert.equal(body.verified,false);
+   assert.equal(body.accepted,undefined);
+ }
+ const disabled=build(async()=>new Response(JSON.stringify({path:".github/workflows/shorts.yml",state:"disabled_manually"}),{status:200}));
+ const result=await disabled.fetch(http(null,{path:"/verify",key:KEY}),env);
+ assert.equal(result.status,502);
+});
