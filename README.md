@@ -1,5 +1,14 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## Current release: URL check + local timed cuts (November 21, 2026)
+
+**What works in the static web app:** Choose a video from your phone, or paste a direct publicly accessible HTTPS MP4/MOV/WebM media URL whose host permits CORS. Confirm editing rights and tap **CHECK & PREPARE CUTS**. A downloadable direct video is loaded into the device, duration is read, and CutNova prepares feasible, mostly non-overlapping **timed cut suggestions**. Tap **EDIT & EXPORT** on a suggestion to render one file at a time in a compatible browser. A 60-second video with 3 requested cuts and a 15–60s range gives 3 × 20-second suggestions; requesting 10 with a 15-second minimum gives at most 4 distinct sections. The local editor does not automatically rank highlights, recognize speech or render captions.
+
+**What does not work from URL alone:** YouTube, Instagram, Facebook and similar webpage links are preview-only inside this browser editor. The user must select a saved video they own or are authorized to edit. A separate GitHub Actions workflow supports *owner-only* server-side rendering of accessible authorized sources, but is not securely connected to public one-click website submissions and may be blocked by upstream social platforms. Do not claim that pressing CHECK & PREPARE CUTS extracts or exports social media automatically.
+
+**Verification notes:** Static JS syntax was checked across the app shell, plus mocked-DOM functional checks for direct-media import, rights prompts, file-picker handoff and clip card generation. Pure clip-algorithm tests cover 60s/3, 60s/10, 120s/6, 8s/10, 600s/10 and 61s/6. These are **code-level tests**, not full real-iPhone Safari/browser or end-to-end media export tests. A live browser-service test was unavailable; treat media recording/export support as device-dependent. Avoid publishing unsupported claims of end-to-end URL-to-AI-Shorts success.
+
+
 **Actual code on GitHub, iPhone-first, Hinglish-friendly.** Paste a public long-video URL, request 1–10 highlight clips, and receive downloadable **15–60-second 9:16 MP4 Shorts** through GitHub Actions when the source video is accessible and you have rights to adapt it.
 
 **Important:** The engine ranks moments using Whisper speech recognition, hook/topic keywords and scene changes. These scores are heuristic; they do **not** measure current social trends or guarantee virality. The UI is a static dashboard, not a service that silently downloads YouTube/Instagram content.
