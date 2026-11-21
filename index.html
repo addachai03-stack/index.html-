@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#0c0d11"/>
   <meta name="referrer" content="no-referrer"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: https:; connect-src 'self' https://api.github.com; frame-src https://www.youtube-nocookie.com https://www.instagram.com https://player.vimeo.com https://www.facebook.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: https:; connect-src 'self' https:; frame-src https://www.youtube-nocookie.com https://www.instagram.com https://player.vimeo.com https://www.facebook.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"/>
   <meta name="description" content="CutNova — create 9:16 Shorts from videos on your phone, with a local editor and offline-capable PWA."/>
   <title>CutNova — AI Shorts Studio</title>
   <link rel="manifest" href="./manifest.webmanifest"/>
@@ -63,7 +63,7 @@
         <div class="quick-shorts" id="quick-shorts">
           <label class="quick-source-label" for="quick-file">CHOOSE VIDEO FROM PHONE<input id="quick-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm"/></label>
           <div class="quick-select-row">
-            <label>HOW MANY CUTS<select id="quick-count"><option value="1">1 Short</option><option value="3" selected>3 Shorts</option><option value="6">6 Shorts</option></select></label>
+            <label>HOW MANY CUTS<select id="quick-count"><option value="1">1 Short</option><option value="3" selected>3 Shorts</option><option value="6">6 Shorts</option><option value="10">10 Shorts</option></select></label>
             <label>LENGTH PER CUT<select id="quick-length"><option value="15" selected>15 seconds</option><option value="30">30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></label>
           </div>
           <label class="rights"><input type="checkbox" id="quick-rights"/><span>I own or have permission to edit this footage.</span></label>
@@ -71,9 +71,9 @@
           <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. No uploads. No AI transcription or automatic highlight detection.</p>
           <div id="quick-results" class="quick-results" hidden></div>
         </div>
-        <details id="source-url-tools" class="url-tools">
-          <summary>Have a video URL? Check it here (optional)</summary>
-          <p class="footnote">Social links can be previewed, but YouTube/Instagram video files cannot be imported directly by this browser. Save your own authorized copy first. Direct MP4 links may work when the video host permits CORS access.</p>
+        <details id="source-url-tools" class="url-tools" open>
+          <summary>PASTE VIDEO URL · CHECK &amp; EDIT</summary>
+          <p class="footnote">Paste a public HTTPS video URL. Direct MP4/MOV/WebM files can be imported and edited here if the host permits browser downloads (CORS). YouTube, Instagram, Facebook and other social links are for source preview only; use a saved video you own to edit those.</p>
         <form id="url-form" class="url-form" novalidate>
           <label for="video-url">PASTE LONG VIDEO LINK</label>
           <div class="url-row">
