@@ -16,7 +16,7 @@ console.log("PASS: render status mapping, valid run IDs, deduplication and histo
 const sample = {id:14669684793,name:"cutnova-issue-3",size_in_bytes:4442662,expired:false,expires_at:"2026-11-27T21:18:52Z"};
 const now = Date.parse("2026-11-21T00:00:00Z");
 assert.equal(artifactFor(sample,now).ready,true);
-assert.equal(artifactFor(sample,now).size,"4.24 MB");
+assert.equal(artifactFor(sample,now).size,"4.24 MiB");
 assert.equal(artifactFor(sample,Date.parse("2026-11-28T00:00:00Z")).expired,true);
 assert.equal(artifactFor({...sample,expired:true},now).ready,false);
 assert.equal(artifactFor({...sample,expired:undefined},now).ready,false);
