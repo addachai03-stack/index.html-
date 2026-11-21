@@ -11,7 +11,7 @@ function node() {
     classList: {toggle() {}},
     addEventListener(name, callback) { this.handlers[name] = callback; },
     setAttribute(name, value) { this.attrs[name] = String(value); },
-    append() {}, replaceChildren() {}, scrollIntoView() {},
+    append() {}, replaceChildren() {}, scrollIntoView() {}, focus() {},
   };
 }
 const map = new Map();
@@ -52,4 +52,15 @@ assert.equal(vm.runInContext("cutWindows(6,6,15).length",ctx),1);
 assert.ok(html.includes('id="quick-generate"')&&html.includes('id="quick-file"'));
 assert.ok(html.includes('id="owner-render-tools"'));
 assert.ok(!html.includes('id="submit-request" class="btn btn-lime disabled-link"'));
+// Cloud AI quick-start must select fixture, not automatically confirm rights or dispatch work.
+document.getElementById("rights-confirm").checked=false;
+document.getElementById("load-ai-test-video").handlers.click();
+assert.equal(document.getElementById("video-url").value,"https://remotion.media/video-1m.mp4");
+assert.equal(document.getElementById("clips-count").value,"2");
+assert.equal(document.getElementById("min-seconds").value,"30");
+assert.equal(document.getElementById("max-seconds").value,"30");
+assert.equal(document.getElementById("rights-confirm").checked,false,"Sample selection must not automatically accept content rights");
+assert.equal(document.getElementById("owner-render-tools").open,true);
+assert.match(document.getElementById("message").textContent,/No render has started/i);
+console.log("PASS: safe AI MP4 fixture selection with 2x30s, correct rights checkbox and no automatic render.");
 console.log("PASS: primary on-device generation, timed cut bounds, owner-only advanced route and rights guards.");
