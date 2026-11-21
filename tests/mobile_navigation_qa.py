@@ -1,0 +1,170 @@
+"""Real headless Chromium/WebKit mobile navigation QA — no render or credentials.
+
+Runs against a local copy of CutNova's actual source in CI. External GitHub status
+is mocked with realistic read-only responses so UI state is deterministic. This
+does not claim to be a physical iPhone Safari test or a live owner-key test.
+"""
+from __future__ import annotations
+
+import json
+import os
+import threading
+import time
+from datetime import datetime, timedelta, timezone
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+from playwright.sync_api import expect, sync_playwright
+
+ROOT = Path("mobile-qa-proof")
+ROOT.mkdir(exist_ok=True)
+ENGINE = os.environ.get("ENGINE", "chromium")
+TRACK_ID = "550e8400-e29b-41d4-a716-446655440000"
+RUN_ID = 44942618474
+ART_ID = 14722321472
+SAMPLE_URL = "https://remotion.media/video-1m.mp4"
+REPORT = {"browser_engine": ENGINE, "viewport": "390x844", "physical_iphone": False,
+          "real_render_started": False, "owner_key_used": False, "checks": {}}
+server = ThreadingHTTPServer(("127.0.0.1", 0), SimpleHTTPRequestHandler)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+BASE = f"http://127.0.0.1:{server.server_port}/"
+EXPIRY = (datetime.now(timezone.utc) + timedelta(days=6)).isoformat()
+github_run = {"id": RUN_ID, "run_number": 3, "event": "workflow_dispatch",
+              "status": "completed", "conclusion": "success",
+              "created_at": "2026-11-21T19:45:18Z",
+              "display_title": "CutNova owner " + TRACK_ID}
+github_artifact = {"id": ART_ID, "name": "cutnova-shorts-3",
+                   "size_in_bytes": 9218656, "expired": False,
+                   "expires_at": EXPIRY}
+requests = []
+errors = []
+
+
+def fulfill_json(route, value, status=200):
+    route.fulfill(status=status, content_type="application/json",
+                  headers={"access-control-allow-origin": "*", "cache-control": "no-store"},
+                  body=json.dumps(value))
+
+
+def mock_request(route):
+    url = route.request.url
+    requests.append({"url": url, "method": route.request.method})
+    if "/render" in url or "/verify" in url:
+        raise AssertionError("Unauthorized workflow/owner authentication endpoint requested during read-only QA: " + url)
+    if url.endswith("/health"):
+        return fulfill_json(route, {"service": "CutNova render bridge", "status": "online",
+                                    "configured": True, "mode": "owner-only"})
+    if "/actions/workflows/issue-shorts.yml/runs" in url:
+        return fulfill_json(route, {"workflow_runs": []})
+    if "/actions/workflows/shorts.yml/runs" in url:
+        return fulfill_json(route, {"workflow_runs": [github_run]})
+    if f"/actions/runs/{RUN_ID}/artifacts" in url:
+        return fulfill_json(route, {"artifacts": [github_artifact]})
+    if f"/actions/runs/{RUN_ID}/jobs" in url:
+        return fulfill_json(route, {"jobs": []})
+    raise AssertionError("Unexpected mocked GitHub request: " + url)
+
+
+def visible_width(page):
+    sizes = page.evaluate("""() => ({
+      viewport: innerWidth, width: document.documentElement.scrollWidth,
+      shell: document.querySelector('.app-shell')?.scrollWidth ?? 0,
+      visibleButtons: [...document.querySelectorAll('button')].filter(e => {
+        const rect=e.getBoundingClientRect(),style=getComputedStyle(e);
+        return rect.width>0 && rect.height>0 && style.visibility !== 'hidden' &&
+          rect.bottom>0 && rect.top<innerHeight;
+      }).map(e=>({id:e.id,x:e.getBoundingClientRect().x,right:e.getBoundingClientRect().right}))
+    })""")
+    assert sizes["width"] <= sizes["viewport"] + 1, f"Horizontal overflow: {sizes}"
+    # A clipped interactive control is a practical mobile usability defect.
+    bad = [b for b in sizes["visibleButtons"] if b["right"] > sizes["viewport"]+1 or b["x"] < -1]
+    assert not bad, f"Buttons outside viewport: {bad}"
+    return sizes
+
+
+def mobile_tab(page, tab, section_id):
+    page.locator(f'#mobile-nav [data-nav="{tab}"]').click()
+    expect(page.locator("#" + section_id)).to_be_visible(timeout=12000)
+    expect(page.locator(f'#mobile-nav [data-nav="{tab}"]')).to_have_attribute("aria-current", "page")
+    visible_width(page)
+    REPORT["checks"]["tab_" + tab] = "PASS"
+
+
+try:
+    with sync_playwright() as p:
+        browser = getattr(p, ENGINE).launch()
+        context = browser.new_context(
+            viewport={"width": 390, "height": 844},
+            device_scale_factor=3, is_mobile=True, has_touch=True,
+            service_workers="block", accept_downloads=False)
+        # Use only a public, fake UUID. Never touch owner keys or render jobs.
+        context.add_init_script(
+            f"sessionStorage.setItem('cutnova-latest-request-id', '{TRACK_ID}');")
+        page = context.new_page()
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.route("https://cutnova-render-api.addachai03.workers.dev/**", mock_request)
+        page.route("https://api.github.com/repos/addachai03-stack/index.html-/**", mock_request)
+        page.route("https://remotion.media/**", lambda route: route.abort())
+        page.goto(BASE, wait_until="domcontentloaded", timeout=30000)
+        expect(page.locator("#mobile-nav")).to_be_visible()
+        visible_width(page)
+        REPORT["checks"]["mobile_shell"] = "PASS"
+        page.screenshot(path=str(ROOT / f"{ENGINE}-home.png"), full_page=False)
+
+        mobile_tab(page, "ai", "studio")
+        expect(page.locator("#video-url")).to_be_visible()
+        expect(page.locator("#load-ai-test-video")).to_be_visible()
+        page.locator("#load-ai-test-video").click()
+        expect(page.locator("#video-url")).to_have_value(SAMPLE_URL)
+        expect(page.locator("#clips-count")).to_have_value("2")
+        expect(page.locator("#min-seconds")).to_have_value("30")
+        expect(page.locator("#max-seconds")).to_have_value("30")
+        assert not page.locator("#rights-confirm").is_checked(), "No implicit rights consent"
+        expect(page.locator("#owner-render-tools")).to_have_attribute("open", "")
+        expect(page.locator("#secure-render-verify")).to_be_enabled()
+        REPORT["checks"]["owner_ai_safe_sample"] = "PASS"
+        page.screenshot(path=str(ROOT / f"{ENGINE}-ai.png"), full_page=False)
+
+        mobile_tab(page, "results", "render-history")
+        expect(page.locator("#job-results .job-row")).to_have_count(1, timeout=16000)
+        expect(page.locator("#job-results .job-owner-note")).to_contain_text("YOUR LATEST OWNER RENDER")
+        expect(page.locator("#job-results .job-success")).to_have_text("SUCCESS")
+        expect(page.locator("#job-results .artifact-file")).to_have_count(1, timeout=16000)
+        artifact_link = page.locator('#job-results a[href$="/artifacts/14722321472"]')
+        expect(artifact_link).to_be_visible()
+        expect(artifact_link).to_contain_text("Open rendered files ZIP")
+        expect(page.locator("#job-results")).to_contain_text("MiB")
+        assert all(r["method"] == "GET" for r in requests), "Read-only app made non-GET backend request"
+        REPORT["checks"]["real_data_results_mock"] = "PASS"
+        REPORT["checks"]["owner_artifact_link"] = "PASS"
+        page.screenshot(path=str(ROOT / f"{ENGINE}-results.png"), full_page=False)
+
+        mobile_tab(page, "editor", "local-editor")
+        expect(page.locator("#edit-export")).to_be_disabled()
+        REPORT["checks"]["editor_idle_safe"] = "PASS"
+        page.screenshot(path=str(ROOT / f"{ENGINE}-editor.png"), full_page=False)
+        mobile_tab(page, "projects", "local-editor")
+        expect(page.locator("#project-manager")).to_be_visible()
+        REPORT["checks"]["projects_navigation"] = "PASS"
+
+        mobile_tab(page, "home", "studio") if False else None
+        page.locator('#mobile-nav [data-nav="home"]').click()
+        expect(page.locator(".hero")).to_be_visible()
+        visible_width(page)
+        REPORT["checks"]["home_navigation"] = "PASS"
+        REPORT["checks"]["javascript_errors"] = "PASS" if not errors else "FAIL"
+        if errors:
+            raise AssertionError("JavaScript page errors: " + str(errors))
+        assert not any("/render" in r["url"] for r in requests)
+        REPORT["mocked_api_calls"] = len(requests)
+        print(json.dumps(REPORT, indent=2))
+        context.close()
+        browser.close()
+except Exception as e:
+    REPORT["error"] = str(e)
+    REPORT["javascript_errors"] = errors
+    print(json.dumps(REPORT, indent=2))
+    raise
+finally:
+    (ROOT / f"report-{ENGINE}.json").write_text(json.dumps(REPORT, indent=2), encoding="utf-8")
+    server.shutdown()
