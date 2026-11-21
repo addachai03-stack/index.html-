@@ -194,6 +194,7 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .artifact-panel[hidden]{display:none}
 .artifact-file{display:grid;gap:5px;padding:10px 0}
 .artifact-file strong{color:var(--ink)}
+.artifact-expiring{color:#ffca70;font-weight:800}
 .artifact-panel small{display:block;margin-top:8px}
 
 /* On-device manual editor */
