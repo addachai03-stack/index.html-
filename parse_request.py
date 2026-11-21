@@ -87,7 +87,9 @@ def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
         match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE|CAPTION_SCRIPT|CAPTION_STYLE|PACING):[ \t]*(.+?)[ \t]*", line.strip())
-        if match and match[1] not in fields:
+        if match:
+            if match[1] in fields:
+                raise ValueError("Duplicate request setting: " + match[1])
             fields[match[1]] = match[2]
     return fields
 

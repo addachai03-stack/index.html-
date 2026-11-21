@@ -214,3 +214,7 @@ Use Save Draft to store the current video and optional audio blob, trim and effe
 ## V2.4 — Installable PWA
 
 Visit the HTTPS GitHub Pages website online once, wait for the offline shell status to become ready, then use Safari Share → Add to Home Screen on iPhone. Standalone mode uses safe-area spacing and a scoped manifest. The service worker precaches only public static app files; no user media, private data, GitHub API results or external website requests are cached. Offline local editor and draft access depend on the device/browser and available storage. AI highlights, remote links, GitHub job history and artifact downloads require internet. Updates activate after previous app windows close; save drafts before reopening. Browser cache may be evicted. The iOS installation and offline recording still need on-device verification.
+
+## V2.5 release hardening
+
+Reject private/signed URL parameters and control characters, prevent duplicate request fields, avoid persistent checkout credentials, escape spreadsheet formulas, restrict page CSP, tighten draft/export guards and cap export painting near 25 fps. YouTube bot restrictions remain external: use official Save to device for your own uploaded footage, then local editing or authorized public GitHub upload. Real-device Safari testing and independent security assessment remain required.

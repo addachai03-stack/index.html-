@@ -4,6 +4,8 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#0c0d11"/>
+  <meta name="referrer" content="no-referrer"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: https:; connect-src 'self' https://api.github.com; frame-src https://www.youtube-nocookie.com https://www.instagram.com https://player.vimeo.com https://www.facebook.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"/>
   <meta name="description" content="CutNova — premium AI-assisted 15–60 second Shorts from long videos. iPhone-friendly URL-to-clips workflow powered by GitHub Actions."/>
   <title>CutNova — AI Shorts Studio</title>
   <link rel="manifest" href="./manifest.webmanifest"/>
@@ -18,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.4</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.5</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -55,6 +57,7 @@
           <div class="iphone-upload-copy"><strong>📁 Own video on iPhone?</strong><span>YouTube blocked? Choose your own MP4/MOV/WebM (up to 100 MB) directly in GitHub's upload form. No third-party website.</span><small>Important: Your video will be attached to a PUBLIC GitHub Issue. Only upload footage you're happy to share publicly.</small></div>
           <a class="btn btn-outline upload-cta" href="https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml" target="_blank" rel="noopener noreferrer">UPLOAD OWN VIDEO ↗</a>
         </div>
+        <p class="footnote">YouTube blocked? For your own uploads, use YouTube Studio → Content → Save to device, then <a href="#local-editor">open the local editor</a> or use the public GitHub upload form for AI rendering. <a href="https://support.google.com/youtube/answer/56100?co=GENIE.Platform%3DiOS" target="_blank" rel="noopener noreferrer">Official instructions ↗</a>. Never share passwords or cookies.</p>
         <div class="example-bar"><span>TRY REAL EXAMPLE:</span><button id="load-example" type="button">Cartoon voice reveal <span>↗</span></button><button id="load-test-video" type="button">Public MP4 <span>↗</span></button></div>
         <div id="message" class="message" role="status" hidden></div>
         <div id="source-panel" class="source-panel" hidden>

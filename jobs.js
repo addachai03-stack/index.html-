@@ -141,6 +141,7 @@
     }
   }
   async function load() {
+    if(navigator.onLine===false){status.textContent="Offline — GitHub renders require internet.";return}
     refresh.disabled = true;
     status.textContent = "Checking GitHub Actions…";
     try {

@@ -201,7 +201,7 @@ def create_creator_pack(
         with csvfile.open("w", newline="", encoding="utf-8-sig") as f:
             writer = csv.DictWriter(f, fieldnames=rows[0].keys())
             writer.writeheader()
-            writer.writerows(rows)
+            writer.writerows({k: (chr(39)+v if isinstance(v,str) and v.lstrip().startswith(("=", "+", "-", "@")) else v) for k,v in row.items()} for row in rows)
     else:
         csvfile.write_text("", encoding="utf-8")
     return guide, csvfile

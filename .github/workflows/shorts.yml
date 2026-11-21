@@ -118,6 +118,8 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Install Python
         uses: actions/setup-python@v5
         with:

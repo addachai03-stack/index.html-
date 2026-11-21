@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "studio.py"
+      - "github_media.py"
+      - "requirements.txt"
       - "roman_captions.py"
       - "caption_styles.py"
       - "animated_captions.py"

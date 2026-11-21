@@ -53,8 +53,13 @@ class Candidate:
     reason: str
 
 def validate_url(url: str) -> str:
+    if not isinstance(url,str) or len(url)>2048 or any(ord(c)<32 or ord(c)==127 for c in url):
+        raise ValueError("Invalid URL or control characters.")
     url = url.strip()
+    from urllib.parse import parse_qsl
     parsed = urlparse(url)
+    if parsed.fragment or "\\" in url or any(k.lower() in {"token","access_token","auth","authorization","password","key","api_key","signature","sig","credential","expires"} or k.lower().startswith(("x-amz-","x-goog-")) for k,v in parse_qsl(parsed.query)):
+        raise ValueError("Private or signed URLs are not safe in a public repository.")
     if parsed.scheme != "https" or not parsed.hostname:
         raise ValueError("Only public HTTPS video URLs are allowed.")
     if parsed.username or parsed.password or parsed.port:
@@ -116,12 +121,12 @@ def download(url: str, work: Path) -> Path:
         raise ValueError("Source exceeds 650 MB.")
     return files[0]
 
-def probe(source: Path) -> float:
+def probe(source: Path, minimum: float = 15) -> float:
     proc = run(["ffprobe", "-v", "error", "-show_entries",
                 "format=duration:stream=codec_type", "-of", "json", str(source)], timeout=30)
     info = json.loads(proc.stdout)
     duration = float(info.get("format", {}).get("duration", 0))
-    if not (15 <= duration <= 7200):
+    if not (minimum <= duration <= 7200):
         raise ValueError("Source duration must be between 15 seconds and 2 hours.")
     if not any(s.get("codec_type") == "video" for s in info.get("streams", [])):
         raise ValueError("Video stream missing.")
@@ -369,7 +374,7 @@ def main() -> int:
                             trimmed = work / (base + "_tight.mp4")
                             trim_media(video,trimmed,plan,cut.start)
                             # Verify decoded media before adopting the edited timeline.
-                            actual = probe(trimmed)
+                            actual = probe(trimmed, minimum=max(1,a.min_seconds-.15))
                             if abs(actual-shortened) > .15:
                                 raise RuntimeError("Trim duration mismatch")
                             render_width, render_height = video_dimensions(trimmed)

@@ -30,7 +30,7 @@
       position:raw.position==="top"?"top":"bottom"};
   }
   function durationValid(a,b,d,speed){
-    return rangeValid(a,b,d)&&(b-a)/speed>=1&&(b-a)/speed<=60.001;
+    return rangeValid(a,b,d)&&[.75,1,1.25,1.5,2].includes(speed)&&(b-a)/speed>=1&&(b-a)/speed<=60.001;
   }
   function applyPixels(data,options){
     const o=settings(options), brightness=o.brightness/100, contrast=o.contrast/100;
@@ -119,7 +119,7 @@
   function update(){
     const d=video.duration;
     const ready=Number.isFinite(d)&&d>0;
-    const locked=busy||preparing||draftBusy;
+    const locked=busy||preparing||draftBusy||!!pendingDraft;
     draftSave.disabled=locked||!sourceFile||!ready||!valid()||!window.indexedDB;
     draftTitle.disabled=locked;draftNew.disabled=locked;draftHistory.disabled=locked;
     draftRestore.disabled=locked||!activeDraft||!draftHistory.value;
@@ -345,7 +345,7 @@
     loadSource(selected);
   });
   video.addEventListener("loadedmetadata",()=>{
-    if(!Number.isFinite(video.duration)||video.duration<1){say("Video duration unavailable or under one second.");return}
+    if(!Number.isFinite(video.duration)||video.duration<1){pendingDraft=null;say("Video duration unavailable or under one second.");update();return}
     start.value="0";end.value=String(Math.floor(Math.min(60,video.duration)*100)/100);
     start.max=String(video.duration);end.max=String(video.duration);
     fields.hidden=false;
@@ -376,7 +376,7 @@
   });
   video.addEventListener("pause",()=>{cancelAnimationFrame(previewRaf);if(!busy)paint()});
   preview.addEventListener("click",async()=>{
-    if(!valid()||busy||preparing)return;
+    if(!valid()||busy||preparing||draftBusy||pendingDraft)return;
     preparing=true;update();
     try{
       resetPreview();setSpeed();
@@ -432,7 +432,7 @@
     }
   }
   save.addEventListener("click",async()=>{
-    if(busy||preparing||!compatible||!valid()||!rights.checked)return;
+    if(busy||preparing||draftBusy||pendingDraft||!compatible||!valid()||!rights.checked)return;
     // Start AudioContext from the user's click; never silently export
     // without the browser's required audio support.
     busy=true;aborted=false;progress.value=0;resetPreview();clearOutput();update();
@@ -447,6 +447,7 @@
     try{
       await initAudio();await prepareMusic();setSpeed();await seek(a);
       if(aborted){cleanup();say("Export cancelled.");return}
+      if(video.readyState<2)throw Error("Video frame not decoded. Preview first, then retry.");
       paint();
       stream=canvas.captureStream(25);
       tracks=stream.getVideoTracks();
@@ -482,9 +483,10 @@
         if(rec.state!=="inactive")rec.stop();else cleanup();
       };
       video.controls=false;
-      const draw=()=>{
+      let lastPaint=0;
+      const draw=(timestamp)=>{
         if(!busy||!finish)return;
-        try{paint()}catch(e){finish(true);say("Frame processing failed: "+e.message);return}
+        if(!lastPaint||timestamp-lastPaint>=38){lastPaint=timestamp;try{paint()}catch(e){finish(true);say("Frame processing failed: "+e.message);return}}
         if(video.currentTime>=b-.02){finish(false);return}
         raf=requestAnimationFrame(draw);
       };

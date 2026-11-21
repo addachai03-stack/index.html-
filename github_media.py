@@ -72,6 +72,7 @@ def download_github_attachment(url: str, work: Path) -> Path:
     current = url
     try:
         with requests.Session() as session:
+            session.trust_env = False
             for _ in range(7):
                 assert_public_github_asset_endpoint(current)
                 with session.get(current, stream=True, allow_redirects=False,

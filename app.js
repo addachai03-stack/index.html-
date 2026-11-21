@@ -44,6 +44,8 @@ function providerFor(raw) {
   if (url.protocol !== "https:" || !url.hostname || url.username || url.password || url.port) {
     throw new Error("Sirf public HTTPS video links supported hain; login credentials aur ports nahi.");
   }
+  if ([...url.searchParams.keys()].some(k=>["token","access_token","auth","authorization","password","key","api_key","signature","sig","credential","expires"].includes(k.toLowerCase())||/^(x-amz-|x-goog-)/i.test(k))) throw new Error("Private or signed URL parameters are unsafe in this public project.");
+  url.hash="";
   const host = url.hostname.toLowerCase().replace(/^www\./,"").replace(/^m\./,"");
   if (host === "youtu.be" || host === "youtube.com" || host === "music.youtube.com" ||
       host === "youtube-nocookie.com") {
