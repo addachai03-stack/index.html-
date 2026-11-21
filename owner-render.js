@@ -37,6 +37,16 @@
       keyStatus.textContent="Automatic copy unavailable. The generated key is selected; use iPhone Copy, and save it privately.";
     }
   });
+  function newTrackingId(){
+    const secure=window.crypto;
+    if(secure?.randomUUID)return secure.randomUUID();
+    if(!secure?.getRandomValues)return null;
+    const bytes=new Uint8Array(16);secure.getRandomValues(bytes);
+    bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+    const hex=Array.from(bytes,n=>n.toString(16).padStart(2,"0")).join("");
+    bytes.fill(0);
+    return hex.slice(0,8)+"-"+hex.slice(8,12)+"-"+hex.slice(12,16)+"-"+hex.slice(16,20)+"-"+hex.slice(20);
+  }
   let configured=false,busy=false;
   const say=s=>{status.textContent=s};
   async function check(){
@@ -94,16 +104,21 @@
     const ownerKey=key.value;
     if(ownerKey.length<24){say("Enter your configured owner access key. Never paste your GitHub token here.");return}
     busy=true;start.disabled=true;if(verify)verify.disabled=true;say("Submitting an authenticated render request to the secure backend…");
+    const requestId=newTrackingId();
     const payload={url,rights_confirm:true,clips:byId("clips-count")?.value,min_seconds:byId("min-seconds")?.value,max_seconds:byId("max-seconds")?.value,
       style:byId("highlight-style")?.value,language:byId("speech-language")?.value,crop:byId("smart-crop")?.value,
       caption_script:byId("caption-script")?.value,caption_style:byId("caption-style")?.value,pacing:byId("pacing")?.value};
+    if(requestId)payload.request_id=requestId;
     try{
       const response=await fetch(API+"/render",{method:"POST",mode:"cors",credentials:"omit",
         headers:{"Content-Type":"application/json","X-CutNova-Owner-Key":ownerKey},body:JSON.stringify(payload)});
       let data={};try{data=await response.json()}catch(_){}
       key.value="";
       if(!response.ok||data.accepted!==true)throw Error(data.error||"Render backend refused the request (HTTP "+response.status+").");
-      say("AI job queued for "+clips+" requested clips ("+min+"–"+max+" sec). GitHub will attempt AI speech/scene analysis, MP4 rendering and an editable Creator Pack with hooks, captions, descriptions and hashtags per clip. Open RESULTS to verify actual artifacts. Platforms may still block source downloads.");
+      if(requestId && data.request_id===requestId){
+        try{sessionStorage.setItem("cutnova-latest-request-id",requestId)}catch(_){}
+      }
+      say("GitHub accepted a request for "+clips+" clips ("+min+"–"+max+" sec). RESULTS will identify your request once GitHub publishes its run record. This does NOT mean the video or creator pack has finished. Source downloading may still fail.");
       // Do not imply a finished video; this only requests fresh public status.
       location.hash="#render-history";
     }catch(error){
