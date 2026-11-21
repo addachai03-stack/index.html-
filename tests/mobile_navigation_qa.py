@@ -181,7 +181,24 @@ try:
             expect(page.locator("#edit-start")).to_have_value("0")
             expect(page.locator("#edit-end")).to_have_value("3")
             assert not page.locator("#edit-rights").is_checked(), "Rights consent must never be assumed"
+            page.locator("#edit-require-h264").check()
+            # A generic MP4 encoder must not be mistaken for real H.264/AAC.
+            strict_available=page.evaluate("""() => [
+              'video/mp4;codecs=avc1.42001f,mp4a.40.2',
+              'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+              'video/mp4;codecs=avc1.424028,mp4a.40.2',
+              'video/mp4;codecs=avc1,mp4a.40.2'
+            ].some(x=>MediaRecorder?.isTypeSupported?.(x))""")
+            if strict_available:
+                expect(page.locator("#edit-format")).to_contain_text("STRICT H.264/AAC REQUEST AVAILABLE")
+                REPORT["checks"]["strict_social_codec_selection"]="PASS: explicit H264/AAC profile offered, never generic MP4"
+            else:
+                expect(page.locator("#edit-format")).to_contain_text("STRICT MODE UNSUPPORTED")
+                REPORT["checks"]["strict_social_codec_selection"]="PASS: unsupported explicit H264/AAC does not silently choose MP4/WebM"
             page.locator("#edit-rights").check()
+            if not strict_available:
+                expect(page.locator("#edit-export")).to_be_disabled()
+            page.locator("#edit-require-h264").uncheck()
             expect(page.locator("#edit-export")).to_be_enabled()
             page.locator("#edit-export").click()
             expect(page.locator("#edit-result")).to_be_visible(timeout=45000)
