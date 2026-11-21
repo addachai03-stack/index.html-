@@ -246,11 +246,11 @@ function makeFrame(type, src) {
 function drawSource(source) {
   elements.panel.hidden = false;
   const editable=["video","candidate","github-upload"].includes(source.kind);
-  elements.provider.textContent = source.name.toUpperCase()+(editable?" · URL IMPORT":" · LINK PREVIEW ONLY");
+  elements.provider.textContent = source.name.toUpperCase()+(editable?" · DIRECT MP4 / CLOUD AI":" · PREVIEW / CLOUD AI ATTEMPT");
   const clarity=byId("source-clarity");
   if(clarity)clarity.textContent=editable?
-    "Direct video-file import is possible only if this URL returns video data and permits cross-origin downloads. Confirm rights and tap IMPORT VIDEO. After import, each cut opens in the editor.":
-    "This website cannot extract an MP4 from YouTube, Instagram, Facebook or other social URLs. This is only an original-source preview. To cut your own video, save an authorized copy to your phone and tap CHOOSE SAVED VIDEO below.";
+    "Direct video-file import works only if the host allows browser downloads (CORS). For actual AI-selected Shorts, use the secure owner cloud renderer below with permission to edit the video.":
+    "Preview only: this iPhone browser cannot extract YouTube/Instagram MP4s. The separate owner cloud renderer can TRY to fetch permitted public videos, but social-site anti-bot, sign-in and DRM blocks may stop it. If blocked, use an authorized saved copy in local editing below (local cuts are not AI-selected).";
   elements.original.href = source.url.href;
   elements.frame.replaceChildren();
   elements.frame.hidden = false;
@@ -367,7 +367,7 @@ byId("ai-url-start")?.addEventListener("click",()=>{
       showMessage("AI render requires editing/republishing rights. Tick the rights checkbox, set your clip seconds and use START PRIVATE AI RENDER with the saved owner key.",false);
       elements.rights.focus({preventScroll:true});
     }else{
-      showMessage("AI Shorts setup ready. Customize count and seconds below. In the secure owner panel enter your saved owner key and tap START PRIVATE AI RENDER. Platforms may block video downloading.",true);
+      showMessage("Owner AI settings opened. Set the clip count/seconds, paste your saved owner key, then START PRIVATE AI RENDER. A public social link is not guaranteed downloadable; GitHub will show real success or failure.",true);
     }
     (ownerPanel||elements.panel).scrollIntoView({block:"start",behavior:"smooth"});
   }catch(error){current=null;elements.panel.hidden=true;showMessage(error.message||"Enter a valid public HTTPS video URL.",false);}
