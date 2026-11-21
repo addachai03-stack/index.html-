@@ -95,7 +95,13 @@
   start.addEventListener("click",async()=>{
     if(!configured||busy){say("Secure backend is unavailable or a render request is in progress.");return}
     const url=byId("video-url")?.value.trim()||"",rights=byId("rights-confirm")?.checked===true;
-    if(!rights){say("Please confirm you own or have permission to edit and republish this video.");return}
+    if(!rights){
+      say("AI render not started. Tick the URL form's rights checkbox directly below PASTE LONG VIDEO LINK (not the Phone Backup checkbox). Only do this for permitted footage.");
+      const checkbox=byId("rights-confirm");
+      checkbox?.focus({preventScroll:true});
+      checkbox?.scrollIntoView({block:"center",behavior:"smooth"});
+      return;
+    }
     if(!/^https:\/\//i.test(url)){say("Paste a full public HTTPS source video URL first.");return}
     const clips=Number(byId("clips-count")?.value),min=Number(byId("min-seconds")?.value),max=Number(byId("max-seconds")?.value);
     if(!Number.isInteger(clips)||clips<1||clips>10||!Number.isInteger(min)||!Number.isInteger(max)||min<15||max>60||min>max){
