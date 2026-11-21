@@ -8,31 +8,19 @@ on:
         type: string
         required: true
       clips:
-        description: "How many Shorts?"
-        type: choice
-        options:
-          - "3"
-          - "6"
-          - "10"
-        default: "6"
+        description: "Number of Shorts (integer 1-10)"
+        type: string
+        default: "3"
         required: true
       min_seconds:
-        description: "Minimum clip length"
-        type: choice
-        options:
-          - "15"
-          - "20"
-          - "30"
-        default: "15"
+        description: "Minimum seconds (15-60; set min=max for exact duration)"
+        type: string
+        default: "30"
         required: true
       max_seconds:
-        description: "Maximum clip length"
-        type: choice
-        options:
-          - "30"
-          - "45"
-          - "60"
-        default: "60"
+        description: "Maximum seconds (15-60; 30/30 gives exact 30s)"
+        type: string
+        default: "30"
         required: true
       style:
         description: "Highlight style (heuristic, not actual trends)"
@@ -167,5 +155,6 @@ jobs:
             output/*.json
             output/*.md
             output/*.csv
+            output/*.txt
           retention-days: 7
           if-no-files-found: warn
