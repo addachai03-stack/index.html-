@@ -57,23 +57,12 @@
         </div>
       </section>
       <section id="studio" class="studio-card" data-mobile-screen="ai">
-        <div class="section-head"><span class="section-number">01 / CREATE IN CUTNOVA</span><span class="section-pill">ON DEVICE · PRIVATE</span></div>
-        <h2>Make Shorts <span>on your phone.</span></h2>
-        <p class="section-sub">Choose an MP4, MOV or WebM from your iPhone, or import a permitted direct MP4 link below. CutNova suggests timed cuts, then you select EDIT &amp; EXPORT to make each Short. Social page URLs need a saved file.</p>
-        <div class="quick-shorts" id="quick-shorts">
-          <label class="quick-source-label" for="quick-file">CHOOSE VIDEO FROM PHONE<input id="quick-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm"/></label>
-          <div class="quick-select-row">
-            <label>HOW MANY CUTS<input id="quick-count" type="number" inputmode="numeric" min="1" max="10" step="1" value="3" aria-label="Number of local cuts 1 to 10"/></label>
-            <label>MAX LENGTH / CUT (SEC)<input id="quick-length" type="number" inputmode="numeric" min="15" max="60" step="1" value="30" aria-label="Local cut length in seconds 15 to 60"/></label>
-          </div>
-          <label class="rights"><input type="checkbox" id="quick-rights"/><span>I own or have permission to edit this footage.</span></label>
-          <button type="button" id="quick-generate" class="btn btn-lime">✦ PREPARE SHORTS ON PHONE</button>
-          <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. The number of feasible, mostly non-overlapping clips depends on video duration. Actual Shorts must be exported one at a time in the editor.</p>
-          <div id="quick-results" class="quick-results" hidden></div>
-        </div>
+        <div class="section-head"><span class="section-number">01 / CREATE AI SHORTS</span><span class="section-pill">AI OWNER MODE · PHONE BACKUP</span></div>
+        <h2>Paste a video URL. <span>Create AI Shorts.</span></h2>
+        <p class="section-sub">Use an authorized public video link for the owner-only AI renderer. Choose your Short count and exact duration, then get AI-assisted highlight cuts, subtitles, hooks, captions, descriptions and hashtags when the source can be downloaded. YouTube/Instagram often block server downloads; the saved-video editor below is the fallback.</p>
         <details id="source-url-tools" class="url-tools" open>
-          <summary>VIDEO URL → PREPARE LOCAL CUTS</summary>
-          <p class="footnote"><strong>AI SHORTS FROM URL</strong> opens the owner-only cloud renderer for supported public video links, including YouTube and Instagram when those platforms allow download. Choose custom seconds and receive MP4 clips plus suggested hooks, captions, descriptions and hashtags. <strong>LOCAL CUTS</strong> is a different on-phone mode and needs a playable direct video file. Only process videos you own or have permission to republish.</p>
+          <summary>STEP 1 · PASTE PUBLIC VIDEO URL → OWNER AI</summary>
+          <p class="footnote"><strong>AI SHORTS FROM URL</strong> opens private owner AI settings for supported, permitted video sources. YouTube, Instagram and other platforms can reject GitHub server downloads even for public videos. You must own or have editing/reposting permission; a preview link alone is not permission. <strong>LOCAL CUTS</strong> uses a downloadable direct MP4 or a saved authorized file, without AI ranking.</p>
         <form id="url-form" class="url-form" novalidate>
           <label for="video-url">PASTE LONG VIDEO LINK</label>
           <label class="rights"><input id="rights-confirm" type="checkbox"/><span>I own this video or have permission to edit and republish its content.</span></label>
@@ -89,7 +78,7 @@
         <div id="source-panel" class="source-panel" hidden>
           <div class="source-heading"><span id="source-provider">SOURCE</span><a id="source-original" href="#" target="_blank" rel="noopener noreferrer">OPEN SOURCE ↗</a></div>
           <div id="embed-wrapper" class="embed-wrapper" hidden></div>
-          <p id="source-clarity" class="source-clarity">This preview is the original source, not a generated Short. To export an MP4 from social video you own, select your saved source file.</p>
+          <p id="source-clarity" class="source-clarity">This is a preview only. Your owner-only cloud renderer may attempt an authorized public link, but downloads from social platforms can be denied. Use the saved-video fallback when needed.</p>
           <div class="settings-panel">
             <div class="settings-title">CLIP SETTINGS <span>AI RENDER OR LOCAL CUTS</span></div>
             <p class="footnote">Set MIN and MAX to the same value for exact-duration clips, e.g. <strong>30 + 30 = 30 seconds</strong>. Or set a range like 20–40 seconds. On-phone cuts are timed suggestions; AI speech/scene ranking, rendered subtitles and per-clip creator packs run only in the owner-only cloud renderer.</p>
@@ -130,13 +119,26 @@
                 <button id="secure-render-start" type="button" class="btn btn-lime" disabled>START PRIVATE AI RENDER</button>
                 <p id="secure-render-status" class="footnote" role="status" aria-live="polite">Not started. This runs only for the authenticated owner.</p>
               </div>
-              <p class="footnote">Manual fallback (leaves CutNova): GitHub Issue requests are PUBLIC, including the source link and settings. Do not share private content.</p>
+              <p class="footnote">Manual GitHub Issue fallback is PUBLIC, including source link and settings. Do not share private content or upload someone else’s video without permission. A public URL alone is not a license.</p>
               <a id="owner-github-render" href="#" class="btn btn-outline disabled-link" target="_blank" rel="noopener noreferrer" aria-disabled="true">MANUAL GITHUB RENDER ↗</a>
               <a id="run-actions" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer">Owner Actions dashboard ↗</a>
             </details>
           </div>
         </div>
         </details>
+        <h3 class="backup-mode-title">Backup: Edit your authorized video on iPhone (local timed cuts)</h3>
+        <p class="footnote">This uses a file saved to your phone, not cloud AI. You can use it if social platforms block download. Local editing cannot generate AI transcript hooks or captions.</p>
+        <div class="quick-shorts" id="quick-shorts">
+          <label class="quick-source-label" for="quick-file">CHOOSE VIDEO FROM PHONE<input id="quick-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm"/></label>
+          <div class="quick-select-row">
+            <label>HOW MANY CUTS<input id="quick-count" type="number" inputmode="numeric" min="1" max="10" step="1" value="3" aria-label="Number of local cuts 1 to 10"/></label>
+            <label>MAX LENGTH / CUT (SEC)<input id="quick-length" type="number" inputmode="numeric" min="15" max="60" step="1" value="30" aria-label="Local cut length in seconds 15 to 60"/></label>
+          </div>
+          <label class="rights"><input type="checkbox" id="quick-rights"/><span>I own or have permission to edit this footage.</span></label>
+          <button type="button" id="quick-generate" class="btn btn-lime">✦ PREPARE SHORTS ON PHONE</button>
+          <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. The number of feasible, mostly non-overlapping clips depends on video duration. Actual Shorts must be exported one at a time in the editor.</p>
+          <div id="quick-results" class="quick-results" hidden></div>
+        </div>
       </section>
       <section class="studio-card job-center local-editor" id="local-editor" data-mobile-screen="editor projects">
         <div class="section-head"><span class="section-number">02 / LOCAL SHORTS EDITOR</span><span class="section-pill">ON DEVICE</span></div>
