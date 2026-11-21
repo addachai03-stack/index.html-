@@ -1,6 +1,6 @@
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
-const {boxes,codecsInMoov,inspect,classify,label}=require("../social-codec-check.js");
+const {boxes,codecsInMoov,inspect,classify,label,honorsStrictSocialRequest}=require("../social-codec-check.js");
 function box(tag,...parts){
   const bytes=Buffer.concat(parts.map(p=>Buffer.from(p)));
   const b=Buffer.alloc(bytes.length+8);
@@ -26,6 +26,8 @@ function sampleFile(video="avc1",audio="mp4a",{moovAtEnd=false,mdatSize=32}={}){
   const ordinary=await inspect(sampleFile());
   assert.deepEqual(ordinary,{container:"MP4",video:["avc1"],audio:["mp4a"],incomplete:false});
   assert.equal(classify(ordinary).code,"basic-match");
+  assert.equal(honorsStrictSocialRequest(ordinary),true);
+  assert.equal(honorsStrictSocialRequest({container:"MP4",video:["hvc1"],audio:["mp4a"],incomplete:false}),false,"Strict must require H264, not HEVC");
   assert.match(label(ordinary),/H.264/);
   assert.match(label(ordinary),/AAC/);
   const hevc=await inspect(sampleFile("hvc1","mp4a"));
@@ -34,6 +36,7 @@ function sampleFile(video="avc1",audio="mp4a",{moovAtEnd=false,mdatSize=32}={}){
   assert.deepEqual(bad.video,["vp09"]);
   assert.deepEqual(bad.audio,["Opus"]);
   assert.equal(classify(bad).code,"not-recommended");
+  assert.equal(honorsStrictSocialRequest(bad),false,"Browser can ignore explicit codecs; must reject VP9/Opus even in MP4");
   assert.match(label(bad),/VP9.*Opus/);
   const end=await inspect(sampleFile("vp09","Opus",{moovAtEnd:true,mdatSize:320*1024}));
   assert.equal(classify(end).code,"not-recommended","must skip mdat safely to parse moov-at-end");
@@ -42,6 +45,7 @@ function sampleFile(video="avc1",audio="mp4a",{moovAtEnd=false,mdatSize=32}={}){
   const incomplete=await inspect(new Blob([box("ftyp",Buffer.from("isom")),box("mdat",Buffer.alloc(10))],{type:"video/mp4"}));
   assert.equal(incomplete.container,"MP4");
   assert.equal(classify(incomplete).code,"unverified");
+  assert.equal(honorsStrictSocialRequest(incomplete),false);
   const webm=await inspect(new Blob([Uint8Array.from([0x1a,0x45,0xdf,0xa3,0,0,0,0,0,0,0,0,0,0,0,0])],{type:"video/mp4"}));
   assert.equal(webm.container,"WebM","must inspect actual magic, never trust MIME/extension");
   assert.equal(classify(webm).code,"not-recommended");
