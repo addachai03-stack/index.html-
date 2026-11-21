@@ -1,5 +1,12 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V4.0 — iPhone Share Sheet / Save to Files (user-initiated)
+
+In LOCAL EDITOR, after a successful export the user can tap **SHARE / SAVE TO FILES**. CutNova sends the exact exported in-memory `File` through the native Web Share API (`navigator.canShare({files})` and `navigator.share({files})`), invoked only from a direct tap. The iOS share target is entirely user-controlled; choose **Save to Files** when it appears. No automatic transfer, sharing to other applications, upload, or background saving happens. Closing the Share Sheet does **not** prove that Files saved the video. The user can still use **DOWNLOAD SHORT**, then reselect the saved file in the V3.9 byte-for-byte verification control. When file sharing is unsupported, cancelled, or rejected, an accurate error and download fallback are shown. Audio audibility, H.264/AAC codec compatibility, iOS file persistence and social upload remain independently unverified until user-side checks.
+
+The original export Blob is provided from the browser recorder by a local in-memory event, never via network fetching or persistent browser storage. Export reset disables the share action. The GitHub mobile browser QA tests an unsupported case and then a **mocked** `navigator.share` file transfer; this validates app behavior but is not a real iPhone OS Share Sheet. Physical Safari testing of the OS sheet is still required.
+
+
 ## V3.9 — Real iPhone Files round-trip verification
 
 After exporting, CutNova offers **VERIFY IPHONE FILES DOWNLOAD**. The owner manually taps DOWNLOAD SHORT and uses iPhone Files or Share → Save to Files if necessary. Then, within the same open editor tab, the owner chooses the saved MP4/WebM in a local file picker. CutNova compares **all bytes** of the manually selected file with the current export, chunk by chunk (1 MiB chunks, max 512 MiB); files of equal length but changed content are rejected. After a match, it checks the selected file's actual browser metadata and playback progress. These checks are never automatically performed by a background service.
