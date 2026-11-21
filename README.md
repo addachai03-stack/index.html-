@@ -218,3 +218,7 @@ Visit the HTTPS GitHub Pages website online once, wait for the offline shell sta
 ## V2.5 release hardening
 
 Reject private/signed URL parameters and control characters, prevent duplicate request fields, avoid persistent checkout credentials, escape spreadsheet formulas, restrict page CSP, tighten draft/export guards and cap export painting near 25 fps. YouTube bot restrictions remain external: use official Save to device for your own uploaded footage, then local editing or authorized public GitHub upload. Real-device Safari testing and independent security assessment remain required.
+
+### V2.5.1 storage compatibility
+
+When a local draft Blob write fails, retry with plain ArrayBuffer media records for combined media up to 50 MB. Existing Blob drafts remain readable. Storage quotas and private/ephemeral browsing still apply. No media is uploaded. Browser proof is not proof of physical iPhone playback.

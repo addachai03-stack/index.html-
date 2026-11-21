@@ -9,7 +9,7 @@ server=ThreadingHTTPServer(("127.0.0.1",0),SimpleHTTPRequestHandler)
 threading.Thread(target=server.serve_forever,daemon=True).start()
 url=f"http://127.0.0.1:{server.server_port}/"
 engine=os.environ.get("ENGINE","chromium")
-report={"browser":engine,"physical_iphone":False,"checks":{}}
+report={"browser":engine,"physical_iphone":False,"checks":{},"revision":"V2.5.1 storage compatibility"}
 def wait_media(page):
     deadline=time.monotonic()+20
     while time.monotonic()<deadline:

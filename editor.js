@@ -226,10 +226,24 @@
       const req=operation(tx.objectStore("drafts"));
       let value;
       req.onsuccess=()=>{value=req.result};
+      req.onerror=()=>reject(req.error||Error("Draft request failed"));
       tx.oncomplete=()=>resolve(value);
       tx.onerror=()=>reject(tx.error||Error("Draft storage error"));
       tx.onabort=()=>reject(tx.error||Error("Draft storage aborted"));
     });
+  }
+  // Some WebKit storage environments reject cloning File/Blob records.
+  // Retry with plain binary data only for bounded files; retain legacy Blob reads.
+  async function packMedia(file){
+    if(!file)return null;
+    return {bytes:await file.arrayBuffer(),name:file.name||"Media",type:file.type||"",size:file.size,lastModified:file.lastModified||0};
+  }
+  function unpackMedia(value){
+    if(value instanceof Blob)return value;
+    if(value?.bytes instanceof ArrayBuffer&&value.bytes.byteLength===value.size){
+      return new File([value.bytes],value.name||"Media",{type:value.type||"",lastModified:value.lastModified||0});
+    }
+    return null;
   }
   function draftSay(t){draftStatus.textContent=t}
   function snapshot(){
@@ -301,9 +315,11 @@
     draftBusy=true;update();
     try{
       const row=await localDraft("readonly",s=>s.get(key));
-      if(!row||!(row.video instanceof Blob))throw Error("Saved video unavailable");
-      clearSource();activeDraft=row;pendingDraft=row;draftTitle.value=row.name;
-      loadSource(row.video);historyUI();draftSay("Opening saved draft…");
+      if(!row)throw Error("Saved draft unavailable");
+      const source=unpackMedia(row.video);if(!source)throw Error("Saved video unavailable");
+      const restoredMusic=unpackMedia(row.music);if(row.music&&!restoredMusic)throw Error("Saved audio unavailable");
+      clearSource();activeDraft=row;pendingDraft={...row,video:source,music:restoredMusic};draftTitle.value=row.name;
+      loadSource(source);historyUI();draftSay("Opening saved draft…");
     }catch(e){pendingDraft=null;activeDraft=null;draftSay("Resume failed: "+e.message)}
     finally{draftBusy=false;update()}
   }
@@ -320,7 +336,12 @@
       // History only represents settings; it is reset if the media changes.
       if(previous&&(previous.video.size!==sourceFile.size||previous.video.name!==sourceFile.name||
           (previous.music?.size||0)!==(music?.size||0)||previous.music?.name!==music?.name))row.history=[];
-      await localDraft("readwrite",s=>s.put(row));activeDraft=row;draftTitle.value=row.name;
+      try{await localDraft("readwrite",s=>s.put(row))}catch(error){
+        if(sourceFile.size+(music?.size||0)>50*1024*1024)throw error;
+        row.video=await packMedia(sourceFile);row.music=await packMedia(music);
+        await localDraft("readwrite",s=>s.put(row));
+      }
+      activeDraft=row;draftTitle.value=row.name;
       historyUI();await refreshDrafts();draftSay("Saved on this device. "+row.history.length+" previous settings revisions.");
     }catch(e){draftSay("Save failed (storage may be full): "+e.message)}
     finally{draftBusy=false;update()}
