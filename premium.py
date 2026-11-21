@@ -140,68 +140,173 @@ def choose_title(transcript: str, style: str = "engagement", index: int = 1) -> 
     return phrase.strip(" ,.:;-") or ("Short #" + str(index))
 
 
-def create_creator_pack(
-    cuts: list,
-    directory: Path,
-    style: str,
-    source_url: str,
-) -> tuple[Path, Path]:
-    """Export a Markdown & CSV planning pack from selected (actual) cuts."""
+STOPWORDS = frozenset("""
+a an the and or but to for from in on at of is are was were this that these those it its
+i me my you your we they he she them their have has had be been with as by not do does did
+how what why when where who which can will would could should just more very really thing things
+video clip shorts short today here there about then than into over out some any also so like
+aap tum tumhe main mai mein mera meri ham hum hai hain ho tha thi the ye yeh yahan wo woh
+kya kaise kyun kyu kaun kab kaha aur lekin phir ab ek ki ka ke ko se me ne bhi tak jo
+है हैं था थी थे और ये यह वह वो को की के का से में भी एक अब तो फिर जो कैसे क्यों
+क्या कौन कब कहाँ हैं नहीं बस आप हम तुम इस उस ये करते कर रहा रही रहे कुछ
+""".split())
+
+TOPIC_LABELS = {
+    "engagement": "#Interesting", "funny": "#FunnyMoments",
+    "facts": "#DidYouKnow", "story": "#StoryTime",
+}
+HOOK_OPENERS = {
+    "engagement": "Watch this part",
+    "funny": "This moment",
+    "facts": "Listen to this explanation",
+    "story": "Here's the moment",
+}
+
+
+def topic_words(speech: str, limit: int = 4) -> list[str]:
+    """Extract transcript-grounded keywords across English, Hindi and Hinglish."""
+    from collections import Counter
+    from hook_rank import tokens as multilingual_tokens
+    seq = [w for w in multilingual_tokens(speech or "")
+           if len(w) >= 3 and w not in STOPWORDS and not w.isdigit()]
+    counts = Counter(seq)
+    # Word count plus its first occurrence is deterministic. No trend data.
+    first = {w: seq.index(w) for w in counts}
+    return sorted(counts, key=lambda w: (-counts[w], first[w], w))[:limit]
+
+
+def topic_hashtags(speech: str, style: str) -> str:
+    import unicodedata
     mode = normalize_style(style)
-    directory.mkdir(parents=True, exist_ok=True)
+    fixed = ["#Shorts", "#Reels", TOPIC_LABELS[mode]]
+    for word in topic_words(speech):
+        chars = "".join(c for c in word if unicodedata.category(c)[0] in "LMN")
+        if len(chars) >= 3:
+            tag = "#" + chars[:30]
+            if tag.lower() not in {t.lower() for t in fixed}:
+                fixed.append(tag)
+        if len(fixed) >= 6:
+            break
+    # Empty ASR must not pretend to know the topic.
+    return " ".join(fixed)
+
+
+def source_description(speech: str, style: str, limit: int = 225) -> str:
+    """Describe only actual recognized speech; no fabricated visual events."""
+    normalize_style(style)
+    line = re.sub(r"\s+", " ", speech or "").strip()
+    if not line:
+        return "Visual highlight. Review the footage and add an accurate description before publishing."
+    words = line.split()
+    summary = " ".join(words[:min(38, len(words))])
+    if len(summary) > limit:
+        summary = summary[:limit].rsplit(" ", 1)[0]
+    return "In this clip: " + summary + ("…" if len(summary) < len(line) else "")
+
+
+def creator_hook(speech: str, style: str, index: int) -> str:
+    """A curiosity-oriented hook quoting only recognized source content."""
+    mode = normalize_style(style)
+    if not speech.strip():
+        return "Visual moment #" + str(index) + " — add a verified hook"
+    title = choose_title(speech, mode, index)
+    return HOOK_OPENERS[mode] + ": " + title
+
+
+def build_creator_records(cuts: list, style: str, source_url: str) -> list[dict]:
+    """Propose copy from ASR; ranking is heuristic, not virality prediction."""
+    mode = normalize_style(style)
     rows = []
-    text = [
-        "# CutNova — Shorts Creator Pack",
-        "",
-        "Source: " + source_url,
-        "Highlight mode: " + mode,
-        "",
-        "> AI-assisted speech and scene heuristics, NOT live social trends or guaranteed viral content.",
-        "> Hook/title text is based on source ASR. Check accuracy, rights and final edits before posting.",
-        "",
-    ]
     for number, cut in enumerate(cuts, 1):
-        title = choose_title(cut.transcript, mode, number)
-        hook = strongest_phrase(cut.transcript) if cut.transcript.strip() else title
-        hook = hook or title
-        cta = MODE_CTA[mode]
-        # These tags are a generic starting point, not claimed live-trending tags.
-        tags = "#Shorts #Reels #VideoHighlights #ContentCreator #CutNova"
-        caption = (hook + "\n\n" if cut.transcript else "") + cta + "\n" + tags
-        row = {
+        speech = re.sub(r"\s+", " ", cut.transcript or "").strip()
+        title = choose_title(speech, mode, number)
+        hook = creator_hook(speech, mode, number)
+        description = source_description(speech, mode)
+        hashtags = topic_hashtags(speech, mode)
+        cta = MODE_CTA[mode] if speech else "Add your own verified context before posting."
+        caption = hook + "\n\n" + cta + "\n\n" + hashtags
+        rows.append({
             "clip": number,
             "start_seconds": round(cut.start, 2),
             "end_seconds": round(cut.end, 2),
-            "length_seconds": round(cut.end - cut.start, 2),
+            "length_seconds": round(cut.end-cut.start, 2),
             "score": round(cut.score, 4),
             "style": mode,
             "title": title,
             "hook": hook,
             "caption": caption,
-            "hashtags": tags,
+            "description": description,
+            "hashtags": hashtags,
+            "topic_keywords": ", ".join(topic_words(speech)),
             "ranking_reason": cut.reason,
-            "source_speech_detected": bool(cut.transcript.strip()),
-        }
-        rows.append(row)
-        text.extend([
-            "## Short " + str(number) + " — " + title,
+            "source_speech_detected": bool(speech),
+            "disclaimer": "AI-assisted suggestions; not measured trends or guaranteed viral reach.",
+            "source_url": source_url,
+        })
+    return rows
+
+
+def create_creator_pack(
+    cuts: list,
+    directory: Path,
+    style: str,
+    source_url: str,
+    records: list[dict] | None = None,
+) -> tuple[Path, Path]:
+    """Generate content-aware hook/caption/description/hashtags per actual clip."""
+    import json
+    mode = normalize_style(style)
+    directory.mkdir(parents=True, exist_ok=True)
+    rows = records if records is not None else build_creator_records(cuts, mode, source_url)
+    guide = [
+        "# CutNova — AI-Assisted Shorts Creator Pack", "",
+        "Source: " + source_url,
+        "Highlight mode: " + mode, "",
+        "> Scores are speech/scene heuristics, NOT live social trends or guaranteed viral content.",
+        "> Speech-derived ideas must be reviewed; do not publish unverified claims.",
+        "> No recognized speech means topic, visuals and hook must be checked manually.",
+        "",
+    ]
+    for row in rows:
+        number = row["clip"]
+        guide.extend([
+            "## Short " + str(number) + " — " + row["title"],
             "",
             "- Cut: " + str(row["start_seconds"]) + "s → " + str(row["end_seconds"]) + "s",
             "- AI-assisted ranking: " + str(row["score"]) + " (" + row["ranking_reason"] + ")",
-            "- Proposed hook: " + hook,
-            "- Generic caption CTA: " + cta,
-            "- Suggested hashtags: " + tags,
+            "- Proposed hook: " + row["hook"],
+            "- Description: " + row["description"],
+            "- Suggested hashtags: " + row["hashtags"],
             "- Recognized speech: " + ("Yes" if row["source_speech_detected"] else "No — review visuals manually"),
             "",
+            "**Ready-to-edit caption:**", "",
+            row["caption"], "",
         ])
-    guide = directory / "Posting_Guide.md"
-    guide.write_text("\n".join(text), encoding="utf-8")
+        textfile = directory / ("short_" + str(number).zfill(2) + "_post.txt")
+        textfile.write_text("\n".join([
+            "TITLE", row["title"], "",
+            "HOOK", row["hook"], "",
+            "DESCRIPTION", row["description"], "",
+            "CAPTION", row["caption"], "",
+            "HASHTAGS", row["hashtags"], "",
+            "TOPIC WORDS", row["topic_keywords"] or "Not identified; review footage", "",
+            "DISCLAIMER", row["disclaimer"],
+        ]), encoding="utf-8")
+    guidefile = directory / "Posting_Guide.md"
+    guidefile.write_text("\n".join(guide), encoding="utf-8")
     csvfile = directory / "Shorts_Plan.csv"
     if rows:
         with csvfile.open("w", newline="", encoding="utf-8-sig") as f:
             writer = csv.DictWriter(f, fieldnames=rows[0].keys())
             writer.writeheader()
-            writer.writerows({k: (chr(39)+v if isinstance(v,str) and v.lstrip().startswith(("=", "+", "-", "@")) else v) for k,v in row.items()} for row in rows)
+            writer.writerows({
+                k: (chr(39)+v if isinstance(v,str) and v.lstrip().startswith(("=", "+", "-", "@")) else v)
+                for k,v in row.items()
+            } for row in rows)
     else:
         csvfile.write_text("", encoding="utf-8")
-    return guide, csvfile
+    (directory / "Creator_Pack.json").write_text(
+        json.dumps({"source_url":source_url, "style":mode, "clips":rows,
+                    "note":"Heuristic+ASR suggestions; review accuracy and rights before posting."},
+                   ensure_ascii=False, indent=2), encoding="utf-8")
+    return guidefile, csvfile
