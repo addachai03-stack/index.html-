@@ -29,7 +29,7 @@ function cutWindows(duration,count,length) {
   if(!Number.isFinite(duration)||duration<1)throw Error("Video must be at least 1 second.");
   const clipLength=Math.max(1,Math.min(60,Number(length)||15,duration));
   const space=Math.max(0,duration-clipLength);
-  const requested=Math.max(1,Math.min(6,Math.trunc(Number(count)||1)));
+  const requested=Math.max(1,Math.min(10,Math.trunc(Number(count)||1)));
   // Never show multiple duplicate intervals from an ultra-short video.
   const n=Math.min(requested,Math.max(1,Math.floor(space/2)+1));
   return Array.from({length:n},(_,i)=>{
@@ -320,16 +320,31 @@ elements.form.addEventListener("submit", event => {
   event.preventDefault();
   clearMessage();
   try {
-    current = providerFor(elements.input.value);
+    current=providerFor(elements.input.value);
     awaitingSocialFile=false;
-    elements.rights.checked = false;
     drawSource(current);
-    showMessage(["video","candidate","github-upload"].includes(current.kind) ? "Direct URL identified (not yet downloaded). Confirm rights and tap IMPORT VIDEO. Host must allow CORS and provide real video bytes." : "Social URL recognized for preview only. To actually export an MP4 Short from your own video, confirm rights then tap CHOOSE SAVED VIDEO TO EDIT.",["video","candidate","github-upload"].includes(current.kind));
-  } catch (error) {
-    current = null;
-    elements.panel.hidden = true;
+    const downloadable=["video","candidate","github-upload"].includes(current.kind);
+    if(!elements.rights.checked){
+      showMessage("Link recognized, but clips are not started. Tick the rights checkbox above and tap CHECK & PREPARE CUTS again.",false);
+      elements.rights.focus({preventScroll:true});
+      return;
+    }
+    if(downloadable){
+      showMessage("Direct video URL identified. Importing the file and preparing cuts on your phone…",true);
+      elements.action.click();
+    }else{
+      quick.count.value=String(elements.clips.value);
+      quick.length.value=String([15,30,45,60].reduce((a,b)=>Math.abs(b-Number(elements.max.value))<Math.abs(a-Number(elements.max.value))?b:a,15));
+      quick.rights.checked=true;
+      awaitingSocialFile=true;
+      showMessage("This is a social video page, not an MP4 file. CutNova cannot auto-download its video. Choose an authorized saved video from your phone to create timed cuts now.",false);
+      quick.file.click();
+    }
+  }catch(error){
+    current=null;
+    elements.panel.hidden=true;
     awaitingSocialFile=false;
-    showMessage(error.message || "Invalid URL");
+    showMessage(error.message||"Invalid URL. Paste a full public HTTPS link.",false);
   }
 });
 
