@@ -179,6 +179,8 @@ button:disabled{cursor:not-allowed;opacity:.5}
 #job-results{display:grid;gap:8px}
 .job-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
 .job-info,.job-actions{display:flex;flex-direction:column;gap:5px}
+.job-row-owned{outline:1px solid var(--lime);outline-offset:1px}
+.job-owner-note{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--lime)}
 .job-info span{font-size:12px;color:var(--muted)}
 .job-actions{align-items:flex-end}
 .job-badge{font-size:10px;font-weight:800;letter-spacing:.07em}
