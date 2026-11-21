@@ -25,6 +25,7 @@ on:
       - "full-export-test.js"
       - "playback-check.js"
       - "saved-file-check.js"
+      - "native-share.js"
       - "pwa.js"
       - "refresh.js"
       - "refresh.html"
@@ -78,6 +79,8 @@ jobs:
           node tests/test_playback_check.cjs
           node --check saved-file-check.js
           node tests/test_saved_file_check.cjs
+          node --check native-share.js
+          node tests/test_native_share.cjs
           node --check pwa.js
           node --check refresh.js
           node --check nav.js
