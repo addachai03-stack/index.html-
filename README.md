@@ -1,4 +1,12 @@
 # CutNova — Premium URL-to-Shorts Studio
+## V4.2 — Strict native H.264 + AAC recording request (no conversion)
+
+The LOCAL EDITOR now offers **REQUIRE H.264 + AAC EXPORT**. This is an opt-in *recording codec request*, not a video transcoder or guarantee of social-platform acceptance. If the browser explicitly reports a supported MP4 recorder profile containing both H.264 (`avc1`) and AAC (`mp4a.40.2`), CutNova asks `MediaRecorder` to use that profile. It attempts several common AVC/AAC profile strings, including Safari-oriented alternatives, rather than relying on generic `video/mp4` (which previously yielded VP9 + Opus on automated Chromium). If none are supported, the strict-mode EXPORT SHORT button is disabled; unchecking the option restores the existing standard local export. No unknown conversion, background upload, payment, account sign-in or API key is required.
+
+The V4.1 MP4 sample-entry inspector checks the **actual output after recording**. If the browser ignores a strict H.264/AAC request and produces a different combination, CutNova displays **STRICT SOCIAL CODEC REQUEST NOT MET**, rather than claiming the file is Instagram-ready. A basic H.264 + MP4 audio track-description match still does **not** prove AAC audio object type, bitrate, platform acceptance or a real uploaded Reel. Users can inspect, play, share or download their original file if the strict request was not honored. This phase does not implement automatic VP9/Opus-to-H.264/AAC transcoding; iPhone-only transcoding may require an additional browser-compatible encoder or an explicitly authorized conversion service.
+
+GitHub CI tests cover explicit AVC/AAC profile selection, no fallback to generic MP4 or WebM under strict mode, and rejecting VP9/Opus or HEVC as fulfillment of an explicit AVC request. Mobile Chromium/WebKit QA checks strict UI gating and separately verifies normal local export where browser recording is supported.
+
 
 ## V4.1 — Actual social-video codec audit (on-device)
 
