@@ -59,7 +59,12 @@ export default {
         headers:{"Authorization":"Bearer "+env.CUTNOVA_GITHUB_TOKEN,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28","Content-Type":"application/json","User-Agent":"CutNova-owner-render"},
         body:JSON.stringify({ref:"main",inputs})
       });
-      if(r.status===204)return reply({accepted:true,message:"GitHub accepted the owner render request. Processing can fail if the source blocks downloading.",runs_url:RUNS},202,true);
+      if(r.status===200||r.status===204){
+        let result={};
+        if(r.status===200){try{result=await r.json()}catch(_){ }}
+        const runUrl=typeof result.html_url==="string"&&result.html_url.startsWith("https://github.com/"+REPO+"/actions/runs/")?result.html_url:RUNS;
+        return reply({accepted:true,message:"GitHub accepted the owner render request. Processing can still fail if the source blocks downloading.",runs_url:runUrl,run_id:Number.isSafeInteger(result.workflow_run_id)?result.workflow_run_id:null},202,true);
+      }
       if(r.status===401||r.status===403)return reply({error:"GitHub rejected the server credential or workflow permission. Check the Cloudflare secret and GitHub Actions access."},502,true);
       return reply({error:"GitHub rejected the render request (HTTP "+r.status+"). Review owner workflow configuration."},502,true);
     }catch{return reply({error:"GitHub API unavailable. Try again later."},502,true)}
