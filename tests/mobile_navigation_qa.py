@@ -201,6 +201,32 @@ try:
             downloadable=download_info.value
             media_path=ROOT / (ENGINE + "-full-export-" + downloadable.suggested_filename)
             downloadable.save_as(str(media_path))
+            # Simulate choosing the file that was actually downloaded to
+            # iPhone Files. The app compares all bytes and checks playback;
+            # nothing is sent to the network or GitHub.
+            page.locator("#edit-saved-file").set_input_files(str(media_path))
+            page.locator("#edit-saved-verify").click()
+            page.wait_for_function("""() => /^(SAVED FILE VERIFIED|FILE MISMATCH|SAVED FILE CHECK FAILED)/.test(
+              document.querySelector('#edit-saved-status')?.textContent||'')""",timeout=30000)
+            saved_status=page.locator("#edit-saved-status").inner_text()
+            if not saved_status.startswith("SAVED FILE VERIFIED"):
+                REPORT["checks"]["saved_file_roundtrip"]="FAIL: "+saved_status
+                raise AssertionError(saved_status)
+            REPORT["checks"]["saved_file_roundtrip"]="PASS: actual downloaded file byte-for-byte matched the export and played"
+            # Same-size mutation is NOT the exported file: reject it even if
+            # name, MIME extension, and byte count are unchanged.
+            bad_path=ROOT/(ENGINE+"-corrupt-same-size.mp4")
+            altered=bytearray(media_path.read_bytes())
+            altered[-1]^=0x01
+            bad_path.write_bytes(altered)
+            page.locator("#edit-saved-file").set_input_files(str(bad_path))
+            page.locator("#edit-saved-verify").click()
+            page.wait_for_function("""() => /^(SAVED FILE VERIFIED|FILE MISMATCH|SAVED FILE CHECK FAILED)/.test(
+              document.querySelector('#edit-saved-status')?.textContent||'')""",timeout=30000)
+            wrong_status=page.locator("#edit-saved-status").inner_text()
+            assert wrong_status.startswith("FILE MISMATCH"),"Corrupted same-size file was not rejected: "+wrong_status
+            REPORT["checks"]["same_size_corruption_rejected"]="PASS"
+            bad_path.unlink()
             metadata=json.loads(subprocess.check_output([
                 "ffprobe","-v","error",
                 "-show_entries","format=duration:stream=codec_type,codec_name,width,height",
