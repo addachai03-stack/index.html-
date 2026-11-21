@@ -199,7 +199,11 @@
       <section class="studio-card job-center" id="render-history" data-mobile-screen="results">
         <div class="section-head"><span class="section-number">03 / RENDER HISTORY</span><span class="section-pill"><i></i> GITHUB ACTIONS</span></div>
         <h2>Your <span>render results.</span></h2>
-        <p class="section-sub">These are actual GitHub Actions jobs, not simulated exports. When your authenticated render is tracked in this browser tab, <strong>YOUR LATEST OWNER RENDER</strong> appears first. For that successful run, CutNova automatically checks GitHub for a real ZIP link, size and expiration; SUCCESS alone does not prove a downloadable file. While you keep RESULTS open, pending jobs refresh from actual GitHub data for a limited period; tap <strong>REFRESH STATUS</strong> anytime. For FAILED runs tap <strong>WHY FAILED?</strong> to inspect the real failing step. <strong>CHECK FILES</strong> checks actual ZIP artifacts and expiration; a failed run may contain diagnostics only, not an MP4. GitHub sign-in may be required for downloads.</p>
+        <p class="section-sub">Your real GitHub video jobs. Your latest Owner render appears first; successful jobs offer verified ZIP artifact links, and failed jobs show troubleshooting details.</p>
+        <details class="results-help">
+          <summary>How ZIP downloads and run status work</summary>
+          <p class="footnote">The latest Owner render is identified by a tracking ID saved only in your current browser tab. CutNova checks GitHub for real ZIP artifacts, size and expiration; a green SUCCESS badge alone does not prove playable MP4s. Keep RESULTS open for limited automatic refresh of pending jobs or tap REFRESH STATUS. On a failed job tap WHY FAILED?; CHECK FILES inspects existing artifacts, which may contain only diagnostics. GitHub sign-in may be required to download ZIPs.</p>
+        </details>
         <div class="history-toolbar">
           <button class="btn btn-outline" type="button" id="refresh-jobs">REFRESH STATUS ↻</button>
           <a class="btn btn-outline" href="https://github.com/addachai03-stack/index.html-/actions" target="_blank" rel="noopener noreferrer">OPEN ACTIONS ↗</a>
