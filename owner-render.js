@@ -53,6 +53,11 @@
     health.textContent="Checking owner-only gateway…";
     configured=false;
     key.disabled=true;start.disabled=true;if(verify)verify.disabled=true;
+    if(navigator.onLine===false){
+      key.value="";
+      health.textContent="Offline — cloud AI is unavailable. Local drafts and editing can work offline; reconnect and tap RECHECK OWNER BACKEND.";
+      return;
+    }
     try{
       const response=await fetch(API+"/health",{method:"GET",cache:"no-store",credentials:"omit"});
       if(!response.ok)throw Error("Gateway HTTP "+response.status);
