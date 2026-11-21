@@ -58,6 +58,8 @@ jobs:
         run: |
           node --check app.js
           node tests/test_dashboard.cjs
+          node --check owner-render.js
+          node tests/test_owner_render.cjs
           node --check jobs.js
           node tests/test_jobs.cjs
           node --check editor.js
