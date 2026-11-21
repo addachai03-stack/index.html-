@@ -1,0 +1,69 @@
+name: CutNova - Owner Social MP4 Converter
+run-name: Owner H264/AAC conversion (public authorized URL)
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: "PUBLIC direct HTTPS MP4/MOV/WebM or public GitHub attachment; never paste a private or signed URL"
+        required: true
+        type: string
+      rights_confirm:
+        description: "I own or have permission to convert and republish this publicly accessible source"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cutnova-social-${{ github.actor }}
+  cancel-in-progress: false
+
+jobs:
+  convert:
+    if: ${{ github.actor == github.repository_owner && inputs.rights_confirm }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      VIDEO_URL: ${{ inputs.video_url }}
+    steps:
+      - name: Checkout CutNova source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: FFmpeg H264 AAC availability
+        run: |
+          command -v ffprobe
+          ffmpeg -hide_banner -encoders | grep libx264
+          ffmpeg -hide_banner -encoders | grep ' aac '
+      - name: Install minimal public media downloader
+        run: python -m pip install "requests>=2.31,<3"
+      - name: Produce actual H264 AAC portrait MP4
+        run: python social_convert.py --url "$VIDEO_URL" --rights-confirmed
+      - name: Verify converted file streams independently
+        run: |
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,pix_fmt -of default=noprint_wrappers=1 output/CutNova_Social_Ready_H264_AAC.mp4
+          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 output/CutNova_Social_Ready_H264_AAC.mp4
+      - name: Explain actual conversion and remaining limits
+        if: always()
+        run: |
+          echo "## CutNova social-ready MP4 converter" >> "$GITHUB_STEP_SUMMARY"
+          if test -s output/CutNova_Social_Ready_H264_AAC.mp4; then
+            echo "FFmpeg generated a real portrait H.264/AAC MP4 and verified streams. Download the ZIP artifact below after the run completes." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No converted MP4 was generated. Read the failed step. No success claimed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Only an owner-authorized PUBLIC video URL was accepted. GitHub Actions history and artifacts may be visible to others; never use private personal media." >> "$GITHUB_STEP_SUMMARY"
+          echo "No Instagram/YouTube upload or playback on a physical iPhone was performed." >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload verified social MP4 and report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutnova-social-h264-aac-${{ github.run_number }}
+          path: |
+            output/CutNova_Social_Ready_H264_AAC.mp4
+            output/social_conversion_report.json
+          retention-days: 7
+          if-no-files-found: error
