@@ -185,3 +185,11 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .job-success{color:var(--lime)}.job-working{color:var(--lavender)}.job-failed{color:#ffaaa1}.job-neutral{color:var(--muted)}
 .job-link{font-size:12px;font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
 @media(max-width:480px){.history-toolbar .btn{flex:1 1 100%;text-align:center}.job-row{padding:12px}.job-actions{align-items:flex-start}}
+
+/* Actual per-run artifact inspector. */
+.artifact-toggle{font-size:10px;padding:9px 12px;min-height:40px}
+.artifact-panel{flex:1 1 100%;padding-top:10px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.artifact-panel[hidden]{display:none}
+.artifact-file{display:grid;gap:5px;padding:10px 0}
+.artifact-file strong{color:var(--ink)}
+.artifact-panel small{display:block;margin-top:8px}
