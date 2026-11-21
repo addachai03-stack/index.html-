@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const {labelFor, combineRuns} = require("../jobs.js");
+const {labelFor, combineRuns, artifactFor} = require("../jobs.js");
 assert.deepEqual(labelFor({status:"in_progress"}), ["PROCESSING","working"]);
 assert.deepEqual(labelFor({status:"queued"}), ["QUEUED / WAITING","working"]);
 assert.deepEqual(labelFor({status:"completed",conclusion:"success"}), ["SUCCESS","success"]);
@@ -12,3 +12,13 @@ assert.deepEqual(combineRuns([{workflow_runs:[a,b]},{workflow_runs:[a,{id:"bad"}
 assert.deepEqual(combineRuns([{}]),[]);
 assert.equal(combineRuns([{workflow_runs:Array.from({length:15},(_,i)=>({id:i+1,created_at:String(i)}))}]).length,10);
 console.log("PASS: render status mapping, valid run IDs, deduplication and history cap.");
+
+const sample = {id:14669684793,name:"cutnova-issue-3",size_in_bytes:4442662,expired:false,expires_at:"2026-11-27T21:18:52Z"};
+const now = Date.parse("2026-11-21T00:00:00Z");
+assert.equal(artifactFor(sample,now).ready,true);
+assert.equal(artifactFor(sample,now).size,"4.24 MB");
+assert.equal(artifactFor(sample,Date.parse("2026-11-28T00:00:00Z")).expired,true);
+assert.equal(artifactFor({...sample,expired:true},now).ready,false);
+assert.equal(artifactFor({...sample,expired:undefined},now).ready,false);
+assert.equal(artifactFor({id:"untrusted"},now),null);
+console.log("PASS: artifact availability, age, size and invalid ID tests.");
