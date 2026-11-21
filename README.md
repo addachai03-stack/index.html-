@@ -198,3 +198,7 @@ Multilingual cue matching preserves Hindi vowel marks, rewards hooks early in ea
 ## V2.0 — On-device manual Shorts editor
 
 The website now has a separate local video editor. Select a local file (up to 500 MB), set an inclusive start/exclusive end with 1–60 seconds selected, preview the 9:16 center crop and export in real time with Canvas / MediaRecorder / Web Audio. MP4 is preferred if the browser reports support, otherwise supported WebM is offered; no fake MP4 extension. Audio is captured along with video. Browser compatibility, real-time pacing and seeking precision vary; backgrounding the app cancels recording. The file is not intentionally uploaded by this local editor. AI captions, automatic highlights and moving face crop are separate GitHub Actions features. This is not a full non-linear editing suite. Test on your device before relying on the export.
+
+## V2.1 — Local editor effects
+
+Choose Original, Vivid, Warm or Black & White; adjust brightness and contrast, set 0.75–2× playback speed, and add up to 80 characters of text at top or bottom. The same canvas draws the preview and recorded output. Non-default color effects use a 360×640 pixel buffer upscaled to 720×1280 for mobile compatibility. Export duration is estimated from selected source length and speed, restricted to 1–60 seconds. Playback/recording and audio pitch support vary by browser; this is not a frame-exact offline export. Preview on an actual device before relying on the result.

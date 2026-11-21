@@ -18,3 +18,17 @@ const html=fs.readFileSync("index.html","utf8");
 for(const id of ["edit-file","edit-video","edit-start","edit-end","edit-play","edit-export","edit-cancel","edit-output","edit-download","edit-rights"])
   assert.ok(html.includes('id="'+id+'"'));
 console.log("PASS: local editor trim range, portrait geometry, format negotiation and markup.");
+
+const {settings,durationValid,applyPixels,textLines}=require("../editor.js");
+assert.deepEqual(settings({preset:"bad",brightness:200,contrast:20,speed:3,text:" A  B "}),{preset:"original",brightness:140,contrast:60,speed:1,text:"A B",position:"bottom"});
+assert.equal(durationValid(0,60,100,.75),false);
+assert.equal(durationValid(0,60,100,2),true);
+assert.equal(durationValid(0,1,100,2),false);
+let rgba=new Uint8ClampedArray([200,50,20,255]);
+applyPixels(rgba,{preset:"mono"});
+assert.equal(rgba[0],rgba[1]);assert.equal(rgba[1],rgba[2]);assert.equal(rgba[3],255);
+let bright=new Uint8ClampedArray([100,100,100,255]);
+applyPixels(bright,{brightness:120});assert.equal(bright[0],120);
+assert.deepEqual(textLines("one two three",t=>t.length,7),["one two","three"]);
+for(const id of ["edit-canvas","edit-brightness","edit-contrast","edit-preset","edit-speed","edit-text","edit-position","edit-reset-effects"])assert.ok(html.includes('id="'+id+'"'));
+console.log("PASS: color pixels, speed bounds, overlay wrapping and effect controls.");

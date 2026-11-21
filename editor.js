@@ -17,17 +17,65 @@
     return ["video/mp4;codecs=avc1.42001f,mp4a.40.2","video/mp4",
       "video/webm;codecs=vp8,opus","video/webm"].find(t=>recorder.isTypeSupported(t))||"";
   }
-  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType};return}
+  const PRESETS=["original","vivid","warm","mono"];
+  function bounded(value,low,high,fallback){
+    const v=Number(value);return Number.isFinite(v)?Math.max(low,Math.min(high,v)):fallback;
+  }
+  function settings(raw={}){
+    return {brightness:bounded(raw.brightness,60,140,100),
+      contrast:bounded(raw.contrast,60,140,100),
+      preset:PRESETS.includes(raw.preset)?raw.preset:"original",
+      speed:[.75,1,1.25,1.5,2].includes(Number(raw.speed))?Number(raw.speed):1,
+      text:String(raw.text??"").replace(/\s+/g," ").trim().slice(0,80),
+      position:raw.position==="top"?"top":"bottom"};
+  }
+  function durationValid(a,b,d,speed){
+    return rangeValid(a,b,d)&&(b-a)/speed>=1&&(b-a)/speed<=60.001;
+  }
+  function applyPixels(data,options){
+    const o=settings(options), brightness=o.brightness/100, contrast=o.contrast/100;
+    const saturation=o.preset==="mono"?0:o.preset==="vivid"?1.5:1;
+    for(let i=0;i<data.length;i+=4){
+      let r=data[i],g=data[i+1],b=data[i+2];
+      const gray=.2126*r+.7152*g+.0722*b;
+      r=gray+(r-gray)*saturation;g=gray+(g-gray)*saturation;b=gray+(b-gray)*saturation;
+      if(o.preset==="warm"){r=r*1.06+5;g=g*1.015;b=b*.86;}
+      data[i]=(r*brightness-128)*contrast+128;
+      data[i+1]=(g*brightness-128)*contrast+128;
+      data[i+2]=(b*brightness-128)*contrast+128;
+    }
+    return data;
+  }
+  function textLines(text,measure,maxWidth){
+    const result=[];let line="";
+    for(const word of text.split(" ").filter(Boolean)){
+      if(line&&measure(line+" "+word)>maxWidth){result.push(line);line=""}
+      if(measure(word)>maxWidth){
+        for(const ch of Array.from(word)){
+          if(line&&measure(line+ch)>maxWidth){result.push(line);line=""}
+          line+=ch;
+        }
+      }else{line+=(line?" ":"")+word}
+    }
+    if(line)result.push(line);
+    return result;
+  }
+  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,settings,durationValid,applyPixels,textLines};return}
   const id=name=>document.getElementById(name);
   const file=id("edit-file"),video=id("edit-video"),start=id("edit-start"),end=id("edit-end"),
     preview=id("edit-play"),save=id("edit-export"),cancel=id("edit-cancel"),
     message=id("edit-status"),result=id("edit-result"),download=id("edit-download"),
     progress=id("edit-progress"),fields=id("edit-fields"),durationLabel=id("edit-duration"),
-    rights=id("edit-rights"),format=id("edit-format"),output=id("edit-output");
+    rights=id("edit-rights"),format=id("edit-format"),output=id("edit-output"),
+    brightness=id("edit-brightness"),contrast=id("edit-contrast"),preset=id("edit-preset"),speed=id("edit-speed"),
+    overlay=id("edit-text"),position=id("edit-position"),reset=id("edit-reset-effects");
   if(!file||!video)return;
   let sourceUrl="",outputUrl="",audioContext=null,audioSource=null,audioDestination=null;
   let busy=false,previewEnd=null,recorder=null,aborted=false,finish=null,raf=0,stalledTimer=0;
-  const canvas=document.createElement("canvas");
+  const canvas=id("edit-canvas");
+  const buffer=document.createElement("canvas");buffer.width=360;buffer.height=640;
+  const bctx=buffer.getContext("2d",{alpha:false,willReadFrequently:true});
+  let previewRaf=0;
   canvas.width=720;canvas.height=1280;
   const ctx=canvas.getContext("2d",{alpha:false});
   const Audio=window.AudioContext||window.webkitAudioContext;
@@ -36,22 +84,26 @@
   format.textContent=compatible?(mime.startsWith("video/mp4")?"MP4 supported":"WebM supported — MP4 unavailable"):"Local preview supported; export not supported by this browser";
   function say(s){message.textContent=s}
   function times(){return [Number(start.value),Number(end.value),video.duration]}
-  function valid(){return rangeValid(...times())}
+  function options(){return settings({brightness:brightness.value,contrast:contrast.value,preset:preset.value,speed:speed.value,text:overlay.value,position:position.value})}
+  function valid(){return durationValid(...times(),options().speed)}
+  function setSpeed(){video.playbackRate=options().speed;if("preservesPitch" in video)video.preservesPitch=true;if("webkitPreservesPitch" in video)video.webkitPreservesPitch=true;}
   function update(){
     const d=video.duration;
     const ready=Number.isFinite(d)&&d>0;
     file.disabled=busy;start.disabled=busy;end.disabled=busy;rights.disabled=busy;
+    [brightness,contrast,preset,speed,overlay,position,reset].forEach(el=>el.disabled=busy);
+    id("edit-brightness-value").textContent=brightness.value+"%";id("edit-contrast-value").textContent=contrast.value+"%";
     preview.disabled=busy||!ready||!valid();
     save.disabled=busy||!ready||!valid()||!compatible||!rights.checked;
     cancel.disabled=!busy;
-    durationLabel.textContent=valid()?(Number(end.value)-Number(start.value)).toFixed(2)+" sec selected":"Select 1–60 seconds within the video";
+    durationLabel.textContent=valid()?((Number(end.value)-Number(start.value))/options().speed).toFixed(2)+" sec estimated output at "+options().speed+"×":"Select a valid trim with 1–60 seconds output";
   }
   function clearOutput(){
     output.pause();output.removeAttribute("src");output.load();
     if(outputUrl)URL.revokeObjectURL(outputUrl);
     outputUrl="";result.hidden=true;download.removeAttribute("href");
   }
-  function resetPreview(){previewEnd=null;video.pause()}
+  function resetPreview(){previewEnd=null;video.pause();cancelAnimationFrame(previewRaf)}
   function seek(t){
     return new Promise((resolve,reject)=>{
       if(Math.abs(video.currentTime-t)<.035){resolve();return}
@@ -67,6 +119,7 @@
   file.addEventListener("change",()=>{
     if(busy)return;
     resetPreview();clearOutput();rights.checked=false;fields.hidden=true;
+    if(ctx)ctx.clearRect(0,0,720,1280);
     video.removeAttribute("src");video.load();
     if(sourceUrl)URL.revokeObjectURL(sourceUrl);
     sourceUrl="";
@@ -85,11 +138,27 @@
   });
   video.addEventListener("error",()=>{if(sourceUrl&&!busy)say("Cannot decode this video. Try an MP4 compatible with your browser.");});
   [start,end,rights].forEach(el=>el.addEventListener("input",()=>{if(!busy){resetPreview();clearOutput();update()}}));
+  [brightness,contrast,preset,speed,overlay,position].forEach(el=>el.addEventListener("input",()=>{
+    if(!busy){clearOutput();try{setSpeed();paint()}catch(e){say("Effect preview unavailable: "+e.message)}update()}
+  }));
+  reset.addEventListener("click",()=>{
+    if(busy)return;
+    brightness.value="100";contrast.value="100";preset.value="original";speed.value="1";overlay.value="";position.value="bottom";
+    clearOutput();setSpeed();paint();update();
+  });
+  ["loadeddata","seeked"].forEach(event=>video.addEventListener(event,()=>{if(!busy)paint()}));
+  video.addEventListener("play",()=>{
+    if(busy)return;
+    cancelAnimationFrame(previewRaf);
+    const drawPreview=()=>{if(busy)return;paint();if(!video.paused&&!video.ended)previewRaf=requestAnimationFrame(drawPreview)};
+    drawPreview();
+  });
+  video.addEventListener("pause",()=>{cancelAnimationFrame(previewRaf);if(!busy)paint()});
   preview.addEventListener("click",async()=>{
     if(!valid()||busy)return;
     try{
-      resetPreview();await seek(Number(start.value));previewEnd=Number(end.value);
-      await video.play();say("Previewing selected 9:16 center crop.");
+      resetPreview();setSpeed();await seek(Number(start.value));previewEnd=Number(end.value);
+      await video.play();say("Previewing edited 9:16 selection.");
     }catch(e){previewEnd=null;say(e.message||"Preview could not start")}
   });
   video.addEventListener("timeupdate",()=>{
@@ -114,9 +183,26 @@
     return audioContext.resume();
   }
   function paint(){
-    if(!ctx||!video.videoWidth||!video.videoHeight)return;
-    const [x,y,w,h]=cover(video.videoWidth,video.videoHeight,720,1280);
-    ctx.drawImage(video,x,y,w,h,0,0,720,1280);
+    if(!ctx||video.readyState<2||!video.videoWidth||!video.videoHeight)return;
+    const o=options(),[x,y,w,h]=cover(video.videoWidth,video.videoHeight,720,1280);
+    const active=o.preset!=="original"||o.brightness!==100||o.contrast!==100;
+    if(active){
+      // Pixel-based fallback works even where CanvasRenderingContext2D.filter
+      // is missing (notably some Safari versions). 360p working buffer limits CPU.
+      if(!bctx)throw Error("Color processing unavailable");
+      bctx.drawImage(video,x,y,w,h,0,0,360,640);
+      const frame=bctx.getImageData(0,0,360,640);
+      applyPixels(frame.data,o);bctx.putImageData(frame,0,0);
+      ctx.drawImage(buffer,0,0,720,1280);
+    }else ctx.drawImage(video,x,y,w,h,0,0,720,1280);
+    if(o.text){
+      ctx.save();ctx.font="bold 44px system-ui, sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.lineJoin="round";ctx.lineWidth=7;ctx.strokeStyle="#111111";ctx.fillStyle="#ffffff";
+      const lines=textLines(o.text,t=>ctx.measureText(t).width,620);
+      const y0=o.position==="top"?130:1110-(lines.length-1)*52;
+      lines.forEach((line,i)=>{ctx.strokeText(line,360,y0+i*52);ctx.fillText(line,360,y0+i*52)});
+      ctx.restore();
+    }
   }
   save.addEventListener("click",async()=>{
     if(busy||!compatible||!valid()||!rights.checked)return;
@@ -132,7 +218,7 @@
       busy=false;recorder=null;update();
     };
     try{
-      await initAudio();await seek(a);
+      await initAudio();setSpeed();await seek(a);
       if(aborted){cleanup();say("Export cancelled.");return}
       paint();
       stream=canvas.captureStream(25);
@@ -171,7 +257,7 @@
       video.controls=false;
       const draw=()=>{
         if(!busy||!finish)return;
-        paint();
+        try{paint()}catch(e){finish(true);say("Frame processing failed: "+e.message);return}
         if(video.currentTime>=b-.02){finish(false);return}
         raf=requestAnimationFrame(draw);
       };
@@ -179,7 +265,7 @@
       say("Recording in real time. Keep this page open and screen awake.");
       await video.play();raf=requestAnimationFrame(draw);
       // Reject stalls rather than handing back a silently truncated file.
-      stalledTimer=setTimeout(()=>{if(finish){finish(true);say("Export timed out. Try a shorter clip.")}},(b-a+20)*1000);
+      stalledTimer=setTimeout(()=>{if(finish){finish(true);say("Export timed out. Try a shorter clip.")}},((b-a)/options().speed+20)*1000);
     }catch(e){
       aborted=true;
       if(finish){finish(true)}else cleanup();
