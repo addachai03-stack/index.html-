@@ -1,0 +1,12 @@
+const assert=require("node:assert/strict"),fs=require("node:fs");
+const html=fs.readFileSync("index.html","utf8");
+const css=fs.readFileSync("styles.css","utf8");
+const js=fs.readFileSync("launch.js","utf8");
+const sw=fs.readFileSync("sw.js","utf8");
+const page=fs.readFileSync(".github/workflows/pages.yml","utf8");
+for(const expected of ['id="share-cutnova"','id="share-cutnova-status"','data-mobile-screen="home"','CutNova-Android-v2.6.2-Beta.apk','src="./launch.js"'])assert.ok(html.includes(expected),expected);
+assert.ok(css.includes(".beta-celebration"),"Celebration style");
+assert.ok(js.includes("navigator.share")&&js.includes("navigator.clipboard.writeText"),"Cross-platform share fallback");
+assert.ok(sw.includes('"./launch.js"'),"Offline bundle includes sharing");
+assert.ok(page.includes("launch.js"),"Deployment includes launch");
+console.log("PASS: beta launch content, APK link, native share/copy fallback and offline deployment.");

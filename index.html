@@ -24,6 +24,19 @@
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
+      <section class="beta-celebration" data-mobile-screen="home" aria-label="CutNova beta launch announcement">
+        <div class="beta-celebration-copy">
+          <span class="beta-celebration-tag">✦ CUTNOVA PUBLIC BETA · NOV 2026</span>
+          <h2>We made it. <span>Let's create!</span> 🎉</h2>
+          <p>Android beta APK + iPhone web app are ready to try. Trim, preview and export on your phone. AI rendering is owner-controlled; browser support varies.</p>
+        </div>
+        <div class="beta-celebration-actions">
+          <a class="btn btn-lime" href="./#local-editor">OPEN EDITOR</a>
+          <a class="btn btn-outline" href="https://github.com/addachai03-stack/index.html-/releases/download/cutnova-android-v2.6.2-beta/CutNova-Android-v2.6.2-Beta.apk" target="_blank" rel="noopener noreferrer">ANDROID APK ↓</a>
+          <button class="btn btn-outline" type="button" id="share-cutnova">SHARE APP ↗</button>
+        </div>
+        <p id="share-cutnova-status" class="beta-celebration-status" role="status" aria-live="polite">iPhone: Safari → Share → Add to Home Screen. Beta testing is still ongoing.</p>
+      </section>
       <aside class="pwa-panel" data-mobile-screen="home" aria-label="Install and offline status">
         <div><strong>CutNova mobile app</strong><p id="pwa-status" role="status" aria-live="polite">Checking offline availability…</p><p id="pwa-instructions">Open in Safari to add CutNova to your Home Screen.</p></div>
         <button id="pwa-install" type="button" class="btn btn-outline">INSTALL / ADD TO HOME</button>
@@ -189,5 +202,6 @@
   <script defer src="./editor.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
+  <script defer src="./launch.js"></script>
 </body>
 </html>

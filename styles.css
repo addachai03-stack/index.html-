@@ -244,3 +244,22 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
   .app-shell[data-active-tab="editor"]~.footer{display:none}
   .local-editor{padding-bottom:90px!important}
 }
+
+
+/* Public beta celebration — compact and phone-first. */
+.beta-celebration{margin:18px 0 12px;padding:18px 20px;border:1px solid #465437;border-radius:18px;background:linear-gradient(105deg,#1d2922 0%,#171a22 58%,#252038 100%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 20px;align-items:center}
+.beta-celebration-tag{display:inline-block;color:var(--lime);font:800 10px/1.4 var(--font);letter-spacing:.09em}
+.beta-celebration h2{margin:6px 0 6px;font:800 clamp(22px,2.6vw,30px)/1.13 var(--heading);letter-spacing:-.04em}
+.beta-celebration h2 span{color:var(--lime)}
+.beta-celebration p{margin:0;color:#c6c8d1;font-size:12px;line-height:1.5}
+.beta-celebration-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.beta-celebration-actions .btn{min-height:42px;font-size:11px;white-space:nowrap;padding:11px 13px}
+.beta-celebration-status{grid-column:1/-1}
+@media(max-width:800px){
+ .beta-celebration{grid-template-columns:1fr;margin:9px 0 12px;padding:14px;gap:9px}
+ .beta-celebration h2{font-size:23px}
+ .beta-celebration-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+ .beta-celebration-actions .btn{text-align:center;font-size:10px;padding:11px 6px}
+ .beta-celebration-actions #share-cutnova{grid-column:1/-1}
+ .beta-celebration-status{font-size:11px}
+}
