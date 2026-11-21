@@ -1,0 +1,48 @@
+name: CutNova - Real Speech Captions E2E
+
+on:
+  push:
+    paths:
+      - "tests/verify_speech_e2e.py"
+      - ".github/workflows/cutnova-speech-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  speech-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install FFmpeg and original speech synthesizer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg espeak fonts-noto-core
+      - name: Install real AI renderer dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify original spoken 2x30s portrait videos, subtitles and creator packs
+        run: python tests/verify_speech_e2e.py
+      - name: Upload real synthetic speech integration test outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutnova-speech-e2e-${{ github.run_number }}
+          path: |
+            speech_e2e_output/*.mp4
+            speech_e2e_output/*.srt
+            speech_e2e_output/*.json
+            speech_e2e_output/*.md
+            speech_e2e_output/*.txt
+            speech_e2e_output/*.zip
+          if-no-files-found: warn
+          retention-days: 7
