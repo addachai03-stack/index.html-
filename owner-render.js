@@ -6,7 +6,36 @@
   const health=byId("secure-render-health"),key=byId("secure-render-key");
   const start=byId("secure-render-start"),status=byId("secure-render-status");
   const refresh=byId("secure-render-refresh");
+  const generate=byId("secure-key-generate"),copy=byId("secure-key-copy");
+  const generated=byId("secure-key-output"),keyStatus=byId("secure-key-status");
   if(!health||!key||!start||!status)return;
+  generate?.addEventListener("click",()=>{
+    if(!generated||!copy||!keyStatus)return;
+    if(generated.value&&!window.confirm("Replace the existing generated key? Save the current one in your password manager first."))return;
+    if(!window.isSecureContext||!window.crypto||typeof window.crypto.getRandomValues!=="function"){
+      keyStatus.textContent="Secure random generator unavailable. Open CutNova over HTTPS in Safari.";return;
+    }
+    const bytes=new Uint8Array(32);
+    window.crypto.getRandomValues(bytes);
+    generated.value=Array.from(bytes,x=>x.toString(16).padStart(2,"0")).join("");
+    bytes.fill(0);
+    copy.disabled=false;
+    keyStatus.textContent="Strong private key generated locally. Copy it to a password manager, then save it as CUTNOVA_OWNER_KEY in Cloudflare. It is not saved by CutNova.";
+  });
+  copy?.addEventListener("click",async()=>{
+    if(!generated?.value||!keyStatus)return;
+    try{
+      if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(generated.value);
+      else{
+        generated.focus();generated.select();
+        if(!document.execCommand("copy"))throw Error("Clipboard unavailable");
+      }
+      keyStatus.textContent="Key copied. Store it in a password manager, paste it into the Cloudflare CUTNOVA_OWNER_KEY secret, then use it in CutNova after setup. Do not share it in chat.";
+    }catch(_){
+      generated.focus();generated.select();
+      keyStatus.textContent="Automatic copy unavailable. The generated key is selected; use iPhone Copy, and save it privately.";
+    }
+  });
   let configured=false,busy=false;
   const say=s=>{status.textContent=s};
   async function check(){
