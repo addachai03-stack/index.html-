@@ -8,6 +8,8 @@ on:
       - "caption_styles.py"
       - "animated_captions.py"
       - "speech_quality.py"
+      - "smartcrop.py"
+      - "tracking_crop.py"
       - "parse_request.py"
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
@@ -33,6 +35,9 @@ jobs:
           python-version: "3.11"
       - name: Test engine compilation
         run: python -m py_compile studio.py
+      - name: Install FFmpeg for render proof
+        run: |
+          command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
       - name: Test video highlight rules
         run: python -m unittest discover -s tests -v
       - name: Test app JS syntax and dashboard request integration

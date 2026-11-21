@@ -117,6 +117,7 @@ def parse_issue(body: str) -> dict:
     crop_labels = {
         "auto — face-aware static framing": "auto",
         "center — always center crop": "center",
+        "track — moving face crop (beta)": "track",
     }
     crop = normalize_crop_mode(crop_labels.get(raw_crop, raw_crop))
     raw_language = fields.get("LANGUAGE", "auto").strip().lower()

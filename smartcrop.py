@@ -12,13 +12,13 @@ import math
 import statistics
 from pathlib import Path
 
-CROP_MODES = ("auto", "center")
+CROP_MODES = ("auto", "center", "track")
 
 
 def normalize_crop_mode(mode: str) -> str:
     value = (mode or "auto").strip().lower()
     if value not in CROP_MODES:
-        raise ValueError("Crop mode must be auto or center.")
+        raise ValueError("Crop mode must be auto, center or track.")
     return value
 
 
@@ -105,6 +105,18 @@ def compute_crop(source: Path, width: int, height: int,
         if center is not None:
             frac = center
             method = "face-aware-static"
+    path = []
+    if mode == "track" and width / height > 720 / 1280:
+        try:
+            from tracking_crop import sample_faces, path_from_samples
+            samples = sample_faces(source, start, end)
+            detected = len(samples)
+            path = path_from_samples(samples, end-start)
+            if path:
+                method = "face-guided-sampled-motion"
+                frac = path[0][1]
+        except Exception as exc:
+            print("Sampled tracking unavailable; center fallback:", str(exc)[:150], flush=True)
     x = crop_offset(width, height, frac)
     return {
         "mode": mode,
@@ -112,5 +124,6 @@ def compute_crop(source: Path, width: int, height: int,
         "crop_x": x,
         "center_fraction": round(frac, 4),
         "face_frames": detected,
-        "note": "Static per-clip reframe; not continuous subject tracking"
+        "path": path,
+        "note": "Sampled frontal-face positions with interpolation; not identity tracking" if path else "Static or centered framing; no moving crop path"
     }

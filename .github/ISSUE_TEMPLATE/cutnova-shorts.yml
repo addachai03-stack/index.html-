@@ -117,10 +117,11 @@ body:
     id: smart-framing
     attributes:
       label: Smart crop mode
-      description: "Auto analyzes faces at several moments in each clip. If no face is detected, uses center crop."
+      description: "Auto uses static face framing. Track samples multiple timestamps for moving crop; insufficient faces fall back to center."
       options:
         - "Auto — face-aware static framing"
         - "Center — always center crop"
+        - "Track — moving face crop (beta)"
       default: 0
     validations:
       required: true

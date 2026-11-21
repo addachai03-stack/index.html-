@@ -182,3 +182,7 @@ MIT license covers original application code, **not** third-party video or audio
 ## V1.6 — Active-word captions
 
 Select **Caption style → Karaoke — active word** to burn yellow word highlights into MP4s. Uses Whisper word timestamps where available, with evenly spaced estimates when only segment timestamps exist. The exported `.ass` animation, ordinary `.srt`, and manifest timing-event counts are retained. Roman Hindi is optional and approximate. This is not forced-alignment accuracy or a viral-performance guarantee.
+
+## V1.7 — Moving face framing (beta)
+
+Choose **Portrait framing → Moving face crop**. OpenCV samples frontal faces at about one-second intervals, follows the nearest detected face position, and interpolates a smoothed horizontal crop path. The actual FFmpeg crop moves during the clip. If too few faces are detected, the crop is centered. This is sampled positioning, not continuous face identity or active-speaker tracking; multiple subjects, rotation, occlusions and profile views can reduce quality. Manifest records samples, method and path. Static Auto and Center modes remain available.

@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
+from tracking_crop import crop_filter
 from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
 from roman_captions import caption_text
@@ -293,11 +294,11 @@ def captions_for(cut: Candidate, segments: list[Segment], target: Path, script: 
     return True
 
 def render(source: Path, target: Path, cut: Candidate, sub: Path | None,
-           crop_x: int | None = None, caption_style: str = "classic"):
+           crop_x: int | None = None, caption_style: str = "classic", crop_path=None):
     # 9:16 subject-aware *static* x crop; center fallback, no black bars.
     # crop_x is computed from video dimensions and must be a safe integer.
-    crop_expr = "crop=720:1280" if crop_x is None else f"crop=720:1280:{int(crop_x)}:0"
-    vf = "scale=720:1280:force_original_aspect_ratio=increase," + crop_expr + ",setsar=1"
+    crop_expr = crop_filter(crop_path) if crop_path else ("crop=720:1280" if crop_x is None else f"crop=720:1280:x=\'max(0,min(iw-ow,{int(crop_x)}))\':y=\'(ih-oh)/2\'")
+    vf = "setpts=PTS-STARTPTS,scale=720:1280:force_original_aspect_ratio=increase," + crop_expr + ",setsar=1"
     if sub:
         vf += ",subtitles=" + sub.name
         if sub.suffix.lower() != ".ass":
@@ -320,7 +321,7 @@ def main() -> int:
     p.add_argument("--min-seconds", type=int, default=15)
     p.add_argument("--max-seconds", type=int, default=60)
     p.add_argument("--style", choices=["engagement","funny","facts","story"], default="engagement")
-    p.add_argument("--crop", choices=["auto", "center"], default="auto")
+    p.add_argument("--crop", choices=["auto", "center", "track"], default="auto")
     p.add_argument("--language", choices=["auto", "hi", "en"], default="auto")
     p.add_argument("--caption-script", choices=["original", "roman"], default="original")
     p.add_argument("--caption-style", choices=["classic", "yellow", "boxed", "karaoke"], default="classic")
@@ -374,7 +375,7 @@ def main() -> int:
                 timing = write_animated(cut, speech, animated, a.caption_script)
                 if sum(timing.values()):
                     render_sub = animated
-            render(video, target, cut, render_sub, crop_info["crop_x"], a.caption_style)
+            render(video, target, cut, render_sub, crop_info["crop_x"], a.caption_style, crop_info.get("path"))
             item = asdict(cut)
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None

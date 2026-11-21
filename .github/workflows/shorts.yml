@@ -72,11 +72,12 @@ on:
         default: "classic"
         required: true
       crop:
-        description: "9:16 crop method (face-aware is a static per-clip reframe)"
+        description: "9:16 crop: static Auto, sampled moving Track, or Center"
         type: choice
         options:
           - "auto"
           - "center"
+          - "track"
         default: "auto"
         required: true
       rights_confirm:
