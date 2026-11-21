@@ -1,4 +1,5 @@
 name: CutNova - Generate Shorts
+run-name: CutNova owner ${{ inputs.request_id || 'manual' }}
 
 on:
   workflow_dispatch:
@@ -7,6 +8,11 @@ on:
         description: "Public HTTPS long-video URL; only videos you own or may edit"
         type: string
         required: true
+      request_id:
+        description: "Optional non-secret client tracking UUID; no video URL or credentials"
+        type: string
+        required: false
+        default: "manual"
       clips:
         description: "Number of Shorts (integer 1-10)"
         type: string
