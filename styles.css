@@ -161,3 +161,12 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .action-row a.btn-lime{flex:1.5}
 .action-row button.btn-outline{flex:1}
 @media(max-width:600px){.action-row a.btn-lime,.action-row button.btn-outline{flex:auto}}
+
+/* iPhone-first public GitHub video upload alternative (no fake static-site upload). */
+.iphone-upload{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:20px;margin:20px 0;border:1px solid var(--border);border-radius:16px;background:linear-gradient(115deg,#20252a,#161821)}
+.iphone-upload-copy{display:flex;flex-direction:column;gap:6px;flex:1 1 270px}
+.iphone-upload-copy strong{font:700 17px/1.3 var(--heading);color:var(--ink)}
+.iphone-upload-copy span{color:#dce6ce;font-size:13px}
+.iphone-upload-copy small{color:var(--muted);font-size:11px}
+.iphone-upload .upload-cta{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+@media(max-width:650px){.iphone-upload{flex-direction:column;align-items:stretch}.iphone-upload .upload-cta{width:100%;text-align:center}}
