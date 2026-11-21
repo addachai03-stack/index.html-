@@ -186,3 +186,7 @@ Select **Caption style → Karaoke — active word** to burn yellow word highlig
 ## V1.7 — Moving face framing (beta)
 
 Choose **Portrait framing → Moving face crop**. OpenCV samples frontal faces at about one-second intervals, follows the nearest detected face position, and interpolates a smoothed horizontal crop path. The actual FFmpeg crop moves during the clip. If too few faces are detected, the crop is centered. This is sampled positioning, not continuous face identity or active-speaker tracking; multiple subjects, rotation, occlusions and profile views can reduce quality. Manifest records samples, method and path. Static Auto and Center modes remain available.
+
+## V1.8 — Tight pacing
+
+Optional **Pacing → Tight** detects quiet intervals of at least 0.8 seconds at -35 dB, retaining pause-edge padding and protecting recognized speech segments. Removes at most 35% of a clip and eight intervals, subject to the requested minimum length. Rebuilds the audio/video and remaps SRT and active-word timings on the edited timeline, then computes framing. Manifest records original-relative retained intervals and before/after duration. No speech, no suitable quiet pauses or a trim error retains original timing. Music and speech recognition errors can affect detection. Review cuts before publishing.

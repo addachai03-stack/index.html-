@@ -14,6 +14,7 @@ from smartcrop import normalize_crop_mode
 from speech_quality import normalize_language
 from roman_captions import normalize_caption_script
 from caption_styles import normalize_caption_style
+from pacing import normalize_pacing
 from github_media import is_github_attachment_url
 
 
@@ -27,6 +28,7 @@ FORM_LABELS = {
     "Speech language": "LANGUAGE",
     "Caption script": "CAPTION_SCRIPT",
     "Caption style": "CAPTION_STYLE",
+    "Pacing": "PACING",
 }
 RIGHTS_LABEL = "Content ownership and permission"
 UPLOAD_LABEL = "Upload your video file"
@@ -84,7 +86,7 @@ def issue_form_fields(body: str) -> dict[str, str]:
 def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
-        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE|CAPTION_SCRIPT|CAPTION_STYLE):[ \t]*(.+?)[ \t]*", line.strip())
+        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE|CAPTION_SCRIPT|CAPTION_STYLE|PACING):[ \t]*(.+?)[ \t]*", line.strip())
         if match and match[1] not in fields:
             fields[match[1]] = match[2]
     return fields
@@ -149,6 +151,7 @@ def parse_issue(body: str) -> dict:
         "language": language,
         "caption_script": script,
         "caption_style": preset,
+        "pacing": normalize_pacing({"original — keep pauses":"original","tight — remove quiet pauses":"tight"}.get(fields.get("PACING","original").lower(),fields.get("PACING","original"))),
     }
 
 

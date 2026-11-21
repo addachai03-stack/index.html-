@@ -125,6 +125,17 @@ body:
       default: 0
     validations:
       required: true
+  - type: dropdown
+    id: pacing
+    attributes:
+      label: Pacing
+      description: "Tight removes eligible quiet pauses, protects recognized speech and preserves the selected minimum duration."
+      options:
+        - "Original — keep pauses"
+        - "Tight — remove quiet pauses"
+      default: 0
+    validations:
+      required: true
   - type: checkboxes
     id: permission
     attributes:

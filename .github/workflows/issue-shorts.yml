@@ -54,6 +54,7 @@ jobs:
           LANGUAGE: ${{ steps.request.outputs.language }}
           CAPTION_SCRIPT: ${{ steps.request.outputs.caption_script }}
           CAPTION_STYLE: ${{ steps.request.outputs.caption_style }}
+          PACING: ${{ steps.request.outputs.pacing }}
         run: |
           python studio.py \
             --url "$VIDEO_URL" \
@@ -65,6 +66,7 @@ jobs:
             --language "$LANGUAGE" \
             --caption-script "$CAPTION_SCRIPT" \
             --caption-style "$CAPTION_STYLE" \
+            --pacing "$PACING" \
             --rights-confirmed
       - name: Upload MP4, captions and diagnosis
         if: always()

@@ -80,6 +80,12 @@ on:
           - "track"
         default: "auto"
         required: true
+      pacing:
+        description: "Original timing or conservative quiet-pause removal"
+        type: choice
+        options: ["original", "tight"]
+        default: "original"
+        required: true
       rights_confirm:
         description: "I own or have permission to edit and republish this video"
         type: boolean
@@ -108,6 +114,7 @@ jobs:
       LANGUAGE: ${{ inputs.language }}
       CAPTION_SCRIPT: ${{ inputs.caption_script }}
       CAPTION_STYLE: ${{ inputs.caption_style }}
+      PACING: ${{ inputs.pacing }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -143,6 +150,7 @@ jobs:
             --language "$LANGUAGE" \
             --caption-script "$CAPTION_SCRIPT" \
             --caption-style "$CAPTION_STYLE" \
+            --pacing "$PACING" \
             --rights-confirmed
       - name: Upload MP4 Shorts + transcripts + report
         if: always()

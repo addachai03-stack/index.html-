@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 from tracking_crop import crop_filter
+from pacing import normalize_pacing, detect_silences, keep_intervals, remap_speech, trim_media
 from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
 from roman_captions import caption_text
@@ -325,6 +326,7 @@ def main() -> int:
     p.add_argument("--language", choices=["auto", "hi", "en"], default="auto")
     p.add_argument("--caption-script", choices=["original", "roman"], default="original")
     p.add_argument("--caption-style", choices=["classic", "yellow", "boxed", "karaoke"], default="classic")
+    p.add_argument("--pacing", choices=["original", "tight"], default="original")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -357,31 +359,66 @@ def main() -> int:
                     "speech_language": a.language,
                     "caption_script": a.caption_script,
                     "caption_style": a.caption_style,
+                    "pacing": a.pacing,
                     "note": "AI-assisted cues, not a guarantee of views or shares.",
                     "clips": []}
         for i, cut in enumerate(choices, 1):
             base = f"short_{i:02}"
+            render_source, render_cut, render_speech = video, cut, speech
+            render_width, render_height = width, height
+            duration_before = cut.end-cut.start
+            kept = [(0.,duration_before)]
+            pacing_note = "Original timing"
+            if normalize_pacing(a.pacing) == "tight":
+                try:
+                    protected = [(max(0.,s.start-cut.start),min(duration_before,s.end-cut.start)) for s in speech if s.end>cut.start and s.start<cut.end]
+                    if protected:
+                        plan = keep_intervals(duration_before, detect_silences(video,cut.start,cut.end),protected,a.min_seconds)
+                        shortened = sum(b-a for a,b in plan)
+                        if shortened < duration_before-.39:
+                            trimmed = work / (base + "_tight.mp4")
+                            trim_media(video,trimmed,plan,cut.start)
+                            # Verify decoded media before adopting the edited timeline.
+                            actual = probe(trimmed)
+                            if abs(actual-shortened) > .15:
+                                raise RuntimeError("Trim duration mismatch")
+                            render_width, render_height = video_dimensions(trimmed)
+                            render_speech = remap_speech(speech,cut.start,duration_before,plan)
+                            render_cut = Candidate(0.,shortened,cut.score,cut.hook,cut.transcript,cut.reason)
+                            render_source, kept = trimmed, plan
+                            pacing_note = "Detected quiet pauses removed; speech protected"
+                        else:
+                            pacing_note = "No eligible pauses within minimum-duration guard"
+                    else:
+                        pacing_note = "No recognized speech; original timing retained"
+                except Exception as exc:
+                    print("Tight pacing fallback:",str(exc)[:150],flush=True)
+                    pacing_note = "Trim unavailable; original timing retained"
+                    render_source, render_cut, render_speech = video, cut, speech
+                    render_width, render_height = width, height
+                    kept = [(0.,duration_before)]
             sub = output / (base + ".srt")
-            has_captions = captions_for(cut, speech, sub, a.caption_script)
+            has_captions = captions_for(render_cut, render_speech, sub, a.caption_script)
             original = output / (base + ".original.srt")
-            original_saved = a.caption_script == "roman" and captions_for(cut, speech, original)
+            original_saved = a.caption_script == "roman" and captions_for(render_cut, render_speech, original)
             target = output / (base + ".mp4")
-            crop_info = compute_crop(video, width, height, cut.start, cut.end, a.crop)
+            crop_info = compute_crop(render_source, render_width, render_height, render_cut.start, render_cut.end, a.crop)
             print(f"Rendering Short #{i}: {cut.start}s -> {cut.end}s; crop: {crop_info['method']} at x={crop_info['crop_x']}", flush=True)
             render_sub = sub if has_captions else None
             animated = output / (base + ".ass")
             timing = None
             if a.caption_style == "karaoke":
-                timing = write_animated(cut, speech, animated, a.caption_script)
+                timing = write_animated(render_cut, render_speech, animated, a.caption_script)
                 if sum(timing.values()):
                     render_sub = animated
-            render(video, target, cut, render_sub, crop_info["crop_x"], a.caption_style, crop_info.get("path"))
+            render(render_source, target, render_cut, render_sub, crop_info["crop_x"], a.caption_style, crop_info.get("path"))
             item = asdict(cut)
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None
             item["original_captions"] = original.name if original_saved else None
             item["animated_captions"] = animated.name if timing and sum(timing.values()) else None
             item["animated_timing_events"] = timing
+            item["pacing"] = {"mode":a.pacing,"note":pacing_note,"kept_source_relative_intervals":kept,"duration_before":duration_before,"duration_after":render_cut.end-render_cut.start}
             item["framing"] = crop_info
             manifest["clips"].append(item)
         create_creator_pack(choices, output, a.style, url)

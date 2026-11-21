@@ -10,6 +10,7 @@ on:
       - "speech_quality.py"
       - "smartcrop.py"
       - "tracking_crop.py"
+      - "pacing.py"
       - "parse_request.py"
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
