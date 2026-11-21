@@ -18,6 +18,7 @@ on:
       - "parse_request.py"
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
+      - "owner-render.js"
       - "jobs.js"
       - "editor.js"
       - "pwa.js"
