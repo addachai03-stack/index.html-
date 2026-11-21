@@ -23,7 +23,8 @@ class PinnedHTTPS(http.client.HTTPSConnection):
         except Exception:
             raw.close()
             raise
-def download_direct(url,work):
+def download_direct(url,work,max_bytes=MAX_BYTES):
+    if not isinstance(max_bytes,int) or max_bytes<4096 or max_bytes>MAX_BYTES: raise ValueError("Invalid media size cap")
     current=url;target=work/"direct-download.part";deadline=time.monotonic()+300
     try:
         for _ in range(6):
@@ -44,7 +45,7 @@ def download_direct(url,work):
                     current=urljoin(current,location);continue
                 if response.status!=200: raise RuntimeError(f"Direct media unavailable (HTTP {response.status})")
                 size=response.getheader("Content-Length")
-                if size and (not size.isdecimal() or int(size)>MAX_BYTES): raise ValueError("File exceeds size limit")
+                if size and (not size.isdecimal() or int(size)>max_bytes): raise ValueError("File exceeds size limit")
                 with target.open("wb") as f:
                     header=response.read(32);ext=media_kind(header);f.write(header);total=len(header)
                     while True:
@@ -52,7 +53,7 @@ def download_direct(url,work):
                         data=response.read(262144)
                         if not data: break
                         total+=len(data)
-                        if total>MAX_BYTES: raise ValueError("File exceeds size limit")
+                        if total>max_bytes: raise ValueError("File exceeds size limit")
                         f.write(data)
                 if total<4096: raise ValueError("Media too small")
                 final=work/("source"+ext);target.replace(final);return final
