@@ -1,7 +1,7 @@
-import json,os,subprocess,threading
+import json,os,subprocess,threading,time
 from pathlib import Path
 from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 root=Path("release-proof");root.mkdir(exist_ok=True)
 sample=root/"sample.mp4"
 subprocess.run(["ffmpeg","-v","error","-y","-f","lavfi","-i","testsrc2=size=320x240:rate=25:duration=4","-f","lavfi","-i","sine=frequency=440:duration=4","-c:v","libx264","-pix_fmt","yuv420p","-c:a","aac","-shortest",str(sample)],check=True)
@@ -10,6 +10,15 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 url=f"http://127.0.0.1:{server.server_port}/"
 engine=os.environ.get("ENGINE","chromium")
 report={"browser":engine,"physical_iphone":False,"checks":{}}
+def wait_media(page):
+    deadline=time.monotonic()+20
+    while time.monotonic()<deadline:
+        # A direct evaluation of a property, not wait_for_function's string eval.
+        if page.locator("#edit-video").evaluate("(el) => el.readyState")>=2:
+            return
+        time.sleep(.2)
+    raise AssertionError("Source frame unavailable: "+page.locator("#edit-status").inner_text())
+
 with sync_playwright() as p:
     browser=getattr(p,engine).launch()
     context=browser.new_context(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,accept_downloads=True)
@@ -18,8 +27,7 @@ with sync_playwright() as p:
     page.on("pageerror",lambda error:errors.append(str(error)))
     try:
         page.goto(url,wait_until="domcontentloaded")
-        page.wait_for_function("navigator.serviceWorker.controller !== null",timeout=30000)
-        page.wait_for_function("document.querySelector('#pwa-status').textContent.includes('ready')")
+        expect(page.locator("#pwa-status")).to_contain_text("Offline app shell ready",timeout=30000)
         report["checks"]["service_worker"]="PASS"
         context.set_offline(True)
         page.reload(wait_until="domcontentloaded")
@@ -27,17 +35,17 @@ with sync_playwright() as p:
         report["checks"]["offline_reload"]="PASS"
         page.locator("#edit-file").set_input_files(str(sample))
         page.locator("#edit-fields").wait_for(timeout=20000)
-        page.wait_for_function("document.querySelector('#edit-video').readyState >= 2",timeout=20000)
+        wait_media(page)
         page.locator("#edit-end").fill("3")
         page.locator("#edit-text").fill("Release proof")
         page.locator("#edit-draft-title").fill("Offline test")
         page.locator("#edit-draft-save").click()
-        page.wait_for_function("document.querySelector('#edit-draft-status').textContent.includes('Saved on this device')")
+        expect(page.locator("#edit-draft-status")).to_contain_text("Saved on this device",timeout=20000)
         report["checks"]["offline_draft_save"]="PASS"
         page.reload(wait_until="domcontentloaded")
         page.get_by_role("button",name="RESUME",exact=True).click()
-        page.wait_for_function("document.querySelector('#edit-text').value === 'Release proof'")
-        page.wait_for_function("document.querySelector('#edit-video').readyState >= 2")
+        expect(page.locator("#edit-text")).to_have_value("Release proof",timeout=20000)
+        wait_media(page)
         report["checks"]["offline_draft_resume"]="PASS"
         page.locator("#edit-rights").check()
         if page.locator("#edit-export").is_disabled():
