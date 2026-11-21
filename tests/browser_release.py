@@ -9,7 +9,7 @@ server=ThreadingHTTPServer(("127.0.0.1",0),SimpleHTTPRequestHandler)
 threading.Thread(target=server.serve_forever,daemon=True).start()
 url=f"http://127.0.0.1:{server.server_port}/"
 engine=os.environ.get("ENGINE","chromium")
-report={"browser":engine,"physical_iphone":False,"checks":{},"revision":"V2.5.1 storage compatibility"}
+report={"browser":engine,"physical_iphone":False,"checks":{},"revision":"V3.5 end-to-end offline phone editor, generated MP4/WebM file verification", "physical_iphone":False, "external_ai_render_started":False}
 def wait_media(page):
     deadline=time.monotonic()+20
     while time.monotonic()<deadline:
@@ -63,8 +63,10 @@ with sync_playwright() as p:
         report["checks"]["offline_draft_resume"]="PASS"
         page.locator('[data-nav="editor"]').click()
         page.locator("#edit-rights").check()
+        assert not page.locator("#edit-export").is_disabled() or "export not supported" in page.locator("#edit-format").inner_text().lower(), "Export disabled without a clear browser support explanation"
         if page.locator("#edit-export").is_disabled():
             report["checks"]["recording"]="NOT SUPPORTED: "+page.locator("#edit-format").inner_text()
+            report["checks"]["export_support_message"]="PASS"
         else:
             page.locator("#edit-export").click()
             page.locator("#edit-result").wait_for(timeout=40000)
@@ -79,7 +81,9 @@ with sync_playwright() as p:
             # WebM live recordings may not carry a duration in container headers.
             if "duration" in media.get("format",{}):
                 duration=float(media["format"]["duration"]);assert 1.8<=duration<=5,media
-            report["checks"]["recording"]="PASS";report["media"]=media
+            report["checks"]["recording"]="PASS";report["checks"]["export_download"]="PASS";report["media"]=media
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth+1"), "Mobile editor has horizontal overflow"
+        report["checks"]["no_horizontal_overflow"]="PASS"
         page.screenshot(path=str(root/"editor.png"),full_page=True)
         assert not errors,errors
         report["checks"]["javascript"]="PASS"
