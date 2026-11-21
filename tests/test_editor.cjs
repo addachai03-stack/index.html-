@@ -1,0 +1,20 @@
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const {rangeValid,cover,supportedType}=require("../editor.js");
+assert.equal(rangeValid(0,15,20),true);
+assert.equal(rangeValid(0,61,100),false);
+assert.equal(rangeValid(-1,3,10),false);
+assert.equal(rangeValid(3,4,3.5),false);
+assert.equal(rangeValid(3,3.5,10),false);
+assert.equal(rangeValid(NaN,3,10),false);
+const [x,y,w,h]=cover(1920,1080,720,1280);
+assert.equal(y,0);assert.equal(h,1080);assert.ok(Math.abs(w/h-720/1280)<1e-9);
+assert.ok(x>0);
+assert.deepEqual(cover(720,1280,720,1280),[0,0,720,1280]);
+assert.equal(supportedType({isTypeSupported:t=>t==="video/mp4"}),"video/mp4");
+assert.equal(supportedType({isTypeSupported:t=>t.startsWith("video/webm")}),"video/webm;codecs=vp8,opus");
+assert.equal(supportedType({isTypeSupported:()=>false}),"");
+const html=fs.readFileSync("index.html","utf8");
+for(const id of ["edit-file","edit-video","edit-start","edit-end","edit-play","edit-export","edit-cancel","edit-output","edit-download","edit-rights"])
+  assert.ok(html.includes('id="'+id+'"'));
+console.log("PASS: local editor trim range, portrait geometry, format negotiation and markup.");

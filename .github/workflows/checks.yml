@@ -17,6 +17,7 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
       - "jobs.js"
+      - "editor.js"
       - "index.html"
       - "styles.css"
       - "tests/**"
@@ -49,3 +50,5 @@ jobs:
           node tests/test_dashboard.cjs
           node --check jobs.js
           node tests/test_jobs.cjs
+          node --check editor.js
+          node tests/test_editor.cjs

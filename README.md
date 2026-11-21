@@ -194,3 +194,7 @@ Optional **Pacing → Tight** detects quiet intervals of at least 0.8 seconds at
 ## V1.9 — Hook-aware highlight ranking
 
 Multilingual cue matching preserves Hindi vowel marks, rewards hooks early in each clip, and considers speech-aligned candidate starts. Count-aware weighted interval scheduling finds high-scoring non-overlapping clips instead of replacing good highlights with arbitrary early windows when more clips are requested. Title and hook suggestions quote bounded source-ASR phrases. Scores are normalized content heuristics (0–1), not live viral prediction. Review all transcript suggestions and clip context before publishing.
+
+## V2.0 — On-device manual Shorts editor
+
+The website now has a separate local video editor. Select a local file (up to 500 MB), set an inclusive start/exclusive end with 1–60 seconds selected, preview the 9:16 center crop and export in real time with Canvas / MediaRecorder / Web Audio. MP4 is preferred if the browser reports support, otherwise supported WebM is offered; no fake MP4 extension. Audio is captured along with video. Browser compatibility, real-time pacing and seeking precision vary; backgrounding the app cancels recording. The file is not intentionally uploaded by this local editor. AI captions, automatic highlights and moving face crop are separate GitHub Actions features. This is not a full non-linear editing suite. Test on your device before relying on the export.
