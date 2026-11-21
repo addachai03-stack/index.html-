@@ -59,7 +59,7 @@ def run(command: list[str], timeout: int=300) -> subprocess.CompletedProcess:
 
 
 def probe(path: Path) -> dict:
-    raw=run(["ffprobe","-nostdin","-v","error","-show_format","-show_streams",
+    raw=run(["ffprobe","-v","error","-show_format","-show_streams",
              "-of","json",str(path)],timeout=30)
     try:
         return json.loads(raw.stdout)
