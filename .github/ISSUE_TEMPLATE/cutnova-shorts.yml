@@ -90,6 +90,17 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: caption-script
+    attributes:
+      label: Caption script
+      description: "Roman mode transliterates Hindi into approximate Hinglish, preserves English and saves the original SRT."
+      options:
+        - "Original — keep original script"
+        - "Roman — Hinglish (approximate)"
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
     id: smart-framing
     attributes:
       label: Smart crop mode
