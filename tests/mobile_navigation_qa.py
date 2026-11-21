@@ -263,6 +263,24 @@ try:
             assert any(st["codec_type"]=="video" and st.get("width")==720
                        and st.get("height")==1280 for st in metadata["streams"]),metadata
             assert any(st["codec_type"]=="audio" for st in metadata["streams"]),metadata
+            # The app should report ACTUAL codec entries, not assume that
+            # an MP4 extension implies H.264/AAC. Compare against ffprobe.
+            page.wait_for_function("""() => !/^(Inspecting|No export)/.test(
+              document.querySelector('#edit-social-status')?.textContent||'')""",timeout=15000)
+            codec_ui=page.locator("#edit-social-status").inner_text()
+            video_codecs=[st.get("codec_name") for st in metadata["streams"] if st.get("codec_type")=="video"]
+            audio_codecs=[st.get("codec_name") for st in metadata["streams"] if st.get("codec_type")=="audio"]
+            if "vp9" in video_codecs or "opus" in audio_codecs:
+                assert codec_ui.startswith("SOCIAL CODEC WARNING"), (
+                    "Actual VP9/Opus must be flagged before social upload: "+codec_ui)
+                assert "VP9" in codec_ui or "Opus" in codec_ui,codec_ui
+                REPORT["checks"]["social_codec_audit"]="PASS: warned on actual VP9/Opus MP4 (independently confirmed by ffprobe)"
+            elif "h264" in video_codecs and "aac" in audio_codecs:
+                assert codec_ui.startswith("BASIC CODEC MATCH"), (
+                    "H264/AAC should show basic codec match, not guaranteed upload: "+codec_ui)
+                REPORT["checks"]["social_codec_audit"]="PASS: H264/AAC basic match only, no upload guarantee"
+            else:
+                REPORT["checks"]["social_codec_audit"]="NOT VERIFIED: unusual codec combo "+codec_ui
             duration=metadata.get("format",{}).get("duration")
             if duration:
                 assert 2.0<=float(duration)<=4.5,metadata
