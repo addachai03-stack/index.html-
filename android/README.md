@@ -1,4 +1,4 @@
-# CutNova Android Beta v2.6.1 — launcher fix
+# CutNova Android Beta v2.6.2 — launcher fix
 
 V2.6.0 sometimes showed the app icon then returned to the Android Home screen. It used Android Browser Helper LauncherActivity, which depends on a browser/TWA launch flow that was not verified on the user's physical device.
 
@@ -9,3 +9,5 @@ Limitations: embedded WebView may not support local canvas/MediaRecorder export 
 This is a debug-signed sideload beta APK, NOT a Play Store release, not an independent native video engine. The signing key can differ from the original beta; if an update says 'App not installed', back up original video files and uninstall the OLD beta before installing the new one. No private signing key is in the repository.
 
 Do not claim physical Android testing was done until the owner confirms video/audio editing and download on their device. Android automated emulator smoke testing is part of the build.
+
+Native insets are applied on Android 15 to keep the toolbar below the status bar; WebView's built-in network error view now has a readable white background, while a retry banner remains until successful reload. Emulator CI can run without public DNS: the smoke test validates cold-launch persistence, not successful remote website loading.

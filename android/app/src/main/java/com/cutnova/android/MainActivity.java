@@ -30,6 +30,7 @@ public final class MainActivity extends Activity {
   private android.webkit.ValueCallback<Uri[]> selectedFiles;
   private ProgressBar loading;
   private TextView headline;
+  private boolean loadFailed=false;
 
   @Override public void onCreate(Bundle state){
     super.onCreate(state);
@@ -41,6 +42,10 @@ public final class MainActivity extends Activity {
     LinearLayout root=new LinearLayout(this);
     root.setOrientation(LinearLayout.VERTICAL);
     root.setBackgroundColor(Color.rgb(12,13,17));
+    root.setOnApplyWindowInsetsListener((view,insets)->{
+      root.setPadding(0,insets.getSystemWindowInsetTop(),0,insets.getSystemWindowInsetBottom());
+      return insets;
+    });
 
     LinearLayout bar=new LinearLayout(this);
     bar.setOrientation(LinearLayout.HORIZONTAL);
@@ -78,8 +83,11 @@ public final class MainActivity extends Activity {
     root.addView(headline);
 
     browser=new WebView(this);
-    browser.setBackgroundColor(Color.rgb(12,13,17));
+    browser.setBackgroundColor(Color.WHITE);
     browser.setWebViewClient(new WebViewClient(){
+      @Override public void onPageStarted(WebView view,String url,android.graphics.Bitmap favicon){
+        loadFailed=false;headline.setVisibility(View.GONE);
+      }
       @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){
         if(!request.isForMainFrame()) return false;
         Uri uri=request.getUrl();
@@ -90,6 +98,7 @@ public final class MainActivity extends Activity {
       }
       @Override public void onReceivedError(WebView view,WebResourceRequest req,WebResourceError error){
         if(req.isForMainFrame()){
+          loadFailed=true;
           headline.setVisibility(View.VISIBLE);
           headline.setText("Cannot load. Check internet, then tap ⟳ or CHROME.");
         }
@@ -114,7 +123,7 @@ public final class MainActivity extends Activity {
       @Override public void onProgressChanged(WebView view,int progress){
         loading.setVisibility(progress<100?View.VISIBLE:View.GONE);
         loading.setProgress(progress);
-        if(progress>=100)headline.setVisibility(View.GONE);
+        if(progress>=100&&!loadFailed)headline.setVisibility(View.GONE);
       }
       @Override public boolean onShowFileChooser(WebView view,
         android.webkit.ValueCallback<Uri[]> callback,FileChooserParams params){
@@ -145,7 +154,7 @@ public final class MainActivity extends Activity {
 
     reload.setOnClickListener(v->{
       headline.setVisibility(View.GONE);
-      if(browser.getUrl()==null)browser.loadUrl(HOME);else browser.reload();
+      browser.loadUrl(HOME);
     });
     chrome.setOnClickListener(v->openExternal(Uri.parse(HOME)));
     browser.loadUrl(HOME);

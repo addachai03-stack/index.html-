@@ -30,10 +30,10 @@ jobs:
       - name: Verify APK and signing
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/CutNova-Android-v2.6.1-Beta.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-v2.6.1-Beta.apk
-          test -s dist/CutNova-Android-v2.6.1-Beta.apk
-          sha256sum dist/CutNova-Android-v2.6.1-Beta.apk > dist/CutNova-Android-v2.6.1-Beta.apk.sha256
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/CutNova-Android-v2.6.2-Beta.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-v2.6.2-Beta.apk
+          test -s dist/CutNova-Android-v2.6.2-Beta.apk
+          sha256sum dist/CutNova-Android-v2.6.2-Beta.apk > dist/CutNova-Android-v2.6.2-Beta.apk.sha256
       - name: Enable KVM acceleration for Android emulator
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -48,7 +48,7 @@ jobs:
           profile: pixel_5
           disable-animations: true
           script: |
-            adb install -r dist/CutNova-Android-v2.6.1-Beta.apk
+            adb install -r dist/CutNova-Android-v2.6.2-Beta.apk
             adb shell am start -W -n com.cutnova.android/.MainActivity
             sleep 12
             adb shell pidof com.cutnova.android
@@ -65,17 +65,17 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cutnova-android-v2.6.1-beta
+          tag_name: cutnova-android-v2.6.2-beta
           target_commitish: ${{ github.sha }}
-          name: CutNova Android Beta v2.6.1
+          name: CutNova Android Beta v2.6.2
           prerelease: true
           make_latest: false
           fail_on_unmatched_files: true
           files: |
-            dist/CutNova-Android-v2.6.1-Beta.apk
-            dist/CutNova-Android-v2.6.1-Beta.apk.sha256
+            dist/CutNova-Android-v2.6.2-Beta.apk
+            dist/CutNova-Android-v2.6.2-Beta.apk.sha256
           body: |
-            CutNova Android v2.6.1 beta launcher fix. Mobile tabs: Home, AI, Editor, Projects, Results.
+            CutNova Android v2.6.2 beta launcher fix. Mobile tabs: Home, AI, Editor, Projects, Results.
 
             Opens inside persistent native WebView; press CHROME in the app toolbar to export/download video when WebView media APIs or blob downloads are unavailable. Android 7.0+, internet on first use. Reinstall may be needed due to different debug signing keys. The original device remains untested.
 
