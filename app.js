@@ -25,15 +25,19 @@ const quick = {
 };
 let quickFile = null, quickBusy = false, awaitingSocialFile = false;
 function quickMessage(message) { quick.status.textContent = message; }
-function cutWindows(duration,count,length) {
+function cutWindows(duration,count,maxLength,minLength=15) {
   if(!Number.isFinite(duration)||duration<1)throw Error("Video must be at least 1 second.");
-  const clipLength=Math.max(1,Math.min(60,Number(length)||15,duration));
-  const space=Math.max(0,duration-clipLength);
   const requested=Math.max(1,Math.min(10,Math.trunc(Number(count)||1)));
-  // Never show multiple duplicate intervals from an ultra-short video.
-  const n=Math.min(requested,Math.max(1,Math.floor(space/2)+1));
+  const maximum=Math.max(1,Math.min(60,Number(maxLength)||15));
+  const minimum=Math.max(1,Math.min(maximum,Number(minLength)||15));
+  // Choose feasible, mostly non-overlapping sections. Never return the whole
+  // 60-second source as the only cut when multiple 15s cuts can be made.
+  const feasible=Math.max(1,Math.floor(duration/minimum));
+  const n=Math.min(requested,feasible);
+  const clipLength=Math.min(maximum,duration/n);
+  const space=Math.max(0,duration-clipLength);
   return Array.from({length:n},(_,i)=>{
-    const start=Number((n===1?0:(space*i/(n-1))).toFixed(2));
+    const start=Number((n===1?0:space*i/(n-1)).toFixed(2));
     const end=Number(Math.min(duration,start+clipLength).toFixed(2));
     return {start,end};
   });
@@ -75,15 +79,15 @@ function showQuickCuts(file,windows){
   });
   quick.results.hidden=false;
 }
-async function prepareLocal(file,count,length){
+async function prepareLocal(file,count,length,minLength=15){
   if(!file)throw Error("Choose your own video from your phone first.");
   if(file.size>500*1024*1024)throw Error("Video must be under 500 MB for mobile editing.");
   if(!/^video\//i.test(file.type||"")&&!/\.(mp4|mov|webm|m4v)$/i.test(file.name))throw Error("Select an MP4, MOV, M4V or WebM video.");
   quickMessage("Reading video duration on this phone…");
   const duration=await readVideoDuration(file);
-  const windows=cutWindows(duration,count,length);
+  const windows=cutWindows(duration,count,length,minLength);
   quickFile=file;showQuickCuts(file,windows);
-  quickMessage("Prepared "+windows.length+" local cut"+(windows.length===1?"":"s")+". Select EDIT & EXPORT to render a Short. Timed suggestions only, not automatic AI highlights.");
+  quickMessage("Prepared "+windows.length+" of "+Math.min(10,Math.max(1,Number(count)||1))+" requested timed cut"+(windows.length===1?"":"s")+". "+(windows.length<Number(count)?"Video is too short for more distinct cuts at the selected minimum length. ":"")+"Tap EDIT & EXPORT on each cut to make a video file. AI highlight selection is not enabled in this local mode.");
   return windows;
 }
 async function fetchDirectMedia(url){
@@ -133,7 +137,7 @@ quick.file.addEventListener("change",async()=>{
     quickBusy=true;quick.start.disabled=true;
     quickMessage("Saved video selected. Preparing editable local Shorts…");
     try{
-      await prepareLocal(file,quick.count.value,quick.length.value);
+      await prepareLocal(file,quick.count.value,quick.length.value,elements.min.value);
       byId("quick-shorts").scrollIntoView({behavior:"smooth",block:"start"});
       showMessage("Saved video ready! Tap EDIT & EXPORT on a cut below. Video stays on your phone.",true);
     }catch(e){quickMessage(e.message||"Could not prepare the selected video.");}
@@ -367,7 +371,7 @@ elements.action.addEventListener("click", async () => {
   showMessage("Trying to load this direct video on your phone. Host CORS rules apply…",true);
   try{
     const file=await fetchDirectMedia(current.url.href);
-    await prepareLocal(file,quick.count.value,quick.length.value);
+    await prepareLocal(file,quick.count.value,quick.length.value,elements.min.value);
     document.getElementById("quick-shorts").scrollIntoView({block:"start",behavior:"smooth"});
     showMessage("Video loaded locally. Choose EDIT & EXPORT above. GitHub was not opened.",true);
   }catch(e){
