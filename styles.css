@@ -170,3 +170,18 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .iphone-upload-copy small{color:var(--muted);font-size:11px}
 .iphone-upload .upload-cta{white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:650px){.iphone-upload{flex-direction:column;align-items:stretch}.iphone-upload .upload-cta{width:100%;text-align:center}}
+
+/* Real GitHub render history */
+.job-center{margin-top:24px}
+.history-toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+.history-toolbar .btn{min-height:44px}
+#job-status{font-size:12px;color:var(--muted)}
+#job-results{display:grid;gap:8px}
+.job-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+.job-info,.job-actions{display:flex;flex-direction:column;gap:5px}
+.job-info span{font-size:12px;color:var(--muted)}
+.job-actions{align-items:flex-end}
+.job-badge{font-size:10px;font-weight:800;letter-spacing:.07em}
+.job-success{color:var(--lime)}.job-working{color:var(--lavender)}.job-failed{color:#ffaaa1}.job-neutral{color:var(--muted)}
+.job-link{font-size:12px;font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:480px){.history-toolbar .btn{flex:1 1 100%;text-align:center}.job-row{padding:12px}.job-actions{align-items:flex-start}}
