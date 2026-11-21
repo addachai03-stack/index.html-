@@ -97,7 +97,7 @@
     mute=id("edit-mute"),loop=id("edit-music-loop"),removeMusic=id("edit-remove-music"),musicStatus=id("edit-music-status");
   if(!file||!video)return;
   let sourceUrl="",outputUrl="",audioContext=null,audioSource=null,audioDestination=null;
-  let sourceFile=null,activeDraft=null,pendingDraft=null,dbPromise=null,draftBusy=false;
+  let sourceFile=null,activeDraft=null,pendingDraft=null,pendingQuickCut=null,dbPromise=null,draftBusy=false;
   const drafts=id("edit-draft-list"),draftTitle=id("edit-draft-title"),draftSave=id("edit-draft-save"),draftNew=id("edit-draft-new"),draftStatus=id("edit-draft-status"),draftHistory=id("edit-draft-history"),draftRestore=id("edit-draft-restore");
   let busy=false,preparing=false,previewEnd=null,recorder=null,aborted=false,finish=null,raf=0,stalledTimer=0;
   let originalGain=null,musicGain=null,mixBus=null,music=null,musicBuffer=null,musicNode=null,mixStart=null;
@@ -356,6 +356,29 @@
     const rev=activeDraft.history[Number(draftHistory.value)];
     if(rev&&Number.isFinite(video.duration)){restoreSettings(rev.settings);draftSay("Revision restored in editor. Save draft to keep this change.")}
   });
+  // Open a suggested time range from the on-device Quick Shorts generator.
+  // Keep user media in memory; no upload to GitHub or third-party service.
+  function openQuickCut(detail){
+    const source=detail?.file;
+    if(!(source instanceof Blob)||source.size>500*1024*1024||busy||preparing||draftBusy||pendingDraft){
+      say("Cannot open this cut while exporting or saving. Try again.");return;
+    }
+    const a=Number(detail.start),b=Number(detail.end);
+    if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b-a<1||b-a>60.001){
+      say("Suggested segment has invalid time bounds.");return;
+    }
+    if(sourceFile===source&&Number.isFinite(video.duration)){
+      resetPreview();clearOutput();
+      start.value=String(Math.min(a,Math.max(0,video.duration-1)));
+      end.value=String(Math.min(b,video.duration));
+      rights.checked=false;update();paint();
+      say("Suggested cut selected. Confirm rights, preview and tap EXPORT SHORT.");return;
+    }
+    if(sourceFile&&!window.confirm("Open a new suggested cut? Unsaved editor changes will be replaced."))return;
+    clearSource();activeDraft=null;pendingDraft=null;draftTitle.value="";historyUI();
+    pendingQuickCut={start:a,end:b};loadSource(source);
+  }
+  window.addEventListener("cutnova:open-cut",event=>openQuickCut(event.detail));
   file.addEventListener("change",()=>{
     if(busy||preparing)return;
     const selected=file.files[0];
@@ -376,6 +399,12 @@
       musicStatus.textContent=music?(music.name||"Saved audio")+" · restored; decode on preview/export.":"No background track selected.";
       restoreSettings(row.settings);historyUI();draftSay("Draft resumed. Reconfirm media rights before export.");say("Saved edit restored.");
       window.dispatchEvent(new Event("cutnova:draft-loaded"));
+    }else if(pendingQuickCut){
+      const cut=pendingQuickCut;pendingQuickCut=null;
+      start.value=String(Math.min(cut.start,Math.max(0,video.duration-1)));
+      end.value=String(Math.min(cut.end,video.duration));
+      rights.checked=false;
+      say("Short time range prepared on this device. Confirm rights, preview, then EXPORT SHORT.");
     }else say("Local video ready. Set your trim in seconds.");
     update();
   });
