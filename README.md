@@ -233,3 +233,7 @@ The Android APK is a browser-backed Trusted Web Activity **candidate** (Android 
 ## CutNova beta launch celebration — November 21, 2026
 
 The website Home tab includes a compact public beta milestone card, links to the free on-device editor and Android v2.6.2 beta APK, and an optional native share/copy invite. It is not an AI rendering entitlement: AI is still owner-controlled, external social downloads may be blocked, and user video remains local for the editor. No private information is included in share text; user chooses recipient. Android launcher/media testing and iPhone export have been reported working by the owner; no claim of Play Store/App Store publication or large-scale production readiness.
+
+## V2.7 local-first Quick Shorts generator
+
+The primary Generate flow no longer opens GitHub. Users select their own video in the browser, choose 1/3/6 clip suggestions and a duration, then choose a suggested time interval to open the local canvas editor and export. This is **timed segmentation**, not speech-aware highlight detection or server-powered AI. Export uses local real-time MediaRecorder and browser codec support. URLs for YouTube/Instagram/etc can be previewed, but not extracted by a static webpage; for allowed public direct MP4/MOV/WebM links, a CORS-enabled fetch with byte limits can supply the same local flow. GitHub AI render remains an opt-in owner-only advanced panel with an explicit public disclosure. No video is uploaded by the local flow. 

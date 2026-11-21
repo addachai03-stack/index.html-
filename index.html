@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.6</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.7</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -56,9 +56,23 @@
         </div>
       </section>
       <section id="studio" class="studio-card" data-mobile-screen="ai">
-        <div class="section-head"><span class="section-number">01 / LINK IMPORT</span><span class="section-pill"><i></i> PUBLIC LINKS ONLY</span></div>
-        <h2>Start with your <span>video or URL.</span></h2>
-        <p class="section-sub">YouTube · Instagram · Facebook · TikTok · Vimeo · Direct MP4. You can also upload your own MP4/MOV/WebM on GitHub. Social URL access depends on platform restrictions.</p>
+        <div class="section-head"><span class="section-number">01 / CREATE IN CUTNOVA</span><span class="section-pill">ON DEVICE · PRIVATE</span></div>
+        <h2>Make Shorts <span>right here.</span></h2>
+        <p class="section-sub">Choose your own MP4, MOV or WebM from your phone. CutNova prepares short segments here, without sending your video to GitHub. Export each Short in the editor.</p>
+        <div class="quick-shorts" id="quick-shorts">
+          <label class="quick-source-label" for="quick-file">CHOOSE VIDEO FROM PHONE<input id="quick-file" type="file" accept="video/*,.mp4,.mov,.m4v,.webm"/></label>
+          <div class="quick-select-row">
+            <label>HOW MANY CUTS<select id="quick-count"><option value="1">1 Short</option><option value="3" selected>3 Shorts</option><option value="6">6 Shorts</option></select></label>
+            <label>LENGTH PER CUT<select id="quick-length"><option value="15" selected>15 seconds</option><option value="30">30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></label>
+          </div>
+          <label class="rights"><input type="checkbox" id="quick-rights"/><span>I own or have permission to edit this footage.</span></label>
+          <button type="button" id="quick-generate" class="btn btn-lime">✦ PREPARE SHORTS ON PHONE</button>
+          <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. No uploads. No AI transcription or automatic highlight detection.</p>
+          <div id="quick-results" class="quick-results" hidden></div>
+        </div>
+        <details id="source-url-tools" class="url-tools">
+          <summary>Have a video URL? Check it here (optional)</summary>
+          <p class="footnote">Social links can be previewed, but YouTube/Instagram video files cannot be imported directly by this browser. Save your own authorized copy first. Direct MP4 links may work when the video host permits CORS access.</p>
         <form id="url-form" class="url-form" novalidate>
           <label for="video-url">PASTE LONG VIDEO LINK</label>
           <div class="url-row">
@@ -66,19 +80,15 @@
             <button type="submit" class="btn btn-lime">CHECK LINK <span>→</span></button>
           </div>
         </form>
-        <div class="iphone-upload">
-          <div class="iphone-upload-copy"><strong>📁 Own video on iPhone?</strong><span>YouTube blocked? Choose your own MP4/MOV/WebM (up to 100 MB) directly in GitHub's upload form. No third-party website.</span><small>Important: Your video will be attached to a PUBLIC GitHub Issue. Only upload footage you're happy to share publicly.</small></div>
-          <a class="btn btn-outline upload-cta" href="https://github.com/addachai03-stack/index.html-/issues/new?template=cutnova-shorts.yml" target="_blank" rel="noopener noreferrer">UPLOAD OWN VIDEO ↗</a>
-        </div>
-        <p class="footnote">YouTube blocked? For your own uploads, use YouTube Studio → Content → Save to device, then <a href="#local-editor">open the local editor</a> or use the public GitHub upload form for AI rendering. <a href="https://support.google.com/youtube/answer/56100?co=GENIE.Platform%3DiOS" target="_blank" rel="noopener noreferrer">Official instructions ↗</a>. Never share passwords or cookies.</p>
+        <p class="footnote">To edit your own YouTube upload, use YouTube Studio → Content → Save to device; then choose that file above. <a href="https://support.google.com/youtube/answer/56100?co=GENIE.Platform%3DiOS" target="_blank" rel="noopener noreferrer">Official YouTube instructions ↗</a>. Never enter passwords or cookies here.</p>
         <div class="example-bar"><span>TRY REAL EXAMPLE:</span><button id="load-example" type="button">Cartoon voice reveal <span>↗</span></button><button id="load-test-video" type="button">Public MP4 <span>↗</span></button></div>
         <div id="message" class="message" role="status" hidden></div>
         <div id="source-panel" class="source-panel" hidden>
           <div class="source-heading"><span id="source-provider">SOURCE</span><a id="source-original" href="#" target="_blank" rel="noopener noreferrer">OPEN SOURCE ↗</a></div>
           <div id="embed-wrapper" class="embed-wrapper" hidden></div>
-          <p class="source-clarity">This preview is the original video, not a generated Short. GitHub Actions fetches accessible authorized media, transcribes speech, ranks moments, and renders MP4 files.</p>
+          <p class="source-clarity">This preview is the original source, not a generated Short. For most social URLs, choose your own saved video above. Direct media files may be used on-device if the host allows browser access.</p>
           <div class="settings-panel">
-            <div class="settings-title">GENERATE SETTINGS <span>EDIT BEFORE RUN</span></div>
+            <div class="settings-title">OPTIONAL URL SETTINGS <span>ON-DEVICE FIRST</span></div>
             <div class="field-grid">
               <label>NUMBER OF SHORTS<select id="clips-count"><option value="3">3 clips</option><option selected value="6">6 clips</option><option value="10">10 clips</option></select></label>
               <label>MINIMUM LENGTH<select id="min-seconds"><option selected value="15">15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option></select></label>
@@ -92,14 +102,19 @@
             </div>
             <label class="rights"><input id="rights-confirm" type="checkbox"/><span>I own this video or have permission to edit and republish its content.</span></label>
             <div class="action-row">
-              <a id="submit-request" class="btn btn-lime disabled-link" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">✦ GENERATE MY SHORTS <span>→</span></a>
+              <button id="submit-request" class="btn btn-lime" type="button" disabled>✦ PREPARE IN CUTNOVA <span>→</span></button>
               <button id="copy-url" class="btn btn-outline" type="button">COPY SOURCE URL <span>↗</span></button>
             </div>
-            <p id="rights-tip" class="footnote">Confirm content rights first. This opens a pre-filled GitHub issue; tap Submit new issue to start rendering. The URL and settings will be visible publicly in that issue.</p>
-            <div class="alternative-link">Alternative: <a id="run-actions" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer">run directly from GitHub Actions ↗</a></div>
-            <div class="tiny-steps"><div><b>1</b> PASTE URL</div><div><b>2</b> SUBMIT GITHUB REQUEST</div><div><b>3</b> GET MP4 ZIP</div></div>
+            <p id="rights-tip" class="footnote">Confirm rights first. This button stays in CutNova. Only direct media files permitting browser download can be prepared from URLs; social links need your own saved video.</p>
+            <details class="owner-render-tools" id="owner-render-tools">
+              <summary>Advanced: GitHub AI rendering (owner only)</summary>
+              <p class="footnote">Separate server processing, not available as public instant generation. GitHub Issues are PUBLIC: the source URL/settings and any uploaded file may be visible to everyone. Only send material you can publish.</p>
+              <a id="owner-github-render" href="#" class="btn btn-outline disabled-link" target="_blank" rel="noopener noreferrer" aria-disabled="true">START OWNER GITHUB RENDER ↗</a>
+              <a id="run-actions" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer">Owner Actions dashboard ↗</a>
+            </details>
           </div>
         </div>
+        </details>
       </section>
       <section class="studio-card job-center local-editor" id="local-editor" data-mobile-screen="editor projects">
         <div class="section-head"><span class="section-number">02 / LOCAL SHORTS EDITOR</span><span class="section-pill">ON DEVICE</span></div>
