@@ -62,7 +62,7 @@ async function main(){
   const dl=a.nodes.find(n=>n.tagName==="A"&&n.href.endsWith("/artifacts/14722321472"));
   assert.ok(dl,"Expected exactly the real GitHub artifact link for the owner render");
   assert.match(dl.textContent,/Open rendered files ZIP/);
-  assert.match(a.nodes.map(n=>n.textContent).join(" "),/9\.22 MB/);
+  assert.match(a.nodes.map(n=>n.textContent).join(" "),/8\.79 MiB/);
   assert.equal(a.nodes.some(n=>n.textContent.includes("Expires within 24 hours")),false);
   assert.equal(a.urls.some(u=>/owner-key|github-token|\/render$/i.test(u)),false);
   const near=await scenario({artifacts:[{...valid,expires_at:new Date(Date.now()+3600000).toISOString()}]});
