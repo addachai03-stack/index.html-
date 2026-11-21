@@ -46,8 +46,18 @@
     };
   }
 
+  function failedJobSteps(jobs) {
+    if(!Array.isArray(jobs))return [];
+    return jobs.flatMap(job=>{
+      const steps=Array.isArray(job.steps)?job.steps:[];
+      return steps.filter(step=>step && step.conclusion==="failure").map(step=>({
+        job:String(job.name||"Unnamed job"),step:String(step.name||"Unnamed step"),
+      }));
+    }).slice(0,8);
+  }
+
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {labelFor, combineRuns, artifactFor};
+    module.exports = {labelFor, combineRuns, artifactFor, failedJobSteps};
     return;
   }
   const list = document.getElementById("job-results");
@@ -119,13 +129,54 @@
     right.append(button);
     row.append(panel);
   }
+  function attachDiagnosis(run, right, row) {
+    if(run.conclusion!=="failure"&&run.conclusion!=="timed_out")return;
+    const button=el("button","btn btn-outline artifact-toggle","WHY FAILED? ↓");
+    button.type="button";
+    button.setAttribute("aria-expanded","false");
+    const panel=el("div","artifact-panel");
+    panel.hidden=true;
+    panel.setAttribute("aria-live","polite");
+    button.addEventListener("click",async()=>{
+      if(!panel.hidden){
+        panel.hidden=true;button.textContent="WHY FAILED? ↓";
+        button.setAttribute("aria-expanded","false");return;
+      }
+      panel.hidden=false;button.disabled=true;
+      button.textContent="HIDE REASON ↑";button.setAttribute("aria-expanded","true");
+      panel.textContent="Checking GitHub failed-step report…";
+      try{
+        const data=await readJson(RUN_API+run.id+"/jobs?per_page=30");
+        const failed=failedJobSteps(data.jobs);
+        panel.replaceChildren();
+        if(!failed.length){
+          panel.append(el("p","","GitHub returned no failed-step details. Open the run logs to see the error."));
+        }
+        for(const item of failed){
+          const p=el("p","","Failed at: "+item.job+" → "+item.step+".");
+          panel.append(p);
+          if(item.step==="Generate real portrait Shorts"){
+            panel.append(el("p","","Video fetching or rendering failed. YouTube may block automated download with a sign-in/bot check; see the actual log to confirm. Use only a permitted direct public MP4 or your authorized saved video if it blocks."));
+          }
+        }
+        const a=el("a","job-link","Read exact error in GitHub logs ↗");
+        a.href=ROOT+"/actions/runs/"+run.id;
+        a.target="_blank";a.rel="noopener noreferrer";
+        panel.append(a);
+      }catch(_){
+        panel.textContent="Could not load failed-step details from GitHub. Use View run / logs for the exact error.";
+      }finally{button.disabled=false;}
+    });
+    right.append(button);row.append(panel);
+  }
+
   function draw(runs) {
     list.replaceChildren();
     for (const run of runs) {
       const row = el("article", "job-row");
       const info = el("div", "job-info");
       const [label, tone] = labelFor(run);
-      const title = (run.event === "issues" ? "Video request" : "Manual render") + " #" + (run.run_number || run.id);
+      const title = (run.event === "issues" ? "Video request" : "AI render") + " #" + (run.run_number || run.id);
       const date = new Date(run.created_at);
       info.append(el("strong", "", title), el("span", "", Number.isNaN(date.getTime()) ? "" : date.toLocaleString()));
       const right = el("div", "job-actions");
@@ -136,7 +187,7 @@
       link.rel = "noopener noreferrer";
       right.append(link);
       row.append(info,right);
-      if (run.status === "completed") attachResults(run, right, row);
+      if (run.status === "completed"){ attachDiagnosis(run, right, row);attachResults(run, right, row); }
       list.append(row);
     }
   }
