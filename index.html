@@ -110,8 +110,15 @@
             <p id="rights-tip" class="footnote">Confirm ownership above before checking the URL. This is a backup manual action for local import or selecting your saved file.</p>
             <details class="owner-render-tools" id="owner-render-tools">
               <summary>Advanced: GitHub AI rendering (owner only)</summary>
-              <p class="footnote">Separate server processing, not available as public instant generation. GitHub Issues are PUBLIC: the source URL/settings and any uploaded file may be visible to everyone. Only send material you can publish.</p>
-              <a id="owner-github-render" href="#" class="btn btn-outline disabled-link" target="_blank" rel="noopener noreferrer" aria-disabled="true">START OWNER GITHUB RENDER ↗</a>
+              <p class="footnote">Owner-only secure backend can dispatch the existing GitHub AI renderer without leaving CutNova. It needs a GitHub Actions credential and owner key stored only as Cloudflare Worker secrets. YouTube/Instagram may still block automatic downloads.</p>
+              <div id="secure-render-panel">
+                <p id="secure-render-health" class="footnote" role="status" aria-live="polite">Checking secure backend configuration…</p>
+                <label class="edit-text-label">OWNER ACCESS KEY <input id="secure-render-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="Configured owner key (not GitHub token)" disabled/></label>
+                <button id="secure-render-start" type="button" class="btn btn-lime" disabled>START PRIVATE AI RENDER</button>
+                <p id="secure-render-status" class="footnote" role="status" aria-live="polite">Not started. This runs only for the authenticated owner.</p>
+              </div>
+              <p class="footnote">Manual fallback (leaves CutNova): GitHub Issue requests are PUBLIC, including the source link and settings. Do not share private content.</p>
+              <a id="owner-github-render" href="#" class="btn btn-outline disabled-link" target="_blank" rel="noopener noreferrer" aria-disabled="true">MANUAL GITHUB RENDER ↗</a>
               <a id="run-actions" href="https://github.com/addachai03-stack/index.html-/actions/workflows/shorts.yml" target="_blank" rel="noopener noreferrer">Owner Actions dashboard ↗</a>
             </details>
           </div>
@@ -215,6 +222,7 @@
     <footer class="footer"><span>✂ CUTNOVA <b>© 2026</b></span><span>BUILT FOR CREATORS · iPHONE FIRST</span><a href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a></footer>
   </div>
   <script type="module" src="./app.js"></script>
+  <script defer src="./owner-render.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>
   <script defer src="./pwa.js"></script>
