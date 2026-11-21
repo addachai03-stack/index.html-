@@ -41,6 +41,7 @@
       name: String(item.name || "GitHub artifact"),
       size: Number.isFinite(bytes) && bytes >= 0 ? (bytes / 1048576).toFixed(2) + " MB" : "Size unknown",
       expiry: Number.isFinite(expires) ? new Date(expires).toLocaleString() : "Unknown expiry",
+      expiresAt: Number.isFinite(expires) ? expires : null,
       expired,
       ready: !expired && item.expired === false
     };
@@ -48,7 +49,7 @@
 
   function expiresSoon(file,now=Date.now()){
     if(!file||!file.ready||file.expired)return false;
-    const ts=Date.parse(file.expiry);
+    const ts=file.expiresAt;
     return Number.isFinite(ts)&&ts>now&&(ts-now)<=24*60*60*1000;
   }
 
