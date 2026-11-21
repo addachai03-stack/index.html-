@@ -137,6 +137,7 @@
     durationLabel.textContent=valid()?((Number(end.value)-Number(start.value))/options().speed).toFixed(2)+" sec estimated output at "+options().speed+"×":"Select a valid trim with 1–60 seconds output";
   }
   function clearOutput(){
+    window.dispatchEvent(new Event("cutnova:export-reset"));
     output.pause();output.removeAttribute("src");output.load();
     if(outputUrl)URL.revokeObjectURL(outputUrl);
     outputUrl="";result.hidden=true;download.removeAttribute("href");
@@ -523,6 +524,7 @@
           outputUrl=URL.createObjectURL(blob);output.src=outputUrl;
           download.href=outputUrl;download.download="CutNova_Manual_Short."+ext;
           result.hidden=false;progress.value=100;
+          window.dispatchEvent(new Event("cutnova:export-ready"));
           say("Export recorded: "+ext.toUpperCase()+" · "+(blob.size/1048576).toFixed(2)+" MiB. Preview and play the downloaded file. MP4 extension alone does not guarantee H.264/AAC or compatibility with every social platform.");
         }catch(e){say(e.message||"Export failed.")}
         finally{cleanup()}
