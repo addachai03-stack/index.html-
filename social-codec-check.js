@@ -133,13 +133,18 @@
     return {code:"unverified",label:"CODEC COMBINATION NOT VERIFIED",
       detail:"This combination is not a confirmed H.264/AAC or HEVC/AAC export. Verify with a trusted media inspector before posting."};
   }
+  function honorsStrictSocialRequest(info){
+    return info?.container==="MP4"&&!info.incomplete&&
+      Array.isArray(info.video)&&info.video.length>0&&info.video.every(x=>["avc1","avc3"].includes(x))&&
+      Array.isArray(info.audio)&&info.audio.length>0&&info.audio.every(x=>x==="mp4a");
+  }
   function label(info){
     const v=(info.video||[]).map(x=>CODECS[x]||x).join(", ")||"unverified";
     const a=(info.audio||[]).map(x=>CODECS[x]||x).join(", ")||"unverified";
     return info.container+" · Video: "+v+" · Audio: "+a;
   }
   if(typeof module!=="undefined"&&module.exports){
-    module.exports={boxes,codecsInMoov,inspect,classify,label};
+    module.exports={boxes,codecsInMoov,inspect,classify,label,honorsStrictSocialRequest};
     return;
   }
   const status=document.getElementById("edit-social-status");
@@ -147,6 +152,7 @@
   let version=0;
   root.addEventListener("cutnova:export-reset",()=>{
     version++;
+    status.dataset.result="unverified";
     status.textContent="No export inspected. Record a Short to check its real video and audio codec entries.";
   });
   root.addEventListener("cutnova:export-ready",async event=>{
@@ -156,8 +162,17 @@
       const info=await inspect(blob);
       if(current!==version)return;
       const verdict=classify(info);
-      status.textContent=verdict.label+" — "+label(info)+". "+verdict.detail;
-      status.dataset.result=verdict.code;
+      const strict=event.detail?.strictSocial===true;
+      if(strict&&!honorsStrictSocialRequest(info)){
+        status.textContent="STRICT SOCIAL CODEC REQUEST NOT MET — "+label(info)+". The browser did not output verified H.264 + MP4 audio sample entries. Do not treat this as social-ready; the exported file is still available for review and download.";
+        status.dataset.result="not-recommended";
+      }else if(strict){
+        status.textContent="STRICT FORMAT BASIC MATCH — "+label(info)+". H.264 + MP4 audio sample entries detected. AAC audio object type, bitrate, frame rate and actual social upload are not verified.";
+        status.dataset.result="basic-match";
+      }else{
+        status.textContent=verdict.label+" — "+label(info)+". "+verdict.detail;
+        status.dataset.result=verdict.code;
+      }
     }catch(e){
       if(current!==version)return;
       status.textContent="CODECS NOT VERIFIED — "+String(e?.message||"Could not read MP4 atoms").slice(0,120)+". Do not assume social upload compatibility.";
