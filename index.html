@@ -123,7 +123,7 @@
                     <input id="secure-key-output" type="text" inputmode="none" autocomplete="off" spellcheck="false" readonly placeholder="Generated key appears here on this device only"/>
                   </label>
                   <button id="secure-key-copy" type="button" class="btn btn-outline" disabled>COPY PRIVATE KEY</button>
-                  <p id="secure-key-status" class="footnote" role="status" aria-live="polite">No key generated. CutNova never sends this setup key to its server.</p>
+                  <p id="secure-key-status" class="footnote" role="status" aria-live="polite">No key generated. Generating/copying makes no network request; the key is sent for verification only when you later submit an owner render.</p>
                 </details>
                 <label class="edit-text-label">OWNER ACCESS KEY <input id="secure-render-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="Configured owner key (not GitHub token)" disabled/></label>
                 <button id="secure-render-start" type="button" class="btn btn-lime" disabled>START PRIVATE AI RENDER</button>
