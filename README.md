@@ -1,4 +1,17 @@
 # CutNova — Premium URL-to-Shorts Studio
+
+## V4.3 — REAL H.264/AAC social MP4 conversion (Owner-only public source)
+
+A separate **CutNova - Owner Social MP4 Converter** is available at
+`https://github.com/addachai03-stack/index.html-/actions/workflows/social-convert.yml`.
+The live EDITOR has an expandable link under **SOCIAL VIDEO FORMAT CHECK**.
+
+**What actually happens:** When the repository Owner manually starts the workflow, enters an *authorized public* direct HTTPS MP4/MOV/WebM URL (or public GitHub Issues video attachment) and explicitly checks the rights-confirmation box, GitHub Actions downloads the source using pinned TLS and public-IP checks, then uses actual FFmpeg `libx264` + `aac` encoding to produce a 720×1280 portrait MP4 with `yuv420p`, 30 fps, AAC 128 kb/s and `+faststart`. An audio-less source receives a silent AAC track. The converter refuses media over **100 MiB**, more than **65 seconds**, malformed credentials/URLs, signed query URLs, private hosts, and non-video inputs. After encoding, FFprobe validates the real video/audio streams and dimensions; only a successful job uploads `CutNova_Social_Ready_H264_AAC.mp4` plus a small JSON report as a ZIP artifact retained 7 days.
+
+**Privacy / limits:** The manual GitHub workflow uses only an expressly submitted **public URL**. **Do not** paste secrets, signed/private video URLs, or publicly upload private iPhone Files into GitHub Issues: public GitHub Actions inputs, job history and artifacts may be visible to others. The CutNova local editor does **not** upload private Files or send a generated local Blob to this job. The GitHub account must be logged in as repository owner to use the workflow. No owner key is stored in the browser and no background render is started. Converting 9:16 H.264/AAC does not guarantee Instagram/YouTube accepts an upload. Users must review the resulting video and permissions.
+
+**Verified automated proof:** CI `tests/test_social_convert.py` actually generates VP9+Opus video and FFmpeg converts it to H.264+AAC, then FFprobe validates the portrait result. A separate test converts an audio-less MP4 and verifies an AAC audio track was added. This validates the engine; the GitHub public-URL workflow has **not** been dispatched on an actual user video.
+
 ## V4.2 — Strict native H.264 + AAC recording request (no conversion)
 
 The LOCAL EDITOR now offers **REQUIRE H.264 + AAC EXPORT**. This is an opt-in *recording codec request*, not a video transcoder or guarantee of social-platform acceptance. If the browser explicitly reports a supported MP4 recorder profile containing both H.264 (`avc1`) and AAC (`mp4a.40.2`), CutNova asks `MediaRecorder` to use that profile. It attempts several common AVC/AAC profile strings, including Safari-oriented alternatives, rather than relying on generic `video/mp4` (which previously yielded VP9 + Opus on automated Chromium). If none are supported, the strict-mode EXPORT SHORT button is disabled; unchecking the option restores the existing standard local export. No unknown conversion, background upload, payment, account sign-in or API key is required.
