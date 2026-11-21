@@ -1,9 +1,11 @@
-# CutNova Android Beta APK
+# CutNova Android Beta v2.6.1 — launcher fix
 
-This is a GitHub Actions-built Android browser-backed launcher for the same CutNova PWA used on iOS and Android. It is an actual installable Android APK, **not** a standalone native video rendering engine. The installed browser provides rendering, downloads, storage, and permissions.
+V2.6.0 sometimes showed the app icon then returned to the Android Home screen. It used Android Browser Helper LauncherActivity, which depends on a browser/TWA launch flow that was not verified on the user's physical device.
 
-Because the project site is hosted below https://addachai03-stack.github.io/index.html-/ and Digital Asset Links must be at the host root, TWA verification isn't configured. Android Browser Helper can fall back to a visible Custom Tab; the address bar may remain. The site has a fixed bottom tab bar on mobile screens. Browser-specific limitations still apply.
+The new main Activity is a persistent native Android WebView container for the existing HTTPS CutNova website. It has INTERNET permission, JavaScript, DOM storage, video/audio file chooser, reload, offline WebView cache and an Open CHROME fallback. It does not close itself on startup.
 
-To build: GitHub Actions -> CutNova Android Beta APK. The CI build uses **debug signing for sideload testing only**. Updates built on different clean runners may have different signatures and require uninstall/reinstall; do not publish this key as a Play Store release key. Do not store credentials or private signing keys in the repository.
+Limitations: embedded WebView may not support local canvas/MediaRecorder export and cannot directly download generated blob videos. Use the CHROME button at the top for local video exports and downloads. Local WebView drafts and Chrome drafts are stored separately; keep original media on the phone. The website has five fixed bottom tabs.
 
-Install: download the APK to an Android phone, allow the browser/file manager to install apps if asked, then open CutNova. Do not uninstall existing versions without backing up drafts from that browser; media in browser storage can be evicted.
+This is a debug-signed sideload beta APK, NOT a Play Store release, not an independent native video engine. The signing key can differ from the original beta; if an update says 'App not installed', back up original video files and uninstall the OLD beta before installing the new one. No private signing key is in the repository.
+
+Do not claim physical Android testing was done until the owner confirms video/audio editing and download on their device. Android automated emulator smoke testing is part of the build.

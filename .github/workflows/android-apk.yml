@@ -30,10 +30,10 @@ jobs:
       - name: Verify APK and signing
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk dist/CutNova-Android-Beta.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-Beta.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/CutNova-Android-v2.6.1-Beta.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-v2.6.1-Beta.apk
           test -s dist/CutNova-Android-Beta.apk
-          sha256sum dist/CutNova-Android-Beta.apk > dist/CutNova-Android-Beta.apk.sha256
+          sha256sum dist/CutNova-Android-Beta.apk > dist/CutNova-Android-v2.6.1-Beta.apk.sha256
       - name: Store installable APK
         uses: actions/upload-artifact@v4
         with:
@@ -44,9 +44,9 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cutnova-android-v2.6.0-beta
+          tag_name: cutnova-android-v2.6.1-beta
           target_commitish: ${{ github.sha }}
-          name: CutNova Android Beta v2.6
+          name: CutNova Android Beta v2.6.1
           prerelease: true
           make_latest: false
           fail_on_unmatched_files: true
@@ -56,6 +56,6 @@ jobs:
           body: |
             CutNova Android Beta APK (free sideload build). Opens the CutNova web app in Android's browser-based trusted/custom tab. Mobile bottom tabs: Home, AI, Editor, Projects, Results.
 
-            Requires a compatible Android browser, internet at least once, and Android 7.0+. Video export depends on browser support. Digital Asset Links is not set at the GitHub Pages host root, so full screen without browser URL bar is not guaranteed.
+            Opens inside persistent native WebView; press CHROME in the app toolbar to export/download video when WebView media APIs or blob downloads are unavailable. Android 7.0+, internet on first use. Reinstall may be needed due to different debug signing keys. The original device remains untested.
 
             This is a debug-signed **beta test APK**, not a production Play Store release. Future builds may require uninstalling the old app due to different debug signing keys. Keep original media; drafts stored by the browser may be cleared.
