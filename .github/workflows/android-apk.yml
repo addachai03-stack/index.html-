@@ -1,0 +1,61 @@
+name: CutNova - Android Beta APK
+on:
+  push:
+    paths:
+      - "android/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Install Android SDK
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Build installable test APK
+        run: gradle -p android :app:assembleDebug --no-daemon --stacktrace
+      - name: Verify APK and signing
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk dist/CutNova-Android-Beta.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs dist/CutNova-Android-Beta.apk
+          test -s dist/CutNova-Android-Beta.apk
+          sha256sum dist/CutNova-Android-Beta.apk > dist/CutNova-Android-Beta.apk.sha256
+      - name: Store installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CutNova-Android-Beta
+          path: dist/
+          retention-days: 30
+      - name: Publish public beta download
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: cutnova-android-v2.6.0-beta
+          target_commitish: ${{ github.sha }}
+          name: CutNova Android Beta v2.6
+          prerelease: true
+          make_latest: false
+          fail_on_unmatched_files: true
+          files: |
+            dist/CutNova-Android-Beta.apk
+            dist/CutNova-Android-Beta.apk.sha256
+          body: |
+            CutNova Android Beta APK (free sideload build). Opens the CutNova web app in Android's browser-based trusted/custom tab. Mobile bottom tabs: Home, AI, Editor, Projects, Results.
+
+            Requires a compatible Android browser, internet at least once, and Android 7.0+. Video export depends on browser support. Digital Asset Links is not set at the GitHub Pages host root, so full screen without browser URL bar is not guaranteed.
+
+            This is a debug-signed **beta test APK**, not a production Play Store release. Future builds may require uninstalling the old app due to different debug signing keys. Keep original media; drafts stored by the browser may be cleared.
