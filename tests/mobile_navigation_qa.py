@@ -193,7 +193,7 @@ try:
             downloadable.save_as(str(media_path))
             metadata=json.loads(subprocess.check_output([
                 "ffprobe","-v","error",
-                "-show_entries","format=duration:stream=codec_type,width,height",
+                "-show_entries","format=duration:stream=codec_type,codec_name,width,height",
                 "-of","json",str(media_path)],text=True))
             assert any(st["codec_type"]=="video" and st.get("width")==720
                        and st.get("height")==1280 for st in metadata["streams"]),metadata
@@ -203,7 +203,9 @@ try:
                 assert 2.0<=float(duration)<=4.5,metadata
             REPORT["checks"]["full_edited_video_export"]="PASS: original browser video -> existing editor -> 720x1280 recording -> downloaded file"
             REPORT["full_export_media"]={"filename":downloadable.suggested_filename,
-                  "duration":duration,"size_bytes":media_path.stat().st_size}
+                  "duration":duration,"size_bytes":media_path.stat().st_size,
+                  "stream_codecs":[{"type":st["codec_type"],"codec":st.get("codec_name","unknown")} for st in metadata["streams"]],
+                  "social_upload_compatibility":"NOT VERIFIED: MP4 extension is not proof of H.264/AAC"}
         assert all(r["method"] == "GET" for r in requests), "No export test may dispatch a cloud render"
         visible_width(page)
         page.screenshot(path=str(ROOT / f"{ENGINE}-editor.png"), full_page=False)
