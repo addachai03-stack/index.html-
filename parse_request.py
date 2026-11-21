@@ -13,6 +13,7 @@ from premium import normalize_style
 from smartcrop import normalize_crop_mode
 from speech_quality import normalize_language
 from roman_captions import normalize_caption_script
+from caption_styles import normalize_caption_style
 from github_media import is_github_attachment_url
 
 
@@ -25,6 +26,7 @@ FORM_LABELS = {
     "Smart crop mode": "CROP",
     "Speech language": "LANGUAGE",
     "Caption script": "CAPTION_SCRIPT",
+    "Caption style": "CAPTION_STYLE",
 }
 RIGHTS_LABEL = "Content ownership and permission"
 UPLOAD_LABEL = "Upload your video file"
@@ -82,7 +84,7 @@ def issue_form_fields(body: str) -> dict[str, str]:
 def legacy_fields(body: str) -> dict[str, str]:
     fields: dict[str, str] = {}
     for line in body.splitlines():
-        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE|CAPTION_SCRIPT):[ \t]*(.+?)[ \t]*", line.strip())
+        match = re.fullmatch(r"(URL|CLIPS|MIN_SECONDS|MAX_SECONDS|RIGHTS|STYLE|CROP|LANGUAGE|CAPTION_SCRIPT|CAPTION_STYLE):[ \t]*(.+?)[ \t]*", line.strip())
         if match and match[1] not in fields:
             fields[match[1]] = match[2]
     return fields
@@ -126,6 +128,8 @@ def parse_issue(body: str) -> dict:
     language = normalize_language(language_labels.get(raw_language, raw_language))
     raw_script = fields.get("CAPTION_SCRIPT", "original").strip().lower()
     script = normalize_caption_script({"original — keep original script": "original", "roman — hinglish (approximate)": "roman"}.get(raw_script, raw_script))
+    raw_preset = fields.get("CAPTION_STYLE", "classic").strip().lower()
+    preset = normalize_caption_style({"classic — bold white":"classic","yellow — bright yellow":"yellow","boxed — high contrast":"boxed"}.get(raw_preset, raw_preset))
     try:
         clip_count = int(fields["CLIPS"])
         min_seconds = int(fields["MIN_SECONDS"])
@@ -143,6 +147,7 @@ def parse_issue(body: str) -> dict:
         "crop": crop,
         "language": language,
         "caption_script": script,
+        "caption_style": preset,
     }
 
 
