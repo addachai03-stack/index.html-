@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - "studio.py"
+      - "roman_captions.py"
+      - "parse_request.py"
+      - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
       - "jobs.js"
       - "index.html"
