@@ -30,7 +30,7 @@ const allowed=(v,options)=>options.includes(String(v));
 export default {
   async fetch(request,env){
     const u=new URL(request.url),origin=request.headers.get("Origin");
-    if(u.pathname==="/health"&&request.method==="GET")return reply({service:"CutNova render bridge",status:"online",configured:!!(env.CUTNOVA_GITHUB_TOKEN&&env.CUTNOVA_OWNER_KEY),mode:"owner-only"});
+    if(u.pathname==="/health"&&request.method==="GET")return reply({service:"CutNova render bridge",status:"online",configured:!!(env.CUTNOVA_GITHUB_TOKEN&&env.CUTNOVA_OWNER_KEY),mode:"owner-only"},200,origin===ORIGIN);
     if(u.pathname!=="/render")return reply({error:"Not found"},404);
     if(origin!==ORIGIN)return reply({error:"This endpoint is only used by CutNova."},403);
     if(request.method==="OPTIONS"){
