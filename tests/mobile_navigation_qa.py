@@ -185,7 +185,7 @@ try:
             expect(page.locator("#edit-export")).to_be_enabled()
             page.locator("#edit-export").click()
             expect(page.locator("#edit-result")).to_be_visible(timeout=45000)
-            expect(page.locator("#edit-download")).to_have_attribute("href", r"^blob:.*")
+            assert (page.locator("#edit-download").get_attribute("href") or "").startswith("blob:"), "Export provided no local download blob"
             with page.expect_download(timeout=15000) as download_info:
                 page.locator("#edit-download").click()
             downloadable=download_info.value
