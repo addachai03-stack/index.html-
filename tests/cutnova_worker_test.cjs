@@ -158,3 +158,25 @@ test("Read-only verify reports GitHub token problems without rendering",async()=
  const result=await disabled.fetch(http(null,{path:"/verify",key:KEY}),env);
  assert.equal(result.status,502);
 });
+
+test("Valid client UUID correlates accepted GitHub workflow without being a secret",async()=>{
+  const request_id="550e8400-e29b-41d4-a716-446655440000";
+  let seen;
+  const upstream=async(_u,opts)=>{
+    seen=JSON.parse(opts.body);
+    return new Response(null,{status:204});
+  };
+  const r=await build(upstream).fetch(http({...valid,request_id},{key:KEY}),env);
+  assert.equal(r.status,202);
+  const data=await r.json();
+  assert.equal(data.request_id,request_id);
+  assert.equal(seen.inputs.request_id,request_id);
+  assert.equal(seen.inputs.video_url,valid.url);
+  assert.equal(data.accepted,true);
+});
+test("Invalid or forged request tracking IDs reject without GitHub dispatch",async()=>{
+  for(const request_id of ["", "manual", "abc", "550e8400-e29b-71d4-a716-446655440000", "../secrets", "x".repeat(500)]){
+    const r=await build(nope).fetch(http({...valid,request_id},{key:KEY}),env);
+    assert.equal(r.status,400);
+  }
+});
