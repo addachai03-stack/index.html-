@@ -28,6 +28,11 @@ with sync_playwright() as p:
     try:
         page.goto(url,wait_until="domcontentloaded")
         expect(page.locator("#pwa-status")).to_contain_text("Offline app shell ready",timeout=30000)
+        # Check the bypass route stays reachable and returns to the latest UI.
+        page.goto(url+"refresh.html",wait_until="domcontentloaded")
+        page.locator("#repair-button").click()
+        expect(page.locator("#quick-generate")).to_be_visible(timeout=30000)
+        report["checks"]["pwa_manual_update"]="PASS"
         report["checks"]["service_worker"]="PASS"
         context.set_offline(True)
         page.reload(wait_until="domcontentloaded")

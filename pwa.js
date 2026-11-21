@@ -34,7 +34,7 @@
         const worker=reg.installing;if(!worker)return;
         worker.addEventListener("statechange",()=>{
           if(worker.state==="installed"&&navigator.serviceWorker.controller)
-            instructions.textContent="Update downloaded. Save your draft, close all CutNova tabs, and reopen to use it.";
+            instructions.textContent="Update downloaded. Save edits, then tap UPDATE APP for the newest version.";
         });
       });
     }).catch(()=>{ready=false;update()});

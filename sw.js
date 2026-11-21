@@ -1,6 +1,6 @@
 /* Cache only the versioned public app shell, never user video, audio,
    GitHub API responses, uploads, credentials or external pages. */
-const CACHE="cutnova-shell-v2.7-local-first";
+const CACHE="cutnova-shell-v2.7.1-refresh";
 const ROOT=new URL("./",self.location.href);
 const SHELL=["./","./index.html","./styles.css","./app.js","./jobs.js","./editor.js","./pwa.js","./nav.js","./launch.js","./manifest.webmanifest","./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png"].map(p=>new URL(p,ROOT).href);
 const ALLOWED=new Set(SHELL);
@@ -15,7 +15,10 @@ function shellRequest(request){
 }
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL.map(url=>new Request(url,{cache:"reload"})))));
-  // Do not force activation or reload while an editor may be recording.
+  // Never activate across an in-progress recording without an explicit user action.
+});
+self.addEventListener("message",event=>{
+  if(event.data?.type==="CUTNOVA_ACTIVATE_UPDATE")self.skipWaiting();
 });
 self.addEventListener("activate",event=>{
   event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("cutnova-shell-")&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
@@ -23,9 +26,20 @@ self.addEventListener("activate",event=>{
 self.addEventListener("fetch",event=>{
   const key=shellRequest(event.request);
   if(!key)return;
-  event.respondWith(caches.open(CACHE).then(async cache=>{
-    const hit=await cache.match(key);
-    if(hit)return hit;
-    return fetch(event.request);
-  }));
+  // Network first so outdated HTML and scripts cannot remain stuck on an old
+  // shell after deployment. Offline fallback uses the last known-good shell.
+  event.respondWith((async()=>{
+    const cache=await caches.open(CACHE);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),6500);
+    try{
+      const response=await fetch(event.request,{signal:controller.signal});
+      if(response.ok){
+        try{await cache.put(key,response.clone())}catch(_){}
+      }
+      return response;
+    }catch(_){
+      return (await cache.match(key))||Response.error();
+    }finally{clearTimeout(timeout)}
+  })());
 });

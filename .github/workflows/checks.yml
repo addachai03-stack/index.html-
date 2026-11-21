@@ -21,6 +21,8 @@ on:
       - "jobs.js"
       - "editor.js"
       - "pwa.js"
+      - "refresh.js"
+      - "refresh.html"
       - "nav.js"
       - "launch.js"
       - "sw.js"
@@ -61,9 +63,11 @@ jobs:
           node --check editor.js
           node tests/test_editor.cjs
           node --check pwa.js
+          node --check refresh.js
           node --check nav.js
           node --check launch.js
           node --check sw.js
           node tests/test_pwa.cjs
+          node tests/test_refresh.cjs
           node tests/test_navigation.cjs
           node tests/test_beta_launch.cjs

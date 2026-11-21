@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0c0d11"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'none'"/>
+<title>Refresh CutNova</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{background:#0c0d11;color:#f6f5f0;font:15px/1.55 system-ui,sans-serif;margin:0;padding:calc(env(safe-area-inset-top,0px) + 30px) 18px 50px}
+main{max-width:460px;margin:0 auto;border:1px solid #3a4830;border-radius:18px;padding:22px;background:#181d1e}
+h1{color:#c9f65d;font-size:25px;margin:0 0 10px}
+p{color:#c6c8c9}
+button,a{font:700 15px system-ui,sans-serif}
+button{border:0;width:100%;min-height:52px;background:#c9f65d;color:#111;border-radius:12px;margin:12px 0;cursor:pointer}
+button:disabled{opacity:.5}
+a{display:block;color:#c9f65d;text-align:center;padding:11px}
+#repair-status{min-height:38px}
+small{display:block;color:#adadb2}
+</style>
+</head>
+<body>
+<main>
+  <h1>✂ CutNova Update</h1>
+  <p>Purana “Generate My Shorts → GitHub” page dikh raha hai? Yahan se naya on-device editor version activate karo.</p>
+  <p><strong>Before updating:</strong> Video export finish karo. Unsaved changes save kar lo. Update se device drafts ya original videos delete nahi honge.</p>
+  <button id="repair-button" type="button">UPDATE CUTNOVA NOW ↻</button>
+  <p id="repair-status" role="status" aria-live="polite">Ready to check the latest version.</p>
+  <small>Internet required. This repairs website/PWA cache only. No media is uploaded.</small>
+  <a href="./#studio">BACK TO CUTNOVA</a>
+</main>
+<script src="./refresh.js" defer></script>
+</body>
+</html>

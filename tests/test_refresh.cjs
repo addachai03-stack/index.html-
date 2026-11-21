@@ -1,0 +1,12 @@
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync('refresh.html','utf8'),js=fs.readFileSync('refresh.js','utf8'),worker=fs.readFileSync('sw.js','utf8');
+const pages=fs.readFileSync('.github/workflows/pages.yml','utf8');
+assert.ok(html.includes('id="repair-button"'));
+assert.ok(html.includes('src="./refresh.js"'));
+assert.ok(js.includes('registration.update()')&&js.includes('getRegistration("./")'));
+assert.ok(js.includes('CUTNOVA_ACTIVATE_UPDATE'));
+assert.ok(worker.includes('CUTNOVA_ACTIVATE_UPDATE')&&worker.includes('self.skipWaiting()'));
+assert.ok(worker.includes('await fetch(event.request')&&worker.includes('await cache.match(key)'));
+assert.ok(!worker.includes('"./refresh.html"'),'Repair page must bypass old cache-first service workers');
+assert.ok(pages.includes('refresh.html refresh.js'));
+console.log('PASS: update repair page, safe worker activation, network-first offline shell.');

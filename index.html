@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0c0d11"/>
   <meta name="referrer" content="no-referrer"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: https:; connect-src 'self' https://api.github.com; frame-src https://www.youtube-nocookie.com https://www.instagram.com https://player.vimeo.com https://www.facebook.com; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"/>
-  <meta name="description" content="CutNova — premium AI-assisted 15–60 second Shorts from long videos. iPhone-friendly URL-to-clips workflow powered by GitHub Actions."/>
+  <meta name="description" content="CutNova — create 9:16 Shorts from videos on your phone, with a local editor and offline-capable PWA."/>
   <title>CutNova — AI Shorts Studio</title>
   <link rel="manifest" href="./manifest.webmanifest"/>
   <link rel="icon" href="./icons/icon-192.png" type="image/png"/>
@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.7</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.7.1</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -41,13 +41,14 @@
         <div><strong>CutNova mobile app</strong><p id="pwa-status" role="status" aria-live="polite">Checking offline availability…</p><p id="pwa-instructions">Open in Safari to add CutNova to your Home Screen.</p></div>
         <button id="pwa-install" type="button" class="btn btn-outline">INSTALL / ADD TO HOME</button>
         <a href="#local-editor" class="btn btn-lime">LOCAL EDITOR ↓</a>
+        <a href="./refresh.html" class="btn btn-outline" id="update-cutnova">UPDATE APP ↻</a>
       </aside>
       <div class="eyebrow" data-mobile-screen="home"><span class="eyebrow-line"></span> CREATE. CLIP. GO VIRAL-READY.</div>
       <section class="hero" data-mobile-screen="home">
         <div class="hero-copy">
           <div class="hero-kicker">PHONE-FIRST CREATOR WORKSPACE / 001</div>
           <h1>One long video.<br/><em>Multiple</em> <span class="lime">premium Shorts.</span></h1>
-          <p>Paste your video link. Rank strong opening hooks, speech and scene cues. Get transcript-based title suggestions. Export real 9:16 MP4s through the GitHub Actions engine.</p>
+          <p>Choose your own phone video, prepare cut suggestions and export locally. Optional owner-only AI rendering is separate. No public GitHub Issue is needed to create a manual Short.</p>
           <div class="hero-chips"><span>✦ 15–60 SEC</span><span>⌘ 9:16 PORTRAIT</span><span>◎ HINGLISH ASR</span></div>
         </div>
         <div class="hero-art" aria-hidden="true">
