@@ -23,8 +23,8 @@ function validSource(raw){
   for(const k of u.searchParams.keys()){
     if(/^(?:token|password|auth|authorization|api_key|signature|sig|credential|expires|key)$/i.test(k)||/^(x-amz-|x-goog-)/i.test(k))return false;
   }
-  const social=["youtube.com","youtu.be","youtube-nocookie.com","instagram.com","facebook.com","fb.watch","vimeo.com","tiktok.com","dailymotion.com"];
-  return social.some(s=>host===s||host.endsWith("."+s))||/\.(mp4|mov|m4v|webm)$/i.test(u.pathname);
+  const social=["youtube.com","youtu.be","youtube-nocookie.com","instagram.com","instagr.am","facebook.com","fb.watch","fb.com","vimeo.com","tiktok.com","dailymotion.com","dai.ly","twitter.com","x.com","archive.org"];
+  return social.some(s=>host===s||host.endsWith("."+s))||/\.(mp4|mov|m4v|webm)$/i.test(u.pathname)|| (host==="github.com"&&/^\/user-attachments\/assets\/[a-f0-9-]{36}\/?$/i.test(u.pathname));
 }
 const allowed=(v,options)=>options.includes(String(v));
 export default {
