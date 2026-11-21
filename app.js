@@ -13,7 +13,7 @@ const elements = {
   frame: byId("embed-wrapper"), message: byId("message"), rights: byId("rights-confirm"),
   rightsTip: byId("rights-tip"), action: byId("submit-request"),
   clips: byId("clips-count"), min: byId("min-seconds"), max: byId("max-seconds"),
-  style: byId("highlight-style"), language: byId("speech-language"), crop: byId("smart-crop")
+  style: byId("highlight-style"), language: byId("speech-language"), crop: byId("smart-crop"), script: byId("caption-script")
 };
 let current = null;
 
@@ -142,6 +142,7 @@ function buildIssueUrl() {
     "STYLE: "+elements.style.value,
     "LANGUAGE: "+elements.language.value,
     "CROP: "+elements.crop.value,
+    "CAPTION_SCRIPT: "+elements.script.value,
     "RIGHTS: YES",
     "",
     "I own this video or have permission to edit and republish its content.",
@@ -181,7 +182,7 @@ elements.form.addEventListener("submit", event => {
 });
 
 elements.rights.addEventListener("change", updateRights);
-[elements.clips,elements.min,elements.max,elements.style,elements.language,elements.crop].forEach(field => field.addEventListener("change", updateRights));
+[elements.clips,elements.min,elements.max,elements.style,elements.language,elements.crop,elements.script].forEach(field => field.addEventListener("change", updateRights));
 elements.action.addEventListener("click", event => {
   if (!current || !elements.rights.checked || Number(elements.min.value) > Number(elements.max.value)) {
     event.preventDefault();
