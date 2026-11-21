@@ -5,12 +5,14 @@
   const byId=id=>document.getElementById(id);
   const health=byId("secure-render-health"),key=byId("secure-render-key");
   const start=byId("secure-render-start"),status=byId("secure-render-status");
+  const refresh=byId("secure-render-refresh");
   if(!health||!key||!start||!status)return;
   let configured=false,busy=false;
   const say=s=>{status.textContent=s};
   async function check(){
     health.textContent="Checking owner-only gateway…";
     configured=false;
+    key.disabled=true;start.disabled=true;
     try{
       const response=await fetch(API+"/health",{method:"GET",cache:"no-store",credentials:"omit"});
       if(!response.ok)throw Error("Gateway HTTP "+response.status);
@@ -22,8 +24,10 @@
     }catch(error){
       health.textContent="Owner backend is not reachable from this browser ("+(error.message||"network/CORS error")+"). Remote rendering disabled; local editing is still available.";
     }
+    if(!configured)key.value="";
     key.disabled=!configured;start.disabled=!configured;
   }
+  refresh?.addEventListener("click",()=>{if(!busy)check()});
   start.addEventListener("click",async()=>{
     if(!configured||busy){say("Secure backend is unavailable or a render request is in progress.");return}
     const url=byId("video-url")?.value.trim()||"",rights=byId("rights-confirm")?.checked===true;
