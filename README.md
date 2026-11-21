@@ -1,5 +1,20 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V2.9 — AI Shorts from supported public URLs (21 November 2026)
+
+The iPhone CutNova AI tab now offers **✦ AI SHORTS FROM URL** as a separate owner-only option alongside **LOCAL CUTS**. Paste your own or authorized public YouTube, Instagram, Facebook, TikTok, Vimeo, X/Twitter, Dailymotion or direct MP4 URL. For an accessible source, the secure Cloudflare backend dispatches the owner GitHub Actions renderer. It downloads permitted public media, applies Whisper speech recognition, scores candidate windows using source speech/opening hooks/scenes, produces portrait MP4s using FFmpeg, and writes a **Creator Pack per actual clip**:
+
+- `short_01.mp4` and subsequent rendered media, plus recognized-speech subtitles when available
+- `short_01_post.txt` and subsequent post text files with clip-specific suggested title, source-grounded hook, posting caption, description and transcript-derived hashtags
+- `Creator_Pack.json`, `Posting_Guide.md` and `Shorts_Plan.csv` within `CutNova_Shorts.zip`, plus actual media in the Actions artifact
+
+Owner can request **1–10 clips**, set any integer **15–60 seconds** for min/max, or choose exact **30 seconds** by setting both minimum and maximum to 30. Requests for clips longer than source are rejected instead of silently violating the selected length. No recognized speech means a visual-review placeholder—not fabricated story claims. Copywriting is ASR-assisted and rule-based, not a live-trend-aware language model; there is no promise of virality.
+
+This does **not** guarantee downloading every YouTube/Instagram URL. Private videos, sign-in walls, bot checks and DRM are not bypassed. The client browser alone cannot extract those social videos. The securely configured owner-only server path attempts the permitted download and gives real failure reports when blocked. Only process material you own or have permission to adapt and repost. GitHub Actions uses the repository's actual usage limits. `AI SHORTS FROM URL` opens the private owner panel; entering the saved owner key and tapping `START PRIVATE AI RENDER` dispatches the job. GitHub acceptance means *queued*, not finished. Check **RESULTS** for the actual outcome and outputs.
+
+**Verification state:** UI/JS source checks and gateway integration tests are present; the Creator Pack Python unit tests are added in `.github/workflows/cutnova-creator-tests.yml`. No source-specific production render for this new release has yet been verified with an owner-authorized long YouTube/Instagram video. Do not describe V2.9 as universally working end-to-end until a real render is verified.
+
+
 ## Current release: URL check + local timed cuts (November 21, 2026)
 
 **What works in the static web app:** Choose a video from your phone, or paste a direct publicly accessible HTTPS MP4/MOV/WebM media URL whose host permits CORS. Confirm editing rights and tap **CHECK & PREPARE CUTS**. A downloadable direct video is loaded into the device, duration is read, and CutNova prepares feasible, mostly non-overlapping **timed cut suggestions**. Tap **EDIT & EXPORT** on a suggestion to render one file at a time in a compatible browser. A 60-second video with 3 requested cuts and a 15–60s range gives 3 × 20-second suggestions; requesting 10 with a 15-second minimum gives at most 4 distinct sections. The local editor does not automatically rank highlights, recognize speech or render captions.
