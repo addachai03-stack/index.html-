@@ -204,13 +204,28 @@ def source_description(speech: str, style: str, limit: int = 225) -> str:
     return "In this clip: " + summary + ("…" if len(summary) < len(line) else "")
 
 
-def creator_hook(speech: str, style: str, index: int) -> str:
-    """A curiosity-oriented hook quoting only recognized source content."""
+def creator_hook_options(speech: str, style: str, index: int) -> list[str]:
+    """Three reviewable hook ideas based on the same ASR source phrase."""
     mode = normalize_style(style)
     if not speech.strip():
-        return "Visual moment #" + str(index) + " — add a verified hook"
+        return ["Visual moment #" + str(index) + " — add a verified hook"]
     title = choose_title(speech, mode, index)
-    return HOOK_OPENERS[mode] + ": " + title
+    is_hindi = any("\\u0900" <= c <= "\\u097f" for c in title)
+    if is_hindi:
+        frames = ["ये सुनिए", "यह बात ध्यान से सुनिए", "आपने ये सुना"]
+    elif mode == "facts":
+        frames = ["Listen to this explanation", "Did you catch this", "The key point"]
+    elif mode == "story":
+        frames = ["Here's the moment", "What happens next", "Listen to this part"]
+    elif mode == "funny":
+        frames = ["Watch this moment", "Don't miss this part", "This line"]
+    else:
+        frames = ["Watch this part", "Did you catch this", "Listen closely"]
+    return [frame + ": " + title for frame in frames]
+
+
+def creator_hook(speech: str, style: str, index: int) -> str:
+    return creator_hook_options(speech, style, index)[0]
 
 
 def build_creator_records(cuts: list, style: str, source_url: str) -> list[dict]:
@@ -220,7 +235,8 @@ def build_creator_records(cuts: list, style: str, source_url: str) -> list[dict]
     for number, cut in enumerate(cuts, 1):
         speech = re.sub(r"\s+", " ", cut.transcript or "").strip()
         title = choose_title(speech, mode, number)
-        hook = creator_hook(speech, mode, number)
+        hooks = creator_hook_options(speech, mode, number)
+        hook = hooks[0]
         description = source_description(speech, mode)
         hashtags = topic_hashtags(speech, mode)
         cta = MODE_CTA[mode] if speech else "Add your own verified context before posting."
@@ -234,6 +250,7 @@ def build_creator_records(cuts: list, style: str, source_url: str) -> list[dict]
             "style": mode,
             "title": title,
             "hook": hook,
+            "hook_options": hooks,
             "caption": caption,
             "description": description,
             "hashtags": hashtags,
@@ -275,6 +292,7 @@ def create_creator_pack(
             "- Cut: " + str(row["start_seconds"]) + "s → " + str(row["end_seconds"]) + "s",
             "- AI-assisted ranking: " + str(row["score"]) + " (" + row["ranking_reason"] + ")",
             "- Proposed hook: " + row["hook"],
+            "- Alternate hooks: " + " | ".join(row["hook_options"][1:]),
             "- Description: " + row["description"],
             "- Suggested hashtags: " + row["hashtags"],
             "- Recognized speech: " + ("Yes" if row["source_speech_detected"] else "No — review visuals manually"),
@@ -286,6 +304,7 @@ def create_creator_pack(
         textfile.write_text("\n".join([
             "TITLE", row["title"], "",
             "HOOK", row["hook"], "",
+            "ALTERNATE HOOKS", *row["hook_options"][1:], "",
             "DESCRIPTION", row["description"], "",
             "CAPTION", row["caption"], "",
             "HASHTAGS", row["hashtags"], "",
