@@ -17,7 +17,8 @@ assert.equal(supportedType({isTypeSupported:()=>false}),"");
 const html=fs.readFileSync("index.html","utf8");
 for(const id of ["edit-file","edit-video","edit-start","edit-end","edit-play","edit-export","edit-cancel","edit-output","edit-download","edit-rights"])
   assert.ok(html.includes('id="'+id+'"'));
-console.log("PASS: local editor trim range, portrait geometry, format negotiation and markup.");
+assert.ok(fs.readFileSync("editor.js","utf8").includes("cutnova:open-cut"),"On-device cut bridge");
+console.log("PASS: local editor trim range, portrait geometry, format negotiation and quick-cut bridge.");
 
 const {settings,durationValid,applyPixels,textLines}=require("../editor.js");
 assert.deepEqual(settings({preset:"bad",brightness:200,contrast:20,speed:3,text:" A  B "}),{preset:"original",brightness:140,contrast:60,speed:1,text:"A B",position:"bottom"});

@@ -31,12 +31,18 @@ with sync_playwright() as p:
         report["checks"]["service_worker"]="PASS"
         context.set_offline(True)
         page.reload(wait_until="domcontentloaded")
-        page.locator('[data-nav="editor"]').click()
-        page.locator("#edit-file").wait_for()
+        page.locator('[data-nav="ai"]').click()
+        page.locator("#quick-file").wait_for()
         report["checks"]["offline_reload"]="PASS"
-        page.locator("#edit-file").set_input_files(str(sample))
+        page.locator("#quick-file").set_input_files(str(sample))
+        page.locator("#quick-rights").check()
+        page.locator("#quick-generate").click()
+        expect(page.locator(".quick-cut")).to_have_count(1,timeout=30000)
+        report["checks"]["in_app_quick_generation"]="PASS"
+        page.locator(".quick-cut button").click()
         page.locator("#edit-fields").wait_for(timeout=20000)
         wait_media(page)
+        report["checks"]["quick_cut_editor_import"]="PASS"
         page.locator("#edit-end").fill("3")
         page.locator("#edit-text").fill("Release proof")
         page.locator('[data-nav="projects"]').click()

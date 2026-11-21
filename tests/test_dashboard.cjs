@@ -27,7 +27,10 @@ run('current = providerFor("https://remotion.media/video-1m.mp4");' +
     'elements.clips.value="3"; elements.min.value="15"; elements.max.value="45";' +
     'elements.style.value="facts"; elements.language.value="hi"; elements.crop.value="center"; elements.script.value="roman"; elements.captionStyle.value="yellow"; elements.pacing.value="tight";' +
     'elements.rights.checked=true; updateRights();');
-const request = new URL(document.getElementById("submit-request").href);
+const primary=document.getElementById("submit-request");
+assert.equal(primary.disabled,false,"Local action enabled after rights confirmation");
+assert.equal(primary.href,"#","Primary button must never navigate away");
+const request = new URL(document.getElementById("owner-github-render").href);
 const body = request.searchParams.get("body");
 for (const line of ["CLIPS: 3", "MIN_SECONDS: 15", "MAX_SECONDS: 45",
                    "STYLE: facts", "LANGUAGE: hi", "CROP: center", "CAPTION_SCRIPT: roman", "CAPTION_STYLE: yellow", "PACING: tight", "RIGHTS: YES"]) {
@@ -35,11 +38,18 @@ for (const line of ["CLIPS: 3", "MIN_SECONDS: 15", "MAX_SECONDS: 45",
 }
 assert.equal(request.hostname, "github.com");
 run('elements.min.value="60"; elements.max.value="30"; updateRights();');
-assert.equal(document.getElementById("submit-request").href, "#");
+assert.equal(document.getElementById("submit-request").disabled, true);
 assert.equal(document.getElementById("submit-request").attrs["aria-disabled"], "true");
 run('elements.min.value="15"; elements.max.value="60"; elements.rights.checked=false; updateRights();');
-assert.equal(document.getElementById("submit-request").href, "#");
+assert.equal(document.getElementById("submit-request").disabled, true);
 const html = fs.readFileSync("index.html","utf8");
 for (const id of ["highlight-style","speech-language","smart-crop","caption-script","caption-style","pacing"])
   assert.ok(html.includes('id="' + id + '"'), "Missing control " + id);
-console.log("PASS: dashboard settings in GitHub issue, duration and rights guards, and control markup.");
+const local=vm.runInContext("cutWindows(60,3,15)",ctx);
+assert.equal(local.length,3);
+assert.deepEqual(local.map(c=>[c.start,c.end]),[[0,15],[22.5,37.5],[45,60]]);
+assert.equal(vm.runInContext("cutWindows(6,6,15).length",ctx),1);
+assert.ok(html.includes('id="quick-generate"')&&html.includes('id="quick-file"'));
+assert.ok(html.includes('id="owner-render-tools"'));
+assert.ok(!html.includes('id="submit-request" class="btn btn-lime disabled-link"'));
+console.log("PASS: primary on-device generation, timed cut bounds, owner-only advanced route and rights guards.");
