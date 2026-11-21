@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const {labelFor, combineRuns, artifactFor} = require("../jobs.js");
+const {labelFor, combineRuns, artifactFor, failedJobSteps} = require("../jobs.js");
 assert.deepEqual(labelFor({status:"in_progress"}), ["PROCESSING","working"]);
 assert.deepEqual(labelFor({status:"queued"}), ["QUEUED / WAITING","working"]);
 assert.deepEqual(labelFor({status:"completed",conclusion:"success"}), ["SUCCESS","success"]);
@@ -22,3 +22,9 @@ assert.equal(artifactFor({...sample,expired:true},now).ready,false);
 assert.equal(artifactFor({...sample,expired:undefined},now).ready,false);
 assert.equal(artifactFor({id:"untrusted"},now),null);
 console.log("PASS: artifact availability, age, size and invalid ID tests.");
+
+const jobs=[{name:"generate",steps:[{name:"Checkout",conclusion:"success"},{name:"Generate real portrait Shorts",conclusion:"failure"}]},{name:"other",steps:[]}];
+assert.deepEqual(failedJobSteps(jobs),[{job:"generate",step:"Generate real portrait Shorts"}]);
+assert.deepEqual(failedJobSteps(null),[]);
+assert.deepEqual(failedJobSteps([{name:"all-good",steps:[{name:"Done",conclusion:"success"}]}]),[]);
+console.log("PASS: real failed-job step extraction for transparent Results diagnostics.");
