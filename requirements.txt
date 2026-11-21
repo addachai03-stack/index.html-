@@ -1,3 +1,4 @@
 yt-dlp>=2025.1.0,<2028
 faster-whisper>=1.0.0,<2
 opencv-python-headless>=4.10,<5
+requests>=2.31,<3
