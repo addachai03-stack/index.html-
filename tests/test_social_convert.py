@@ -54,7 +54,7 @@ class SocialConvertTests(unittest.TestCase):
                     "scale=720:1280:force_original_aspect_ratio=increase,",
                     "+faststart"):
             self.assertIn(key," ".join(cmd))
-        self.assertNotIn("-c"," ".join(cmd),"Converter must not use stream copy")
+        self.assertNotIn("-c",cmd,"Converter must not use stream copy")
 
     @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"),"FFmpeg unavailable")
     def test_really_transcodes_vp9_opus_to_h264_aac(self):
