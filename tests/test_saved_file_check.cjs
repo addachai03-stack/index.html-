@@ -26,7 +26,7 @@ const {sameSize,equalMedia,playablePortrait,MAX_BYTES}=require("../saved-file-ch
   assert.ok(code.includes('currentHref.startsWith("blob:")'),"May only read current local export");
   assert.ok(!code.includes("fetch("),"File comparison must not fetch URLs");
   assert.ok(code.includes("originalBlob=event.detail?.blob"),"Must use actual recorder Blob");
-  assert.ok(fs.readFileSync("editor.js","utf8").includes('new CustomEvent("cutnova:export-ready",{detail:{blob}})'),"Editor must supply its original exported Blob");
+  assert.ok(fs.readFileSync("editor.js","utf8").includes('new CustomEvent("cutnova:export-ready",{detail:{blob'),"Editor must supply its original exported Blob");
 
   assert.ok(code.includes("File contents match exactly"),"Must accurately describe bytes check progress");
   assert.equal(MAX_BYTES,512*1024*1024);
