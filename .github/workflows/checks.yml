@@ -28,5 +28,7 @@ jobs:
         run: python -m py_compile studio.py
       - name: Test video highlight rules
         run: python -m unittest discover -s tests -v
-      - name: Test app JS syntax
-        run: node --check app.js
+      - name: Test app JS syntax and dashboard request integration
+        run: |
+          node --check app.js
+          node tests/test_dashboard.cjs
