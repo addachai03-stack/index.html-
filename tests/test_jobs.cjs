@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun, promoteTrackedRun, pollingNeeded} = require("../jobs.js");
+const {labelFor, combineRuns, artifactFor, expiresSoon, artifactLabel, failedJobSteps, matchingOwnerRun, promoteTrackedRun, pollingNeeded} = require("../jobs.js");
 assert.deepEqual(labelFor({status:"in_progress"}), ["PROCESSING","working"]);
 assert.deepEqual(labelFor({status:"queued"}), ["QUEUED / WAITING","working"]);
 assert.deepEqual(labelFor({status:"completed",conclusion:"success"}), ["SUCCESS","success"]);
@@ -50,3 +50,17 @@ assert.equal(pollingNeeded([{...ownerRun,status:"completed",conclusion:"failure"
 assert.equal(pollingNeeded([],requestId,true,0),true);
 assert.equal(pollingNeeded([],null,true,0),false);
 console.log("PASS: tracked owner runs rise to top and read-only polling stops on completion or when hidden/off-screen/at limit.");
+
+const inOneHour="2026-11-21T01:00:00Z";
+const expiring=artifactFor({...sample,expires_at:inOneHour},now);
+assert.equal(expiring.expiresAt,Date.parse(inOneHour));
+assert.equal(expiresSoon(expiring,now),true);
+assert.equal(expiresSoon(artifactFor({...sample,expires_at:"2026-11-23T00:00:00Z"},now),now),false);
+assert.equal(expiresSoon(artifactFor({...sample,expired:true},now),now),false);
+assert.equal(expiresSoon(null,now),false);
+assert.equal(artifactLabel(artifactFor({...sample,name:"cutnova-shorts-3"},now),{conclusion:"success"}),"Open rendered files ZIP ↗");
+assert.equal(artifactLabel(artifactFor({...sample,name:"cutnova-issue-6"},now),{conclusion:"success"}),"Open rendered files ZIP ↗");
+assert.equal(artifactLabel(artifactFor({...sample,name:"cutnova-shorts-3"},now),{conclusion:"failure"}),"Open GitHub artifact ZIP ↗");
+assert.equal(artifactLabel(artifactFor({...sample,name:"diagnostic-report"},now),{conclusion:"success"}),"Open GitHub artifact ZIP ↗");
+assert.equal(artifactLabel(artifactFor({...sample,expired:true},now),{conclusion:"success"}),"File unavailable");
+console.log("PASS: only genuinely available matching owner archives show rendered ZIP CTA; numeric expiry warning is timezone safe.");
