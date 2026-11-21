@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.0</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V3.1</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -116,6 +116,8 @@
                   <p id="secure-key-status" class="footnote" role="status" aria-live="polite">No key generated. Generating/copying makes no network request; the key is sent for verification only when you later submit an owner render.</p>
                 </details>
                 <label class="edit-text-label">OWNER ACCESS KEY <input id="secure-render-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="Configured owner key (not GitHub token)" disabled/></label>
+                <button id="secure-render-verify" type="button" class="btn btn-outline" disabled><span aria-hidden="true">✓</span> VERIFY OWNER CONNECTION · NO RENDER</button>
+                <p id="secure-verify-status" class="footnote" role="status" aria-live="polite">Read-only verification checks your saved owner key and GitHub workflow access. It never starts a video job; the key is cleared afterwards.</p>
                 <button id="secure-render-start" type="button" class="btn btn-lime" disabled>START PRIVATE AI RENDER</button>
                 <p id="secure-render-status" class="footnote" role="status" aria-live="polite">Not started. This runs only for the authenticated owner.</p>
               </div>
