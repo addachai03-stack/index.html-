@@ -6,6 +6,7 @@
   const health=byId("secure-render-health"),key=byId("secure-render-key");
   const start=byId("secure-render-start"),status=byId("secure-render-status");
   const refresh=byId("secure-render-refresh");
+  const verify=byId("secure-render-verify"),verifyStatus=byId("secure-verify-status");
   const generate=byId("secure-key-generate"),copy=byId("secure-key-copy");
   const generated=byId("secure-key-output"),keyStatus=byId("secure-key-status");
   if(!health||!key||!start||!status)return;
@@ -41,7 +42,7 @@
   async function check(){
     health.textContent="Checking owner-only gateway…";
     configured=false;
-    key.disabled=true;start.disabled=true;
+    key.disabled=true;start.disabled=true;if(verify)verify.disabled=true;
     try{
       const response=await fetch(API+"/health",{method:"GET",cache:"no-store",credentials:"omit"});
       if(!response.ok)throw Error("Gateway HTTP "+response.status);
@@ -54,9 +55,33 @@
       health.textContent="Owner backend is not reachable from this browser ("+(error.message||"network/CORS error")+"). Remote rendering disabled; local editing is still available.";
     }
     if(!configured)key.value="";
-    key.disabled=!configured;start.disabled=!configured;
+    key.disabled=!configured;start.disabled=!configured;if(verify)verify.disabled=!configured;
   }
   refresh?.addEventListener("click",()=>{if(!busy)check()});
+  verify?.addEventListener("click",async()=>{
+    if(!configured||busy){if(verifyStatus)verifyStatus.textContent="Backend unavailable or another request is running.";return;}
+    const ownerKey=key.value;
+    if(ownerKey.length<24){
+      if(verifyStatus)verifyStatus.textContent="Paste your saved Owner Access Key above first. Do not enter a GitHub token.";
+      return;
+    }
+    busy=true;verify.disabled=true;start.disabled=true;
+    if(verifyStatus)verifyStatus.textContent="Checking owner key and GitHub workflow (read-only)…";
+    try{
+      const response=await fetch(API+"/verify",{
+        method:"POST",mode:"cors",credentials:"omit",cache:"no-store",
+        headers:{"X-CutNova-Owner-Key":ownerKey}
+      });
+      let data={};try{data=await response.json()}catch(_){}
+      if(!response.ok||data.verified!==true||data.no_render_started!==true)
+        throw Error(data.error||"Owner verification failed (HTTP "+response.status+").");
+      if(verifyStatus)verifyStatus.textContent="✓ OWNER VERIFIED — GitHub workflow is active and reachable. No video was started. Key cleared from this page; paste it again only when starting a real render.";
+    }catch(error){
+      if(verifyStatus)verifyStatus.textContent="Verification failed: "+(error.message||"Network error")+". No render started. Check your key and token setup.";
+    }finally{
+      key.value="";busy=false;verify.disabled=!configured;start.disabled=!configured;
+    }
+  });
   start.addEventListener("click",async()=>{
     if(!configured||busy){say("Secure backend is unavailable or a render request is in progress.");return}
     const url=byId("video-url")?.value.trim()||"",rights=byId("rights-confirm")?.checked===true;
@@ -68,7 +93,7 @@
     }
     const ownerKey=key.value;
     if(ownerKey.length<24){say("Enter your configured owner access key. Never paste your GitHub token here.");return}
-    busy=true;start.disabled=true;say("Submitting an authenticated render request to the secure backend…");
+    busy=true;start.disabled=true;if(verify)verify.disabled=true;say("Submitting an authenticated render request to the secure backend…");
     const payload={url,rights_confirm:true,clips:byId("clips-count")?.value,min_seconds:byId("min-seconds")?.value,max_seconds:byId("max-seconds")?.value,
       style:byId("highlight-style")?.value,language:byId("speech-language")?.value,crop:byId("smart-crop")?.value,
       caption_script:byId("caption-script")?.value,caption_style:byId("caption-style")?.value,pacing:byId("pacing")?.value};
@@ -79,11 +104,12 @@
       key.value="";
       if(!response.ok||data.accepted!==true)throw Error(data.error||"Render backend refused the request (HTTP "+response.status+").");
       say("AI job queued for "+clips+" requested clips ("+min+"–"+max+" sec). GitHub will attempt AI speech/scene analysis, MP4 rendering and an editable Creator Pack with hooks, captions, descriptions and hashtags per clip. Open RESULTS to verify actual artifacts. Platforms may still block source downloads.");
+      // Do not imply a finished video; this only requests fresh public status.
       location.hash="#render-history";
     }catch(error){
       key.value="";
       say("Remote render not started: "+(error.message||"Network error")+". No fake results were created.");
-    }finally{busy=false;start.disabled=!configured;}
+    }finally{busy=false;start.disabled=!configured;if(verify)verify.disabled=!configured;}
   });
   check();
 })();
