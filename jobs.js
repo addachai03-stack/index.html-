@@ -46,6 +46,11 @@
     };
   }
 
+  function matchingOwnerRun(runs,id) {
+    if(!Array.isArray(runs)||typeof id!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return null;
+    return runs.find(run=>run?.display_title==="CutNova owner "+id)||null;
+  }
+
   function failedJobSteps(jobs) {
     if(!Array.isArray(jobs))return [];
     return jobs.flatMap(job=>{
@@ -57,13 +62,17 @@
   }
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = {labelFor, combineRuns, artifactFor, failedJobSteps};
+    module.exports = {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun};
     return;
   }
   const list = document.getElementById("job-results");
   const status = document.getElementById("job-status");
   const refresh = document.getElementById("refresh-jobs");
   if (!list || !status || !refresh) return;
+  function trackedId(){
+    try {return sessionStorage.getItem("cutnova-latest-request-id")||""}
+    catch(_){return ""}
+  }
   function el(tag, cls, value) {
     const node = document.createElement(tag);
     if (cls) node.className = cls;
@@ -179,6 +188,11 @@
       const title = (run.event === "issues" ? "Video request" : "AI render") + " #" + (run.run_number || run.id);
       const date = new Date(run.created_at);
       info.append(el("strong", "", title), el("span", "", Number.isNaN(date.getTime()) ? "" : date.toLocaleString()));
+      const tracked=matchingOwnerRun([run],trackedId())!==null;
+      if(tracked){
+        row.classList.add("job-row-owned");
+        info.append(el("small","job-owner-note","YOUR LATEST OWNER RENDER"));
+      }
       const right = el("div", "job-actions");
       right.append(el("span", "job-badge job-" + tone, label));
       const link = el("a", "job-link", run.status === "completed" && run.conclusion === "success" ? "Open run & artifacts ↗" : "View run / logs ↗");
@@ -191,22 +205,32 @@
       list.append(row);
     }
   }
+  let loading=false;
   async function load() {
+    if(loading)return;
     if(navigator.onLine===false){status.textContent="Offline — GitHub renders require internet.";return}
+    loading=true;
     refresh.disabled = true;
-    status.textContent = "Checking GitHub Actions…";
+    status.textContent = "Checking actual GitHub Actions runs…";
     try {
       const res = await Promise.allSettled(FILES.map(file => readJson(API + file + "/runs?per_page=10")));
       const good = res.filter(x => x.status === "fulfilled").map(x => x.value);
       if (!good.length) throw new Error("No GitHub response");
       const runs = combineRuns(good);
       draw(runs);
+      const latest=trackedId(),own=matchingOwnerRun(runs,latest);
+      const trackedText=!latest?"":own
+        ?" · YOUR RENDER: "+labelFor(own)[0]
+        :" · Your submitted render is not listed yet (or is older than recent history). Refresh or open Actions.";
       status.textContent = (good.length < FILES.length ? "Partial history — one workflow unavailable. " : "") +
-        (runs.length ? "Last checked " + new Date().toLocaleTimeString() + " · " + runs.length + " recent runs" : "No recent render jobs found.");
+        (runs.length ? "Last checked " + new Date().toLocaleTimeString() + " · " + runs.length + " recent runs" : "No recent render jobs found.") + trackedText;
     } catch (_) {
       status.textContent = "Couldn't refresh GitHub history (network or API rate limit). Use Open GitHub Actions; previously shown results may be stale.";
-    } finally { refresh.disabled = false; }
+    } finally { loading=false;refresh.disabled = false; }
   }
   refresh.addEventListener("click", load);
+  window.addEventListener("hashchange",()=>{
+    if(location.hash==="#render-history"||location.hash==="#results")load();
+  });
   load();
 })();
