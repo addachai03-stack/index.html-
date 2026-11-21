@@ -71,10 +71,14 @@ function providerFor(raw) {
   if (["dailymotion.com","dai.ly","x.com","twitter.com"].includes(host)) {
     return {url, kind:"social", name:host};
   }
+  if (host === "github.com" &&
+      /^\/user-attachments\/assets\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/?$/i.test(url.pathname)) {
+    return {url, kind:"github-upload", name:"Your public GitHub video attachment"};
+  }
   if (/\.(mp4|mov|m4v|webm)$/i.test(url.pathname)) {
     return {url, kind:"video", name:"Direct video file"};
   }
-  throw new Error("Public social video link ya direct MP4/MOV/WebM URL paste karo.");
+  throw new Error("Public social video link, GitHub video upload, ya direct MP4/MOV/WebM URL paste karo.");
 }
 
 function showMessage(message, success=false) {
@@ -164,7 +168,7 @@ elements.form.addEventListener("submit", event => {
     current = providerFor(elements.input.value);
     elements.rights.checked = false;
     drawSource(current);
-    showMessage("Public link recognized: "+current.name+". Generate My Shorts tap karo, phir GitHub par Submit new issue. Ye preview rendered MP4 nahi hai.",true);
+    showMessage(current.kind === "youtube" ? "YouTube link format valid hai, lekin YouTube GitHub downloads ko bot verification se block kar sakta hai. Agar blocked ho, neeche UPLOAD OWN VIDEO option se apni MP4 upload karo." : "Public source recognized: "+current.name+". GitHub Issue submit karne par authorized media process hogi. Ye original preview hai, rendered Short nahi.",true);
   } catch (error) {
     current = null;
     elements.panel.hidden = true;
