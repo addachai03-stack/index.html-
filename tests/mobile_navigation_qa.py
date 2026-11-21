@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -96,7 +97,7 @@ try:
         context = browser.new_context(
             viewport={"width": 390, "height": 844},
             device_scale_factor=3, is_mobile=True, has_touch=True,
-            service_workers="block", accept_downloads=False)
+            service_workers="block", accept_downloads=True)
         # Use only a public, fake UUID. Never touch owner keys or render jobs.
         context.add_init_script(
             f"sessionStorage.setItem('cutnova-latest-request-id', '{TRACK_ID}');")
@@ -164,7 +165,46 @@ try:
         else:
             assert "No file was stored/uploaded" in diagnostic
             REPORT["checks"]["synthetic_export_probe"]="PASS: local test clip recorded"
-        assert all(r["method"] == "GET" for r in requests), "No export check may dispatch a cloud render"
+        if diagnostic.startswith("UNSUPPORTED"):
+            REPORT["checks"]["full_edited_video_export"]="NOT SUPPORTED: Browser lacks the local recording features"
+        else:
+            # Make source media on the actual browser, import it in the existing
+            # local editor, explicitly confirm rights and export/downloading it.
+            page.locator("#edit-prepare-test").click()
+            page.wait_for_function("""() => /^(DEMO READY|DEMO PREPARATION FAILED|UNSUPPORTED)/.test(
+              document.querySelector('#edit-prepare-status')?.textContent || '')""", timeout=32000)
+            demo_status=page.locator("#edit-prepare-status").inner_text()
+            if not demo_status.startswith("DEMO READY"):
+                REPORT["checks"]["full_edited_video_export"]="FAIL: "+demo_status
+                raise AssertionError("Actual editor import failed: "+demo_status)
+            expect(page.locator("#edit-fields")).to_be_visible()
+            expect(page.locator("#edit-start")).to_have_value("0")
+            expect(page.locator("#edit-end")).to_have_value("3")
+            assert not page.locator("#edit-rights").is_checked(), "Rights consent must never be assumed"
+            page.locator("#edit-rights").check()
+            expect(page.locator("#edit-export")).to_be_enabled()
+            page.locator("#edit-export").click()
+            expect(page.locator("#edit-result")).to_be_visible(timeout=45000)
+            expect(page.locator("#edit-download")).to_have_attribute("href", r"^blob:.*")
+            with page.expect_download(timeout=15000) as download_info:
+                page.locator("#edit-download").click()
+            downloadable=download_info.value
+            media_path=ROOT / (ENGINE + "-full-export-" + downloadable.suggested_filename)
+            downloadable.save_as(str(media_path))
+            metadata=json.loads(subprocess.check_output([
+                "ffprobe","-v","error",
+                "-show_entries","format=duration:stream=codec_type,width,height",
+                "-of","json",str(media_path)],text=True))
+            assert any(st["codec_type"]=="video" and st.get("width")==720
+                       and st.get("height")==1280 for st in metadata["streams"]),metadata
+            assert any(st["codec_type"]=="audio" for st in metadata["streams"]),metadata
+            duration=metadata.get("format",{}).get("duration")
+            if duration:
+                assert 2.0<=float(duration)<=4.5,metadata
+            REPORT["checks"]["full_edited_video_export"]="PASS: original browser video -> existing editor -> 720x1280 recording -> downloaded file"
+            REPORT["full_export_media"]={"filename":downloadable.suggested_filename,
+                  "duration":duration,"size_bytes":media_path.stat().st_size}
+        assert all(r["method"] == "GET" for r in requests), "No export test may dispatch a cloud render"
         visible_width(page)
         page.screenshot(path=str(ROOT / f"{ENGINE}-editor.png"), full_page=False)
         mobile_tab(page, "projects", "local-editor")
