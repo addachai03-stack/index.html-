@@ -116,7 +116,14 @@
                 <button id="secure-render-refresh" type="button" class="btn btn-outline">RECHECK OWNER BACKEND ↻</button>
                 <details class="owner-setup-guide">
                   <summary>Secure owner setup · iPhone steps</summary>
-                  <p class="footnote">One-time setup: create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained GitHub token</a> restricted to this repository with Actions: read/write. Then open <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare Dashboard</a> → Workers → cutnova-render-api → Settings → Variables and Secrets and add it privately as <code>CUTNOVA_GITHUB_TOKEN</code>. Add another independently generated 24+ character owner key as <code>CUTNOVA_OWNER_KEY</code>. Do not paste either secret in GitHub files or chat. Return here and tap RECHECK OWNER BACKEND.</p>
+                  <p class="footnote">One-time setup: create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">fine-grained GitHub token</a> restricted to this repository with Actions: read/write. Then open <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare Dashboard</a> → Workers → cutnova-render-api → Settings → Variables and Secrets and add it privately as <code>CUTNOVA_GITHUB_TOKEN</code>. Add another independent 32-byte random owner key as <code>CUTNOVA_OWNER_KEY</code>. Do not paste either secret in GitHub files or chat. Return here and tap RECHECK OWNER BACKEND.</p>
+                  <p class="footnote">Generate an owner key privately on this iPhone. It is created with the browser's secure random generator, not uploaded or saved by CutNova. Copy it into a password manager, then paste it into Cloudflare as <code>CUTNOVA_OWNER_KEY</code>. Keep it to paste into the Owner Access Key field below once backend is ready.</p>
+                  <button id="secure-key-generate" type="button" class="btn btn-outline">GENERATE PRIVATE OWNER KEY</button>
+                  <label class="edit-text-label">GENERATED KEY · COPY &amp; STORE SAFELY
+                    <input id="secure-key-output" type="text" inputmode="none" autocomplete="off" spellcheck="false" readonly placeholder="Generated key appears here on this device only"/>
+                  </label>
+                  <button id="secure-key-copy" type="button" class="btn btn-outline" disabled>COPY PRIVATE KEY</button>
+                  <p id="secure-key-status" class="footnote" role="status" aria-live="polite">No key generated. CutNova never sends this setup key to its server.</p>
                 </details>
                 <label class="edit-text-label">OWNER ACCESS KEY <input id="secure-render-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="Configured owner key (not GitHub token)" disabled/></label>
                 <button id="secure-render-start" type="button" class="btn btn-lime" disabled>START PRIVATE AI RENDER</button>
