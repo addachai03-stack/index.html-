@@ -19,6 +19,7 @@ from premium import highlight_bonus, normalize_style, distribute_subtitles, crea
 from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
 from roman_captions import caption_text
+from caption_styles import subtitle_style
 from github_media import is_github_attachment_url, download_github_attachment
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
@@ -289,15 +290,13 @@ def captions_for(cut: Candidate, segments: list[Segment], target: Path, script: 
     return True
 
 def render(source: Path, target: Path, cut: Candidate, sub: Path | None,
-           crop_x: int | None = None):
+           crop_x: int | None = None, caption_style: str = "classic"):
     # 9:16 subject-aware *static* x crop; center fallback, no black bars.
     # crop_x is computed from video dimensions and must be a safe integer.
     crop_expr = "crop=720:1280" if crop_x is None else f"crop=720:1280:{int(crop_x)}:0"
     vf = "scale=720:1280:force_original_aspect_ratio=increase," + crop_expr + ",setsar=1"
     if sub:
-        vf += ",subtitles=" + sub.name + (
-            ":force_style='FontName=Noto Sans,FontSize=15,Bold=1,Outline=3,"
-            "Shadow=0,MarginV=42,Alignment=2'")
+        vf += ",subtitles=" + sub.name + ":force_style='" + subtitle_style(caption_style) + "'"
     cmd = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
            "-ss", str(cut.start), "-i", str(source), "-t", str(cut.end-cut.start),
            "-map", "0:v:0", "-map", "0:a:0?", "-vf", vf,
@@ -319,6 +318,7 @@ def main() -> int:
     p.add_argument("--crop", choices=["auto", "center"], default="auto")
     p.add_argument("--language", choices=["auto", "hi", "en"], default="auto")
     p.add_argument("--caption-script", choices=["original", "roman"], default="original")
+    p.add_argument("--caption-style", choices=["classic", "yellow", "boxed"], default="classic")
     p.add_argument("--rights-confirmed", action="store_true")
     p.add_argument("--output", default="output")
     a = p.parse_args()
@@ -350,6 +350,7 @@ def main() -> int:
                     "crop_mode": a.crop,
                     "speech_language": a.language,
                     "caption_script": a.caption_script,
+                    "caption_style": a.caption_style,
                     "note": "AI-assisted cues, not a guarantee of views or shares.",
                     "clips": []}
         for i, cut in enumerate(choices, 1):
@@ -361,7 +362,7 @@ def main() -> int:
             target = output / (base + ".mp4")
             crop_info = compute_crop(video, width, height, cut.start, cut.end, a.crop)
             print(f"Rendering Short #{i}: {cut.start}s -> {cut.end}s; crop: {crop_info['method']} at x={crop_info['crop_x']}", flush=True)
-            render(video, target, cut, sub if has_captions else None, crop_info["crop_x"])
+            render(video, target, cut, sub if has_captions else None, crop_info["crop_x"], a.caption_style)
             item = asdict(cut)
             item["mp4"] = target.name
             item["captions"] = sub.name if has_captions else None
