@@ -93,8 +93,20 @@ with sync_playwright() as p:
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth+1"), "Mobile editor has horizontal overflow"
         report["checks"]["no_horizontal_overflow"]="PASS"
         page.screenshot(path=str(root/"editor.png"),full_page=True)
-        assert not errors,errors
-        report["checks"]["javascript"]="PASS"
+        # WebKit can run a service-worker precached owner script even though
+        # this local-only export QA isolated it. Production Worker CORS permits
+        # GitHub Pages, *not* 127.0.0.1. Record only this exact expected
+        # localhost-origin warning as NOT TESTED; don't hide any other errors.
+        local_cors=[e for e in errors if
+            "cutnova-render-api.addachai03.workers.dev/health" in e
+            and "access control checks" in e]
+        app_errors=[e for e in errors if e not in local_cors]
+        report["checks"]["owner_cloud_from_localhost"]=(
+            "NOT TESTED: expected CORS denial from untrusted localhost origin"
+            if local_cors else "ISOLATED: no owner cloud health attempted")
+        report["browser_owner_health_warnings"]=local_cors
+        assert not app_errors,app_errors
+        report["checks"]["javascript_app_errors"]="PASS"
     except Exception as e:
         report["error"]=str(e);report["page_errors"]=errors
         page.screenshot(path=str(root/"failure.png"),full_page=True)
