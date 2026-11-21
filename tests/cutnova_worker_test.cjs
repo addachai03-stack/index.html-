@@ -79,3 +79,42 @@ test("Rejected GitHub credential does not claim success",async()=>{
  const r=await build(async()=>new Response(null,{status:403})).fetch(http(valid,{key:KEY}),env);
  assert.equal(r.status,502);assert.equal((await r.json()).accepted,undefined);
 });
+
+
+test("Owner can select any integer clip count and exact 30s duration",async()=>{
+ let sent;
+ const upstream=async(_url,options)=>{
+   sent=JSON.parse(options.body);
+   return new Response(null,{status:204});
+ };
+ const w=build(upstream);
+ const r=await w.fetch(http({...valid,clips:"2",min_seconds:"30",max_seconds:"30"},{key:KEY}),env);
+ assert.equal(r.status,202);
+ assert.equal(sent.inputs.clips,"2");
+ assert.equal(sent.inputs.min_seconds,"30");
+ assert.equal(sent.inputs.max_seconds,"30");
+});
+test("Reject non-integer out-of-range or contradictory lengths",async()=>{
+ const w=build(nope);
+ const cases=[
+  {clips:"0"},{clips:"11"},{clips:"2.5"},{clips:"abc"},
+  {min_seconds:"14"},{max_seconds:"61"},
+  {min_seconds:"45",max_seconds:"30"},{min_seconds:"20.5"}
+ ];
+ for(const p of cases){
+  const r=await w.fetch(http({...valid,...p},{key:KEY}),env);
+  assert.equal(r.status,400);
+ }
+});
+test("Known public social link can dispatch but is not a successful MP4",async()=>{
+ const examples=[
+  "https://www.youtube.com/watch?v=XD-6LDZzXJ0",
+  "https://www.instagram.com/reel/ABCdEFgh123/",
+  "https://x.com/example/status/123456789"
+ ];
+ for(const url of examples){
+  const r=await build(async()=>new Response(null,{status:204})).fetch(http({...valid,url},{key:KEY}),env);
+  assert.equal(r.status,202);
+  assert.equal((await r.json()).accepted,true);
+ }
+});
