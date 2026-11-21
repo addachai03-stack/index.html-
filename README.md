@@ -1,5 +1,14 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V3.9 — Real iPhone Files round-trip verification
+
+After exporting, CutNova offers **VERIFY IPHONE FILES DOWNLOAD**. The owner manually taps DOWNLOAD SHORT and uses iPhone Files or Share → Save to Files if necessary. Then, within the same open editor tab, the owner chooses the saved MP4/WebM in a local file picker. CutNova compares **all bytes** of the manually selected file with the current export, chunk by chunk (1 MiB chunks, max 512 MiB); files of equal length but changed content are rejected. After a match, it checks the selected file's actual browser metadata and playback progress. These checks are never automatically performed by a background service.
+
+This check cannot access the device's Files contents without the user's explicit selection, cannot establish that Files will retain a file permanently, cannot hear/verify audible audio, and cannot certify codecs or upload success to social platforms. The current original export must still be present in this browser tab, as the original `blob:` URL intentionally is not stored persistently. The app does not upload saved files, personal media or owner credentials. Export reset clears all previous successful verification statuses.
+
+GitHub Actions tests cover exact byte equality, differing sizes, empty files and same-size corrupted files. Mobile Chromium checks downloaded video -> re-select actual file -> verify equality and browser playback -> mutate a byte while keeping the same size -> ensure the app reports FILE MISMATCH. WebKit browser export remains unsupported in the headless test and is not mislabeled as a verified physical iPhone save.
+
+
 ## V3.8 — Verify that the exported Short actually plays
 
 The local editor now offers **VERIFY EXPORTED VIDEO PLAYBACK** after a successful render, in addition to **DOWNLOAD SHORT**. On user tap, CutNova tests the in-browser `blob:` exported video: 720×1280 metadata, finite duration of at least one second, and actual decoded playback time advancing at least 0.25 second. Failure reports `LOCAL PLAYBACK FAILED`; successful observation reports `LOCAL PLAYBACK PASS`. Neither condition verifies audible audio, specific H.264/AAC codecs, successful save in iPhone Files, or that Instagram accepts the video. These still require checking the downloaded file on the phone.
