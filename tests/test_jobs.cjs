@@ -1,0 +1,14 @@
+const assert = require("node:assert/strict");
+const {labelFor, combineRuns} = require("../jobs.js");
+assert.deepEqual(labelFor({status:"in_progress"}), ["PROCESSING","working"]);
+assert.deepEqual(labelFor({status:"queued"}), ["QUEUED / WAITING","working"]);
+assert.deepEqual(labelFor({status:"completed",conclusion:"success"}), ["SUCCESS","success"]);
+assert.deepEqual(labelFor({status:"completed",conclusion:"failure"}), ["FAILED","failed"]);
+assert.deepEqual(labelFor({status:"completed",conclusion:"skipped"}), ["SKIPPED","neutral"]);
+assert.deepEqual(labelFor({status:"completed",conclusion:null}), ["UNKNOWN","neutral"]);
+const a={id:12,created_at:"2026-11-21T00:00:00Z"};
+const b={id:15,created_at:"2026-11-21T01:00:00Z"};
+assert.deepEqual(combineRuns([{workflow_runs:[a,b]},{workflow_runs:[a,{id:"bad"}]}]),[b,a]);
+assert.deepEqual(combineRuns([{}]),[]);
+assert.equal(combineRuns([{workflow_runs:Array.from({length:15},(_,i)=>({id:i+1,created_at:String(i)}))}]).length,10);
+console.log("PASS: render status mapping, valid run IDs, deduplication and history cap.");
