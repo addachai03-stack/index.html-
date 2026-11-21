@@ -1,6 +1,6 @@
 /* Cache only the versioned public app shell, never user video, audio,
    GitHub API responses, uploads, credentials or external pages. */
-const CACHE="cutnova-shell-v4.1-social-real-codec-check";
+const CACHE="cutnova-shell-v4.2-strict-social-recorder";
 const ROOT=new URL("./",self.location.href);
 const SHELL=["./","./index.html","./styles.css","./app.js","./owner-render.js","./jobs.js","./editor.js","./export-check.js","./full-export-test.js","./playback-check.js","./saved-file-check.js","./native-share.js","./social-codec-check.js","./pwa.js","./nav.js","./launch.js","./manifest.webmanifest","./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png"].map(p=>new URL(p,ROOT).href);
 const ALLOWED=new Set(SHELL);
