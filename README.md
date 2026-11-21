@@ -1,5 +1,17 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V3.0 — Pre-test repair and diagnostics (21 Nov 2026)
+
+- The iPhone **AI** tab now shows **STEP 1: PASTE PUBLIC VIDEO URL** first. The local saved-video editor is labeled **Backup** and does not pretend to run AI ranking.
+- YouTube/Instagram previews clearly distinguish **browser preview only** from the **separate owner-only GitHub AI download attempt**. Site restrictions may block downloading despite a correct public URL; there is no cookie, DRM, login or bot bypass.
+- **RESULTS** exposes a **WHY FAILED?** button on failed runs. It queries GitHub's public workflow job-step metadata. It does not invent a failure reason; the user can open exact logs.
+- The Python renderer writes `report.json` with `failure_code` and a recovery message for recognizable platform sign-in/bot blocks, access errors, unavailable sources, and too-short media. It does not claim an MP4 when no input was downloaded.
+- Cloudflare owner secrets and token remain untouched; owner-only AI workflow still needs permitted, server-accessible media. Cloudflare R2 has not been enabled in the linked account, so there is no new secure iPhone-file-to-AI-upload path. Do not promise a one-tap private upload without provisioned storage.
+- Static and CI checks are not equivalent to end-to-end video rendering. **No new real video render was started for this V3.0 repair**; the requested media test follows after review.
+
+**Known blocker:** GitHub run #1 and #2 on 21 November 2026 failed before clipping because YouTube responded **"Sign in to confirm you're not a bot"**. No legitimate code-only change can guarantee YouTube/Instagram bytes from the GitHub runner. For a permitted test, use an independently authorized, server-accessible direct HTTPS MP4. The R2H video used for preview/testing is not proof of editing/reposting rights.
+
+
 ## V2.9 — AI Shorts from supported public URLs (21 November 2026)
 
 The iPhone CutNova AI tab now offers **✦ AI SHORTS FROM URL** as a separate owner-only option alongside **LOCAL CUTS**. Paste your own or authorized public YouTube, Instagram, Facebook, TikTok, Vimeo, X/Twitter, Dailymotion or direct MP4 URL. For an accessible source, the secure Cloudflare backend dispatches the owner GitHub Actions renderer. It downloads permitted public media, applies Whisper speech recognition, scores candidate windows using source speech/opening hooks/scenes, produces portrait MP4s using FFmpeg, and writes a **Creator Pack per actual clip**:
