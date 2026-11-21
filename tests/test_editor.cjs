@@ -19,6 +19,22 @@ for(const id of ["edit-file","edit-video","edit-start","edit-end","edit-play","e
   assert.ok(html.includes('id="'+id+'"'));
 assert.ok(fs.readFileSync("editor.js","utf8").includes("cutnova:open-cut"),"On-device cut bridge");
 console.log("PASS: local editor trim range, portrait geometry, format negotiation and quick-cut bridge.");
+const {requestedSocialType,selectedRecordingType}=require("../editor.js");
+const explicit={isTypeSupported:t=>t==="video/mp4;codecs=avc1.424028,mp4a.40.2"||t==="video/mp4"};
+const genericOnly={isTypeSupported:t=>t==="video/mp4"};
+const webmOnly={isTypeSupported:t=>t==="video/webm;codecs=vp8,opus"};
+assert.equal(requestedSocialType(explicit),"video/mp4;codecs=avc1.424028,mp4a.40.2");
+assert.equal(selectedRecordingType(explicit,true),"video/mp4;codecs=avc1.424028,mp4a.40.2");
+assert.equal(selectedRecordingType(explicit,false),"video/mp4;codecs=avc1.424028,mp4a.40.2");
+assert.equal(requestedSocialType(genericOnly),"","generic MP4 is not a specific H264/AAC request");
+assert.equal(selectedRecordingType(genericOnly,true),"","strict mode must never fall back to generic MP4");
+assert.equal(selectedRecordingType(genericOnly,false),"video/mp4");
+assert.equal(selectedRecordingType(webmOnly,true),"","strict mode must not fall back to WebM");
+assert.equal(selectedRecordingType(webmOnly,false),"video/webm;codecs=vp8,opus");
+assert.equal(requestedSocialType({isTypeSupported:()=>{throw Error("buggy browser")}}),"");
+assert.ok(html.includes('id="edit-require-h264"'),"strict iPhone toggle missing");
+console.log("PASS: strict social export requests H264 + AAC explicitly, respects unsupported browsers and preserves standard fallback.");
+
 
 const {settings,durationValid,applyPixels,textLines}=require("../editor.js");
 assert.deepEqual(settings({preset:"bad",brightness:200,contrast:20,speed:3,text:" A  B "}),{preset:"original",brightness:140,contrast:60,speed:1,text:"A B",position:"bottom"});
