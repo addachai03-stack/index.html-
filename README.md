@@ -1,5 +1,16 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V3.1 — Owner connection verification + tracked GitHub requests
+
+The owner rendering panel now includes **VERIFY OWNER CONNECTION · NO RENDER**. On a user click, the browser transmits the private owner key to the existing Cloudflare Worker via HTTPS `POST /verify`; the Worker compares it with `CUTNOVA_OWNER_KEY` and performs a read-only GitHub REST GET to check that the owner-only `.github/workflows/shorts.yml` is reachable and active using `CUTNOVA_GITHUB_TOKEN`. **It cannot start a video render.** The key is cleared from the browser field after each check. Neither key nor token is written to browser storage, logs, or the public repository.
+
+For explicit `START PRIVATE AI RENDER` clicks, the browser creates a random v4 UUID (non-secret) and passes it to the Worker, which validates and forwards it as a workflow input. The workflow labels its actual run `CutNova owner <UUID>`. Upon GitHub accepting the dispatch, the UI stores **only that UUID** in the browser's tab-scoped session storage, opens RESULTS and reads GitHub's real workflow run metadata. Matching is exact by `display_title`; a delayed/missing run is reported as unlisted rather than invented progress. Closing the tab or clearing browser session data removes this tracking preference.
+
+The authenticated connection check verifies key acceptance and GitHub read access but **not** GitHub workflow dispatch permissions, media access, successful downloads or MP4 generation. Those require a real authorized video run. YouTube/Instagram platform bot and login blocks remain outside CutNova's control. Browser/CORS provider restrictions and rights to republish remain relevant.
+
+Testing: GitHub gateway security checks cover read-only verification, wrong-origin/key rejection, unavailable workflows, UUID validation and dispatch correlation. Owner-UI DOM simulations cover no-render key verification and authenticated render request formation. Actual owner-key verification from the user's iPhone still requires entering the saved private key in the web app; it is not present in GitHub or available to this assistant.
+
+
 ## V3.0 — Pre-test repair and diagnostics (21 Nov 2026)
 
 - The iPhone **AI** tab now shows **STEP 1: PASTE PUBLIC VIDEO URL** first. The local saved-video editor is labeled **Backup** and does not pretend to run AI ranking.
