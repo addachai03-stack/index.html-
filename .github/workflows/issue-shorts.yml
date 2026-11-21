@@ -52,6 +52,7 @@ jobs:
           STYLE: ${{ steps.request.outputs.style }}
           CROP: ${{ steps.request.outputs.crop }}
           LANGUAGE: ${{ steps.request.outputs.language }}
+          CAPTION_SCRIPT: ${{ steps.request.outputs.caption_script }}
         run: |
           python studio.py \
             --url "$VIDEO_URL" \
@@ -61,6 +62,7 @@ jobs:
             --style "$STYLE" \
             --crop "$CROP" \
             --language "$LANGUAGE" \
+            --caption-script "$CAPTION_SCRIPT" \
             --rights-confirmed
       - name: Upload MP4, captions and diagnosis
         if: always()
