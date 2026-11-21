@@ -33,6 +33,7 @@ jobs:
         run: |
           python -m pip install playwright
           python -m playwright install --with-deps "$ENGINE"
+          command -v ffprobe || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
       - name: Verify mobile UI, navigation, safe AI sample and real-data mocked Results
         run: python tests/mobile_navigation_qa.py
       - name: Attach genuine browser screenshots and PASS/FAIL report
