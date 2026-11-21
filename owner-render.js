@@ -62,6 +62,10 @@
     const url=byId("video-url")?.value.trim()||"",rights=byId("rights-confirm")?.checked===true;
     if(!rights){say("Please confirm you own or have permission to edit and republish this video.");return}
     if(!/^https:\/\//i.test(url)){say("Paste a full public HTTPS source video URL first.");return}
+    const clips=Number(byId("clips-count")?.value),min=Number(byId("min-seconds")?.value),max=Number(byId("max-seconds")?.value);
+    if(!Number.isInteger(clips)||clips<1||clips>10||!Number.isInteger(min)||!Number.isInteger(max)||min<15||max>60||min>max){
+      say("Choose 1–10 clips and min/max seconds between 15–60. Set both to 30 to request exact 30-second clips.");return;
+    }
     const ownerKey=key.value;
     if(ownerKey.length<24){say("Enter your configured owner access key. Never paste your GitHub token here.");return}
     busy=true;start.disabled=true;say("Submitting an authenticated render request to the secure backend…");
@@ -74,7 +78,7 @@
       let data={};try{data=await response.json()}catch(_){}
       key.value="";
       if(!response.ok||data.accepted!==true)throw Error(data.error||"Render backend refused the request (HTTP "+response.status+").");
-      say("Request accepted by GitHub. This is not a finished Short yet. Open RESULTS in CutNova to check the actual run and its downloadable files. Social platforms can still block access.");
+      say("AI job queued for "+clips+" requested clips ("+min+"–"+max+" sec). GitHub will attempt AI speech/scene analysis, MP4 rendering and an editable Creator Pack with hooks, captions, descriptions and hashtags per clip. Open RESULTS to verify actual artifacts. Platforms may still block source downloads.");
       location.hash="#render-history";
     }catch(error){
       key.value="";
