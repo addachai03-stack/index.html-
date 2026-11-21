@@ -66,6 +66,8 @@ jobs:
           node tests/test_results_ui.cjs
           node --check editor.js
           node tests/test_editor.cjs
+          node --check export-check.js
+          node tests/test_export_check.cjs
           node --check pwa.js
           node --check refresh.js
           node --check nav.js
