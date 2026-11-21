@@ -12,6 +12,7 @@ from studio import validate_url
 from premium import normalize_style
 from smartcrop import normalize_crop_mode
 from speech_quality import normalize_language
+from github_media import is_github_attachment_url
 
 
 FORM_LABELS = {
@@ -24,6 +25,7 @@ FORM_LABELS = {
     "Speech language": "LANGUAGE",
 }
 RIGHTS_LABEL = "Content ownership and permission"
+UPLOAD_LABEL = "Upload your video file"
 RIGHTS_TEXT = "I own this video or have permission to edit and republish its content."
 
 
@@ -42,10 +44,33 @@ def issue_form_fields(body: str) -> dict[str, str]:
             if mapped in fields:
                 raise ValueError("Duplicate Issue form field: " + label)
             if not value or value == "_No response_":
+                if mapped == "URL":
+                    continue
                 raise ValueError("Missing Issue form field: " + label)
             if "\n" in value or "\r" in value:
                 raise ValueError("Each Issue form field must have one line.")
             fields[mapped] = value
+        elif label == UPLOAD_LABEL:
+            if "UPLOAD" in fields:
+                raise ValueError("Duplicate GitHub video upload section.")
+            if not value or value == "_No response_":
+                continue
+            if len(value) > 1100:
+                raise ValueError("Uploaded video reference is too long.")
+            # A GitHub upload field can return a plain URL or a Markdown
+            # [filename.mp4](https://github.com/user-attachments/assets/UUID).
+            # Accept exactly one official attachment link and no other links.
+            urls = re.findall(
+                r"https://github\.com/user-attachments/assets/"
+                r"[a-fA-F0-9-]{36}/?(?:\?[a-zA-Z0-9_=&%.-]+)?",
+                value
+            )
+            if len(urls) != 1 or len(re.findall(r"https?://", value)) != 1:
+                raise ValueError("Upload exactly one GitHub video attachment.")
+            attachment = urls[0]
+            if not is_github_attachment_url(attachment):
+                raise ValueError("Only public GitHub user-attachments video links accepted.")
+            fields["UPLOAD"] = attachment
         elif label == RIGHTS_LABEL:
             checked = re.search(r"(?im)^\s*-\s*\[[x]\]\s+" + re.escape(RIGHTS_TEXT) + r"\s*$", value)
             fields["RIGHTS"] = "YES" if checked else "NO"
@@ -68,12 +93,14 @@ def parse_issue(body: str) -> dict:
         fields = legacy_fields(body)
     else:
         fields = issue_form_fields(body)
-    expected = ("URL", "CLIPS", "MIN_SECONDS", "MAX_SECONDS", "RIGHTS")
+    expected = ("CLIPS", "MIN_SECONDS", "MAX_SECONDS", "RIGHTS")
     if not all(k in fields for k in expected):
-        raise ValueError("Missing required URL, clip settings or rights confirmation.")
+        raise ValueError("Missing required clip settings or rights confirmation.")
+    if bool(fields.get("URL")) == bool(fields.get("UPLOAD")):
+        raise ValueError("Choose exactly ONE source: Video URL OR GitHub video attachment.")
     if fields["RIGHTS"].upper() != "YES":
         raise ValueError("Content ownership or edit permission is required.")
-    url = validate_url(fields["URL"])
+    url = validate_url(fields.get("URL") or fields["UPLOAD"])
     raw_style = fields.get("STYLE", "engagement").strip().lower()
     display_styles = {
         "engagement — strong hooks and reveals": "engagement",
