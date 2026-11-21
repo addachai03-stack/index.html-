@@ -1,5 +1,14 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V3.7 — Real local iPhone editor export test (no uploaded footage)
+
+The EDITOR now has **PREPARE FULL EXPORT TEST VIDEO** below the 1-second device compatibility check. A user tap creates a NEW five-second original synthetic video + sine audio **inside the phone browser** (no Photos access, no GitHub/cloud upload), passes that temporary video through the same `cutnova:open-cut` event bridge as the real local editor, and requests a 0–3-second trim. This intentionally does not accept editing rights, start a render, or download automatically. The user confirms rights explicitly, taps **EXPORT SHORT**, then **DOWNLOAD SHORT** and plays the file on their device to test the complete path. Browser interruption, missing media metadata or unsupported codecs are reported as failures, not successes.
+
+Headless mobile Chromium E2E (GitHub Actions `CutNova - Read-Only Mobile Browser QA` run 44947716484) independently verified actual source generation → editor import → portrait recording → MP4 download: 720×1280, 2.934 seconds, with audio, 171,006 bytes. Headless WebKit passed read-only UI/navigation but **did not support MediaRecorder**, so it did not pass the full export test. This is not a physical iPhone Safari test. A previously user-reported one-second native iPhone test recorded a 12 KiB MP4, but the longer real export and Files saving are still pending user-side confirmation.
+
+Important: a valid `.mp4` container **does not prove H.264/AAC encoding or Instagram/TikTok upload compatibility**. In the automated Chromium proof, inspecting the actual MP4 revealed VP9 video + Opus audio; some platforms/devices may reject this combination. CutNova now explicitly tells users to verify downloaded file playback and social-platform acceptance, rather than promising universal MP4 support. The authorized GitHub owner AI renderer is a separate H.264/AAC-capable server route; do not assume private iPhone Files can be uploaded through it or that platform-blocked social URLs are downloadable.
+
+
 ## V3.3 — Verified real ZIP download status, owner-first
 
 The **RESULTS** tab automatically inspects GitHub Actions artifact metadata for *only* a session-matched successful Owner render. It displays a verified GitHub ZIP archive link, size (binary **MiB**) and expiration. Downloads may still require GitHub sign-in. A run marked successful **does not** by itself establish that the archive exists or that the ZIP contains playable MP4s; users should inspect actual clips after downloading. Missing, expired and unavailable archives do not get fabricated download links. Artifacts expiring in the next 24 hours show an urgent but accurate warning.
