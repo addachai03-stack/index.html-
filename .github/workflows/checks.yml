@@ -5,6 +5,7 @@ on:
     paths:
       - "studio.py"
       - "app.js"
+      - "jobs.js"
       - "index.html"
       - "styles.css"
       - "tests/**"
@@ -32,3 +33,5 @@ jobs:
         run: |
           node --check app.js
           node tests/test_dashboard.cjs
+          node --check jobs.js
+          node tests/test_jobs.cjs
