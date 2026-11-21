@@ -199,3 +199,6 @@ button:disabled{cursor:not-allowed;opacity:.5}
 
 /* Local effect controls and shared render canvas */
 .edit-preview canvas{width:100%;height:100%;display:block}.edit-source{margin:12px 0;color:var(--muted);font-size:12px}.edit-source video{display:block;width:100%;max-height:220px;background:#000;margin-top:8px}.edit-effects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:15px 0}.edit-effects label{display:grid;gap:8px;font-weight:700;font-size:11px;min-width:0}.edit-effects input[type=range]{width:100%;accent-color:var(--lime)}.edit-effects select,.edit-effects input[type=text]{width:100%;min-width:0;background:var(--panel2);color:var(--ink);border:1px solid var(--border);padding:12px;border-radius:8px;font-size:16px}.edit-text-label{grid-column:1/-1}.edit-effects output{color:var(--muted);font-size:11px}.edit-effects .btn{min-height:44px}@media(max-width:400px){.edit-effects{gap:10px}}
+
+/* Local audio mixer */
+.edit-audio{border:1px solid var(--border);border-radius:12px;padding:14px;margin:16px 0;background:var(--panel2)}.edit-audio h3{font-size:17px;margin:0 0 10px}.edit-audio .audio-check{display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.4;min-height:44px}.edit-audio .audio-check input{width:20px;height:20px;accent-color:var(--lime);flex-shrink:0}#edit-music-status{overflow-wrap:anywhere}

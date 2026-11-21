@@ -60,7 +60,19 @@
     if(line)result.push(line);
     return result;
   }
-  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,settings,durationValid,applyPixels,textLines};return}
+  function mixGains(original,music,muted,hasMusic){
+    const a=muted?0:bounded(original,0,100,100)/100;
+    const b=hasMusic?bounded(music,0,100,20)/100:0;
+    const headroom=Math.max(1,a+b);
+    return {original:a/headroom,music:b/headroom};
+  }
+  function musicOffset(sourceTime,clipStart,speed,musicDuration,loop){
+    if(!Number.isFinite(musicDuration)||musicDuration<=0||speed<=0)return null;
+    const elapsed=Math.max(0,(sourceTime-clipStart)/speed);
+    if(loop)return elapsed%musicDuration;
+    return elapsed<musicDuration?elapsed:null;
+  }
+  if(typeof module!=="undefined"&&module.exports){module.exports={rangeValid,cover,supportedType,settings,durationValid,applyPixels,textLines,mixGains,musicOffset};return}
   const id=name=>document.getElementById(name);
   const file=id("edit-file"),video=id("edit-video"),start=id("edit-start"),end=id("edit-end"),
     preview=id("edit-play"),save=id("edit-export"),cancel=id("edit-cancel"),
@@ -68,10 +80,13 @@
     progress=id("edit-progress"),fields=id("edit-fields"),durationLabel=id("edit-duration"),
     rights=id("edit-rights"),format=id("edit-format"),output=id("edit-output"),
     brightness=id("edit-brightness"),contrast=id("edit-contrast"),preset=id("edit-preset"),speed=id("edit-speed"),
-    overlay=id("edit-text"),position=id("edit-position"),reset=id("edit-reset-effects");
+    overlay=id("edit-text"),position=id("edit-position"),reset=id("edit-reset-effects"),
+    musicFile=id("edit-music-file"),musicVolume=id("edit-music-volume"),originalVolume=id("edit-original-volume"),
+    mute=id("edit-mute"),loop=id("edit-music-loop"),removeMusic=id("edit-remove-music"),musicStatus=id("edit-music-status");
   if(!file||!video)return;
   let sourceUrl="",outputUrl="",audioContext=null,audioSource=null,audioDestination=null;
-  let busy=false,previewEnd=null,recorder=null,aborted=false,finish=null,raf=0,stalledTimer=0;
+  let busy=false,preparing=false,previewEnd=null,recorder=null,aborted=false,finish=null,raf=0,stalledTimer=0;
+  let originalGain=null,musicGain=null,mixBus=null,music=null,musicBuffer=null,musicNode=null,mixStart=null;
   const canvas=id("edit-canvas");
   const buffer=document.createElement("canvas");buffer.width=360;buffer.height=640;
   const bctx=buffer.getContext("2d",{alpha:false,willReadFrequently:true});
@@ -90,11 +105,16 @@
   function update(){
     const d=video.duration;
     const ready=Number.isFinite(d)&&d>0;
-    file.disabled=busy;start.disabled=busy;end.disabled=busy;rights.disabled=busy;
-    [brightness,contrast,preset,speed,overlay,position,reset].forEach(el=>el.disabled=busy);
+    const locked=busy||preparing;
+    file.disabled=locked;start.disabled=locked;end.disabled=locked;rights.disabled=locked;
+    [musicFile,musicVolume,originalVolume,mute,loop].forEach(el=>el.disabled=locked||!Audio);
+    removeMusic.disabled=locked||!music;
+    id("edit-original-volume-value").textContent=mute.checked?"Muted":originalVolume.value+"%";
+    id("edit-music-volume-value").textContent=musicVolume.value+"%";
+    [brightness,contrast,preset,speed,overlay,position,reset].forEach(el=>el.disabled=locked);
     id("edit-brightness-value").textContent=brightness.value+"%";id("edit-contrast-value").textContent=contrast.value+"%";
-    preview.disabled=busy||!ready||!valid();
-    save.disabled=busy||!ready||!valid()||!compatible||!rights.checked;
+    preview.disabled=locked||!ready||!valid();
+    save.disabled=locked||!ready||!valid()||!compatible||!rights.checked;
     cancel.disabled=!busy;
     durationLabel.textContent=valid()?((Number(end.value)-Number(start.value))/options().speed).toFixed(2)+" sec estimated output at "+options().speed+"×":"Select a valid trim with 1–60 seconds output";
   }
@@ -103,7 +123,57 @@
     if(outputUrl)URL.revokeObjectURL(outputUrl);
     outputUrl="";result.hidden=true;download.removeAttribute("href");
   }
-  function resetPreview(){previewEnd=null;video.pause();cancelAnimationFrame(previewRaf)}
+  function stopMusic(){
+    if(musicNode){try{musicNode.stop()}catch(_){};try{musicNode.disconnect()}catch(_){};musicNode=null;}
+  }
+  function resetPreview(){previewEnd=null;mixStart=null;stopMusic();video.pause();cancelAnimationFrame(previewRaf)}
+  function applyMix(){
+    if(!originalGain||!musicGain)return;
+    const g=mixGains(originalVolume.value,musicVolume.value,mute.checked,!!music);
+    originalGain.gain.value=g.original;musicGain.gain.value=g.music;
+  }
+  async function prepareMusic(){
+    if(!music||musicBuffer)return;
+    musicStatus.textContent="Decoding local audio…";
+    try{
+      const decoded=await audioContext.decodeAudioData(await music.arrayBuffer());
+      if(!decoded||!Number.isFinite(decoded.duration)||decoded.duration<=0||decoded.duration>600)throw Error("Choose an audio file no longer than 10 minutes.");
+      musicBuffer=decoded;
+      musicStatus.textContent=music.name+" · "+decoded.duration.toFixed(1)+" s · ready";
+    }catch(error){
+      musicStatus.textContent="Audio could not be decoded. Remove it or try a different file.";
+      throw Error("Background music unavailable: "+(error.message||"decode failed"));
+    }
+  }
+  function startMusic(){
+    stopMusic();
+    if(mixStart===null||!musicBuffer||!audioContext||!musicGain||video.paused)return;
+    const offset=musicOffset(video.currentTime,mixStart,options().speed,musicBuffer.duration,loop.checked);
+    if(offset===null)return;
+    musicNode=audioContext.createBufferSource();musicNode.buffer=musicBuffer;musicNode.loop=loop.checked;
+    musicNode.connect(musicGain);musicNode.start(0,offset);
+  }
+  function clearMusic(){
+    stopMusic();music=null;musicBuffer=null;musicFile.value="";
+    musicStatus.textContent="No background track selected.";applyMix();update();
+  }
+  musicFile.addEventListener("change",()=>{
+    if(busy||preparing)return;
+    resetPreview();clearOutput();musicBuffer=null;music=null;
+    const chosen=musicFile.files[0];
+    if(chosen&&chosen.size<=20*1024*1024){music=chosen;musicStatus.textContent=chosen.name+" · selected; decode on preview/export.";}
+    else{musicFile.value="";musicStatus.textContent=chosen?"Choose audio under 20 MB.":"No background track selected.";}
+    applyMix();update();
+  });
+  removeMusic.addEventListener("click",()=>{if(!busy&&!preparing){resetPreview();clearOutput();clearMusic()}});
+  [musicVolume,originalVolume,mute,loop].forEach(el=>el.addEventListener("input",()=>{
+    if(!busy&&!preparing){resetPreview();clearOutput();applyMix();update()}
+  }));
+  video.addEventListener("playing",()=>{try{startMusic()}catch(error){if(busy&&finish)finish(true);else resetPreview();say("Music playback unavailable: "+error.message)}});
+  video.addEventListener("waiting",stopMusic);
+  video.addEventListener("pause",stopMusic);
+  video.addEventListener("seeking",stopMusic);
+  video.addEventListener("seeked",()=>{if(!video.paused)startMusic()});
   function seek(t){
     return new Promise((resolve,reject)=>{
       if(Math.abs(video.currentTime-t)<.035){resolve();return}
@@ -117,8 +187,8 @@
     })
   }
   file.addEventListener("change",()=>{
-    if(busy)return;
-    resetPreview();clearOutput();rights.checked=false;fields.hidden=true;
+    if(busy||preparing)return;
+    resetPreview();clearOutput();rights.checked=false;fields.hidden=true;clearMusic();
     if(ctx)ctx.clearRect(0,0,720,1280);
     video.removeAttribute("src");video.load();
     if(sourceUrl)URL.revokeObjectURL(sourceUrl);
@@ -155,21 +225,26 @@
   });
   video.addEventListener("pause",()=>{cancelAnimationFrame(previewRaf);if(!busy)paint()});
   preview.addEventListener("click",async()=>{
-    if(!valid()||busy)return;
+    if(!valid()||busy||preparing)return;
+    preparing=true;update();
     try{
-      resetPreview();setSpeed();await seek(Number(start.value));previewEnd=Number(end.value);
-      await video.play();say("Previewing edited 9:16 selection.");
-    }catch(e){previewEnd=null;say(e.message||"Preview could not start")}
+      resetPreview();setSpeed();
+      if(Audio){await initAudio();await prepareMusic()}
+      else if(music||mute.checked||originalVolume.value!=="100")throw Error("Audio mixing unavailable in this browser");
+      await seek(Number(start.value));previewEnd=Number(end.value);mixStart=Number(start.value);
+      await video.play();say("Previewing edited 9:16 selection and audio mix.");
+    }catch(e){resetPreview();say(e.message||"Preview could not start")}
+    finally{preparing=false;update()}
   });
   video.addEventListener("timeupdate",()=>{
-    if(previewEnd!==null&&video.currentTime>=previewEnd){video.pause();previewEnd=null}
+    if(previewEnd!==null&&video.currentTime>=previewEnd){resetPreview()}
     if(busy&&finish){
       const elapsed=Math.max(0,video.currentTime-Number(start.value));
       progress.value=Math.min(100,elapsed/(Number(end.value)-Number(start.value))*100);
       if(video.currentTime>=Number(end.value)-.02)finish(false);
     }
   });
-  video.addEventListener("ended",()=>{if(busy&&finish)finish(false)});
+  video.addEventListener("ended",()=>{stopMusic();if(busy&&finish)finish(false);else mixStart=null});
   // Keep output audio connected to the selected local video. Reuse the
   // media-element source (a media element can only have one per context).
   function initAudio(){
@@ -177,8 +252,9 @@
       audioContext=new Audio();
       audioSource=audioContext.createMediaElementSource(video);
       audioDestination=audioContext.createMediaStreamDestination();
-      audioSource.connect(audioDestination);
-      audioSource.connect(audioContext.destination);
+      originalGain=audioContext.createGain();musicGain=audioContext.createGain();mixBus=audioContext.createGain();
+      audioSource.connect(originalGain);originalGain.connect(mixBus);musicGain.connect(mixBus);
+      mixBus.connect(audioDestination);mixBus.connect(audioContext.destination);applyMix();
     }
     return audioContext.resume();
   }
@@ -205,7 +281,7 @@
     }
   }
   save.addEventListener("click",async()=>{
-    if(busy||!compatible||!valid()||!rights.checked)return;
+    if(busy||preparing||!compatible||!valid()||!rights.checked)return;
     // Start AudioContext from the user's click; never silently export
     // without the browser's required audio support.
     busy=true;aborted=false;progress.value=0;resetPreview();clearOutput();update();
@@ -213,12 +289,12 @@
     const [a,b]=times();
     const cleanup=()=>{
       clearTimeout(stalledTimer);cancelAnimationFrame(raf);
-      finish=null;video.pause();video.controls=true;
+      finish=null;mixStart=null;stopMusic();video.pause();video.controls=true;
       tracks.forEach(track=>track.stop());
       busy=false;recorder=null;update();
     };
     try{
-      await initAudio();setSpeed();await seek(a);
+      await initAudio();await prepareMusic();setSpeed();await seek(a);
       if(aborted){cleanup();say("Export cancelled.");return}
       paint();
       stream=canvas.captureStream(25);
@@ -250,7 +326,7 @@
       };
       finish=(failed)=>{
         if(!finish)return;
-        finish=null;aborted=aborted||failed;video.pause();cancelAnimationFrame(raf);
+        finish=null;aborted=aborted||failed;mixStart=null;stopMusic();video.pause();cancelAnimationFrame(raf);
         clearTimeout(stalledTimer);
         if(rec.state!=="inactive")rec.stop();else cleanup();
       };
@@ -261,8 +337,9 @@
         if(video.currentTime>=b-.02){finish(false);return}
         raf=requestAnimationFrame(draw);
       };
+      mixStart=a;
       rec.start(500);
-      say("Recording in real time. Keep this page open and screen awake.");
+      say("Recording edited video and audio mix in real time. Keep this page open and screen awake.");
       await video.play();raf=requestAnimationFrame(draw);
       // Reject stalls rather than handing back a silently truncated file.
       stalledTimer=setTimeout(()=>{if(finish){finish(true);say("Export timed out. Try a shorter clip.")}},((b-a)/options().speed+20)*1000);

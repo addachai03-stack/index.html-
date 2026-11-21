@@ -15,7 +15,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.1</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.2</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -94,9 +94,22 @@
             <label>TEXT POSITION<select id="edit-position"><option value="bottom">Bottom</option><option value="top">Top</option></select></label>
             <button id="edit-reset-effects" class="btn btn-outline" type="button">RESET EFFECTS</button>
           </div>
+          <div class="edit-audio">
+            <h3>Audio mixer</h3>
+            <label class="edit-file-label">BACKGROUND MUSIC (optional)<input id="edit-music-file" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg"/></label>
+            <p id="edit-music-status" class="footnote" aria-live="polite">No background track selected.</p>
+            <div class="edit-effects">
+              <label>ORIGINAL AUDIO <output id="edit-original-volume-value">100%</output><input id="edit-original-volume" type="range" min="0" max="100" value="100" step="5"/></label>
+              <label>MUSIC VOLUME <output id="edit-music-volume-value">20%</output><input id="edit-music-volume" type="range" min="0" max="100" value="20" step="5"/></label>
+              <label class="audio-check"><input type="checkbox" id="edit-mute"/> Mute original audio</label>
+              <label class="audio-check"><input type="checkbox" id="edit-music-loop" checked/> Loop background music</label>
+              <button id="edit-remove-music" class="btn btn-outline" type="button" disabled>REMOVE MUSIC</button>
+            </div>
+            <p class="footnote">Use music you own or may use. Local audio up to 20 MB and 10 minutes. Mix starts at the selected trim; track loops if enabled. Combined gain is limited to reduce clipping. Preview before export.</p>
+          </div>
           <div class="edit-trim"><label>START (seconds)<input id="edit-start" type="number" min="0" step="0.01" inputmode="decimal" value="0"/></label><label>END (seconds)<input id="edit-end" type="number" min="1" step="0.01" inputmode="decimal" value="15"/></label></div>
           <p id="edit-duration" class="footnote"></p>
-          <label class="rights"><input type="checkbox" id="edit-rights"/><span>I own or have permission to edit this video.</span></label>
+          <label class="rights"><input type="checkbox" id="edit-rights"/><span>I own or have permission to edit the video and selected audio.</span></label>
           <p id="edit-format" class="footnote"></p>
           <div class="history-toolbar"><button class="btn btn-outline" id="edit-play" type="button" disabled>PLAY SELECTION</button><button class="btn btn-lime" id="edit-export" type="button" disabled>EXPORT SHORT</button><button class="btn btn-outline" id="edit-cancel" type="button" disabled>CANCEL</button></div>
           <progress id="edit-progress" max="100" value="0" aria-label="Export playback progress"></progress>

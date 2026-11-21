@@ -202,3 +202,7 @@ The website now has a separate local video editor. Select a local file (up to 50
 ## V2.1 — Local editor effects
 
 Choose Original, Vivid, Warm or Black & White; adjust brightness and contrast, set 0.75–2× playback speed, and add up to 80 characters of text at top or bottom. The same canvas draws the preview and recorded output. Non-default color effects use a 360×640 pixel buffer upscaled to 720×1280 for mobile compatibility. Export duration is estimated from selected source length and speed, restricted to 1–60 seconds. Playback/recording and audio pitch support vary by browser; this is not a frame-exact offline export. Preview on an actual device before relying on the result.
+
+## V2.2 — On-device audio mixer
+
+Select your authorized local audio file (up to 20 MB, decoded duration at most ten minutes). Independently control original sound and background music, mute the original, optionally loop the track, or remove it. The same Web Audio mix is routed to monitoring and the recorder; playback and recording restart music at the selected trim's output-time offset with speed adjustment. Combined gain is normalized to avoid excessive summing. Files are not uploaded by this editor. Browser decoding and audio recording support vary; interrupted or real-time recording requires review for timing and sound quality. No bundled copyrighted music or paid music service.

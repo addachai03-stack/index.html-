@@ -32,3 +32,15 @@ applyPixels(bright,{brightness:120});assert.equal(bright[0],120);
 assert.deepEqual(textLines("one two three",t=>t.length,7),["one two","three"]);
 for(const id of ["edit-canvas","edit-brightness","edit-contrast","edit-preset","edit-speed","edit-text","edit-position","edit-reset-effects"])assert.ok(html.includes('id="'+id+'"'));
 console.log("PASS: color pixels, speed bounds, overlay wrapping and effect controls.");
+
+const {mixGains,musicOffset}=require("../editor.js");
+assert.deepEqual(mixGains(100,20,false,false),{original:1,music:0});
+assert.deepEqual(mixGains(100,40,true,true),{original:0,music:.4});
+assert.deepEqual(mixGains(100,100,false,true),{original:.5,music:.5});
+assert.deepEqual(mixGains(-20,150,false,true),{original:0,music:1});
+assert.equal(musicOffset(14,10,2,10,false),2);
+assert.equal(musicOffset(16,10,1,4,true),2);
+assert.equal(musicOffset(16,10,1,4,false),null);
+assert.equal(musicOffset(10,10,1,0,true),null);
+for(const id of ["edit-music-file","edit-music-volume","edit-original-volume","edit-mute","edit-music-loop","edit-remove-music","edit-music-status"])assert.ok(html.includes('id="'+id+'"'));
+console.log("PASS: audio gain bounds, mute, headroom, speed-adjusted offset, loop and UI.");
