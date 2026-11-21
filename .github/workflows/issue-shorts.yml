@@ -84,11 +84,26 @@ jobs:
             const page = 'https://github.com/' + context.repo.owner + '/' +
               context.repo.repo + '/actions/runs/' + context.runId;
             const success = '${{ job.status }}' === 'success';
+            const fs = require('fs');
+            let reason = '';
+            try {
+              const report = JSON.parse(fs.readFileSync('output/report.json', 'utf8'));
+              reason = String(report.error || '');
+            } catch (error) { /* Parsing or preflight may have failed before report exists. */ }
+            const blocked = /sign in to confirm|confirm you.re not a bot/i.test(reason);
+            const githubMediaError = /github video attachment|github uploaded video|github returned a webpage/i.test(reason.toLowerCase());
+            const uploadForm = 'https://github.com/' + context.repo.owner + '/' +
+              context.repo.repo + '/issues/new?template=cutnova-shorts.yml';
+            const failureGuide = blocked
+              ? 'YouTube blocked GitHub access (bot verification). **No MP4 was generated.** Do not share cookies or passwords. If you own the video, export the original MP4 and [upload it from your iPhone using the GitHub form](' + uploadForm + '). The Issue/uploaded file will be PUBLIC (GitHub video limit 100 MB).'
+              : githubMediaError
+                ? 'Your attached video was not accessible to the runner. Verify the GitHub public attachment is complete, under 100 MB, and your issue includes exactly one source.'
+                : 'Check the error report and logs. Social websites sometimes block downloads, and no login/DRM bypass is used. You may [upload a public-to-share MP4 directly on GitHub](' + uploadForm + ').';
             const body = success
               ? '✅ **CutNova Shorts processing complete.** Open [this GitHub Actions run](' + page +
                 ') and download the **cutnova-issue** ZIP under Artifacts. Review MP4 and ASR captions before publishing.'
-              : '⚠️ **CutNova could not finish the Shorts request.** Check [the run logs and output report](' +
-                page + '). Public platforms can block downloads and no login/DRM bypass is used.';
+              : '⚠️ **CutNova request failed.** [Read this run and diagnostics](' + page +
+                '). ' + failureGuide;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
