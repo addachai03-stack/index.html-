@@ -1,6 +1,6 @@
 /* Cache only the versioned public app shell, never user video, audio,
    GitHub API responses, uploads, credentials or external pages. */
-const CACHE="cutnova-shell-v3.0-url-first-failure-diagnostics";
+const CACHE="cutnova-shell-v3.1-secure-owner-connection";
 const ROOT=new URL("./",self.location.href);
 const SHELL=["./","./index.html","./styles.css","./app.js","./owner-render.js","./jobs.js","./editor.js","./pwa.js","./nav.js","./launch.js","./manifest.webmanifest","./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png"].map(p=>new URL(p,ROOT).href);
 const ALLOWED=new Set(SHELL);
