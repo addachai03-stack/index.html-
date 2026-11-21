@@ -15,7 +15,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V1.1</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V1.2</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -74,13 +74,24 @@
           </div>
         </div>
       </section>
+      <section class="studio-card job-center" id="render-history">
+        <div class="section-head"><span class="section-number">02 / RENDER HISTORY</span><span class="section-pill"><i></i> GITHUB ACTIONS</span></div>
+        <h2>Your <span>render results.</span></h2>
+        <p class="section-sub">Recent public CutNova video jobs from GitHub. A successful run opens the actual MP4 ZIP artifacts; sign into GitHub if required. No estimated progress or fake exports.</p>
+        <div class="history-toolbar">
+          <button class="btn btn-outline" type="button" id="refresh-jobs">REFRESH STATUS ↻</button>
+          <a class="btn btn-outline" href="https://github.com/addachai03-stack/index.html-/actions" target="_blank" rel="noopener noreferrer">OPEN ACTIONS ↗</a>
+        </div>
+        <p id="job-status" role="status" aria-live="polite">Checking GitHub Actions…</p>
+        <div id="job-results"></div>
+      </section>
       <section id="example-shortcuts" class="highlights">
-        <div class="section-head"><span class="section-number">02 / REFERENCE CUTS</span><span class="section-pill secondary-pill">VERIFIED TRANSCRIPT EXAMPLE</span></div>
+        <div class="section-head"><span class="section-number">03 / REFERENCE CUTS</span><span class="section-pill secondary-pill">VERIFIED TRANSCRIPT EXAMPLE</span></div>
         <div class="highlights-top"><div><h2>What <em>premium cuts</em> look like.</h2><p>Six curated timing examples from the cartoon-voice YouTube video. These are editorial suggestions, not automatic results for unrelated URLs.</p></div><span class="cut-counter">06 <small>CUT IDEAS</small></span></div>
         <div id="example-cuts" class="cut-grid"></div>
       </section>
       <section class="steps-section">
-        <div class="section-head"><span class="section-number">03 / HOW IT WORKS</span><span class="section-pill">NO LAPTOP</span></div>
+        <div class="section-head"><span class="section-number">04 / HOW IT WORKS</span><span class="section-pill">NO LAPTOP</span></div>
         <h2>Real clips. <em>Not fake downloads.</em></h2>
         <div class="steps-grid">
           <article class="step-card"><span>01</span><h3>Paste & check</h3><p>Paste an authorized public HTTPS URL, or upload your own video to a public GitHub Issue.</p></article>
@@ -94,5 +105,6 @@
     <footer class="footer"><span>✂ CUTNOVA <b>© 2026</b></span><span>BUILT FOR CREATORS · iPHONE FIRST</span><a href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a></footer>
   </div>
   <script type="module" src="./app.js"></script>
+  <script defer src="./jobs.js"></script>
 </body>
 </html>
