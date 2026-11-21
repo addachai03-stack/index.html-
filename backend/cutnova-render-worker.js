@@ -31,7 +31,7 @@ export default {
   async fetch(request,env){
     const u=new URL(request.url),origin=request.headers.get("Origin");
     if(u.pathname==="/health"&&request.method==="GET")return reply({service:"CutNova render bridge",status:"online",configured:!!(env.CUTNOVA_GITHUB_TOKEN&&env.CUTNOVA_OWNER_KEY),mode:"owner-only"},200,origin===ORIGIN);
-    if(u.pathname!=="/render")return reply({error:"Not found"},404);
+    if(u.pathname!=="/render"&&u.pathname!=="/verify")return reply({error:"Not found"},404);
     if(origin!==ORIGIN)return reply({error:"This endpoint is only used by CutNova."},403);
     if(request.method==="OPTIONS"){
       return new Response(null,{status:204,headers:{"access-control-allow-origin":ORIGIN,"access-control-allow-methods":"POST, OPTIONS","access-control-allow-headers":"content-type, x-cutnova-owner-key","access-control-max-age":"600","vary":"Origin"}});
@@ -39,6 +39,25 @@ export default {
     if(request.method!=="POST")return reply({error:"Method not allowed"},405,true);
     if(!env.CUTNOVA_GITHUB_TOKEN||!env.CUTNOVA_OWNER_KEY)return reply({error:"Owner rendering not configured. GitHub token and owner key must be stored as Cloudflare Worker secrets."},503,true);
     if(!(await equalSecret(request.headers.get("x-cutnova-owner-key"),env.CUTNOVA_OWNER_KEY)))return reply({error:"Owner key not accepted."},401,true);
+    if(u.pathname==="/verify"){
+      // Read-only check: never dispatch an Action, access files, or reveal credentials.
+      try{
+        const r=await fetch("https://api.github.com/repos/"+REPO+"/actions/workflows/shorts.yml",{
+          method:"GET",
+          headers:{"Authorization":"Bearer "+env.CUTNOVA_GITHUB_TOKEN,
+            "Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",
+            "User-Agent":"CutNova-owner-verify"}
+        });
+        if(r.status===401||r.status===403)return reply({verified:false,error:"GitHub credential rejected or lacks access. Check token expiry and Actions permissions."},502,true);
+        if(r.status===404)return reply({verified:false,error:"GitHub Shorts workflow not found or not accessible with this token."},502,true);
+        if(!r.ok)return reply({verified:false,error:"GitHub workflow check failed (HTTP "+r.status+"). No job was started."},502,true);
+        let workflow={};try{workflow=await r.json()}catch{return reply({verified:false,error:"GitHub returned an invalid workflow response."},502,true)}
+        if(workflow.path!==".github/workflows/shorts.yml"||workflow.state!=="active")
+          return reply({verified:false,error:"GitHub workflow is missing or not active. No job was started."},502,true);
+        return reply({verified:true,owner_key_accepted:true,github_workflow_reachable:true,
+          no_render_started:true,message:"Owner key accepted. GitHub workflow is active and reachable. This did not start or prove a video render."},200,true);
+      }catch{return reply({verified:false,error:"GitHub workflow could not be reached. No render started."},502,true)}
+    }
     if(Number(request.headers.get("content-length")||0)>6000)return reply({error:"Request too large."},413,true);
     let v;try{v=await request.json()}catch{return reply({error:"Invalid JSON request."},400,true)}
     if(!v||typeof v!=="object"||!validSource(v.url)||v.rights_confirm!==true)return reply({error:"Use a public authorized video HTTPS link and confirm editing rights."},400,true);
