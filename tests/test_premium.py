@@ -5,7 +5,7 @@ from pathlib import Path
 
 from premium import (
     create_creator_pack, distribute_subtitles, highlight_bonus, normalize_style,
-    text_fragments,
+    text_fragments, build_creator_records, topic_hashtags, creator_hook,
 )
 from studio import Candidate, Segment, captions_for, pick_clips
 
@@ -98,6 +98,52 @@ class TestPostingGuide(unittest.TestCase):
             txt = guide.read_text(encoding="utf-8")
             self.assertIn("No — review visuals manually", txt)
             self.assertIn("Story moment", txt)
+
+
+class TestCreatorCopy(unittest.TestCase):
+    def test_two_distinct_source_aware_post_packs(self):
+        cuts = [
+            Candidate(4, 34, .82, "source", "Did you know? The river crossing requires careful planning near the mountain.", "speech"),
+            Candidate(44, 74, .71, "source", "Camera settings changed our landscape photography forever. The camera captures the light.", "speech"),
+        ]
+        records = build_creator_records(cuts, "facts", "https://example.com/owned-video.mp4")
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["length_seconds"], 30)
+        self.assertIn("river", records[0]["hashtags"])
+        self.assertIn("camera", records[1]["hashtags"])
+        self.assertNotEqual(records[0]["hashtags"], records[1]["hashtags"])
+        for row in records:
+            self.assertIn("caption", row)
+            self.assertIn("description", row)
+            self.assertIn("hook", row)
+            self.assertTrue(row["source_speech_detected"])
+            self.assertTrue(all(h in row["caption"] for h in row["hashtags"].split()))
+        with tempfile.TemporaryDirectory() as folder:
+            folder = Path(folder)
+            create_creator_pack(cuts, folder, "facts", "https://example.com/owned-video.mp4", records)
+            self.assertTrue((folder / "Creator_Pack.json").is_file())
+            self.assertIn("DESCRIPTION", (folder / "short_01_post.txt").read_text(encoding="utf-8"))
+            self.assertIn("#camera", (folder / "short_02_post.txt").read_text(encoding="utf-8"))
+            self.assertIn("Ready-to-edit caption", (folder / "Posting_Guide.md").read_text(encoding="utf-8"))
+
+    def test_missing_speech_has_no_fabricated_topic_or_description(self):
+        cut=Candidate(0, 30, .1, "Scene highlight", "", "timed fallback")
+        row=build_creator_records([cut], "story", "https://example.com/owned.mp4")[0]
+        self.assertEqual(row["topic_keywords"], "")
+        self.assertFalse(row["source_speech_detected"])
+        self.assertIn("Review the footage", row["description"])
+        self.assertNotIn("#river", row["hashtags"])
+        self.assertIn("add a verified hook", row["hook"])
+
+    def test_hindi_and_hinglish_hashtags_are_not_generic_only(self):
+        self.assertIn("#कहानी", topic_hashtags("एक कहानी जिसमें कहानी बदलती है", "story"))
+        self.assertIn("#jaipur", topic_hashtags("Jaipur Jaipur travel sunset view", "engagement"))
+
+    def test_exact_duration_and_source_too_short(self):
+        self.assertTrue(all(round(c.end-c.start, 2)==30 for c in
+                            pick_clips([],[],120,requested=3,min_seconds=30,max_seconds=30)))
+        with self.assertRaises(ValueError):
+            pick_clips([], [], 20, requested=3, min_seconds=30, max_seconds=30)
 
 
 if __name__ == "__main__":
