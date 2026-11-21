@@ -1,5 +1,14 @@
 # CutNova — Premium URL-to-Shorts Studio
 
+## V3.3 — Verified real ZIP download status, owner-first
+
+The **RESULTS** tab automatically inspects GitHub Actions artifact metadata for *only* a session-matched successful Owner render. It displays a verified GitHub ZIP archive link, size (binary **MiB**) and expiration. Downloads may still require GitHub sign-in. A run marked successful **does not** by itself establish that the archive exists or that the ZIP contains playable MP4s; users should inspect actual clips after downloading. Missing, expired and unavailable archives do not get fabricated download links. Artifacts expiring in the next 24 hours show an urgent but accurate warning.
+
+Failed runs do not automatically display a rendered-media download and still offer actual workflow failure-step inspection. Untracked public jobs do not automatically fetch archives. This feature is read-only: no render dispatches or key access. No media files are stored in the user's browser by this change.
+
+Verification: `tests/test_jobs.cjs` checks timestamp-safe artifact validity/expiry and download labels; `tests/test_results_ui.cjs` simulates GitHub's actual response paths to confirm a verified success link, no fabricated missing/expired/failed links, and no unnecessary requests for untracked runs. GitHub Actions `checks.yml` executes these tests.
+
+
 ## V3.1 — Owner connection verification + tracked GitHub requests
 
 The owner rendering panel now includes **VERIFY OWNER CONNECTION · NO RENDER**. On a user click, the browser transmits the private owner key to the existing Cloudflare Worker via HTTPS `POST /verify`; the Worker compares it with `CUTNOVA_OWNER_KEY` and performs a read-only GitHub REST GET to check that the owner-only `.github/workflows/shorts.yml` is reachable and active using `CUTNOVA_GITHUB_TOKEN`. **It cannot start a video render.** The key is cleared from the browser field after each check. Neither key nor token is written to browser storage, logs, or the public repository.
