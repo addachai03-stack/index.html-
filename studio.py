@@ -27,7 +27,7 @@ from animated_captions import write_animated
 from github_media import is_github_attachment_url, download_github_attachment
 from direct_media import download_direct, media_kind
 
-ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
+ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "instagr.am", "facebook.com", "fb.watch", "fb.com",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
                  "twitter.com", "x.com", "archive.org", "remotion.media",
                  "storage.googleapis.com", "cdn.pixabay.com")
@@ -257,6 +257,8 @@ def pick_clips(segments: list[Segment], scenes: list[float], duration: float,
         raise ValueError("Clips count must be 1-10.")
     if not (15 <= min_seconds <= max_seconds <= 60):
         raise ValueError("Clip lengths must be 15-60 sec.")
+    if duration + 0.001 < min_seconds:
+        raise ValueError("Source video is shorter than the selected minimum clip length. Choose a shorter supported length or a longer video.")
     lens = sorted({min_seconds, max_seconds, 20, 30, 45}.intersection(
         range(min_seconds, max_seconds+1)))
     starts = sorted(
