@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - "studio.py"
+      - "social_convert.py"
+      - "direct_media.py"
+      - "github_media.py"
       - "github_media.py"
       - "requirements.txt"
       - "roman_captions.py"
@@ -55,7 +58,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Test engine compilation
-        run: python -m py_compile studio.py
+        run: python -m py_compile studio.py social_convert.py direct_media.py github_media.py
       - name: Install FFmpeg for render proof
         run: |
           command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
