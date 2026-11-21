@@ -172,6 +172,14 @@ button:disabled{cursor:not-allowed;opacity:.5}
 @media(max-width:650px){.iphone-upload{flex-direction:column;align-items:stretch}.iphone-upload .upload-cta{width:100%;text-align:center}}
 
 /* Real GitHub render history */
+.device-export-check{border:1px solid #505f44;border-radius:12px;padding:13px;background:#1c251e;margin:16px 0;min-width:0}
+.export-check-head{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.export-check-head strong{font-size:11px;letter-spacing:.06em;color:var(--lime)}
+.export-check-head button{min-height:43px;font-size:11px}
+#edit-check-status{font-size:12px;color:var(--ink);overflow-wrap:anywhere;margin:10px 0}
+#edit-export-fallback:not([hidden]){display:inline-block;padding:7px 0}
+.device-export-check .footnote{margin:6px 0}
+@media(max-width:800px){.device-export-check{padding:12px}.export-check-head button{width:100%}}
 .job-center{margin-top:24px}
 .results-help{margin:10px 0 0;font-size:12px;color:var(--muted)}
 .results-help summary{display:list-item;cursor:pointer;color:var(--lavender);font-weight:700;padding:7px 0}
