@@ -178,6 +178,11 @@ button:disabled{cursor:not-allowed;opacity:.5}
 .export-check-head button{min-height:43px;font-size:11px}
 #edit-check-status{font-size:12px;color:var(--ink);overflow-wrap:anywhere;margin:10px 0}
 
+.native-share-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 6px}
+.native-share-actions .btn{min-height:46px;justify-content:center}
+.native-share-actions button:disabled{opacity:.55}
+#edit-share-status{font-size:12px;line-height:1.5;overflow-wrap:anywhere;margin:5px 0 13px}
+@media(max-width:800px){.native-share-actions{display:grid;grid-template-columns:1fr}.native-share-actions .btn{width:100%;text-align:center}}
 .saved-file-check{border:1px solid #596b49;background:#1b251e;border-radius:12px;padding:14px;margin:15px 0;display:grid;gap:8px}
 .saved-file-check strong{color:var(--lime);font-size:11px;letter-spacing:.045em}
 .saved-file-check .footnote{margin:0;font-size:12px}
