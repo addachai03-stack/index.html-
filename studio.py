@@ -424,7 +424,7 @@ def main() -> int:
             item["animated_timing_events"] = timing
             item["pacing"] = {"mode":a.pacing,"note":pacing_note,"kept_source_relative_intervals":kept,"duration_before":duration_before,"duration_after":render_cut.end-render_cut.start}
             item["framing"] = crop_info
-            item["creator"] = {name: creator_records[i-1][name] for name in ("title","hook","description","caption","hashtags","topic_keywords","disclaimer")}
+            item["creator"] = {name: creator_records[i-1][name] for name in ("title","hook","hook_options","description","caption","hashtags","topic_keywords","disclaimer")}
             manifest["clips"].append(item)
         create_creator_pack(choices, output, a.style, url, records=creator_records)
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False),
