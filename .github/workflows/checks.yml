@@ -21,6 +21,7 @@ on:
       - "jobs.js"
       - "editor.js"
       - "pwa.js"
+      - "nav.js"
       - "sw.js"
       - "manifest.webmanifest"
       - "icons/**"
@@ -59,5 +60,7 @@ jobs:
           node --check editor.js
           node tests/test_editor.cjs
           node --check pwa.js
+          node --check nav.js
           node --check sw.js
           node tests/test_pwa.cjs
+          node tests/test_navigation.cjs

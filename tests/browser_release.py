@@ -31,6 +31,7 @@ with sync_playwright() as p:
         report["checks"]["service_worker"]="PASS"
         context.set_offline(True)
         page.reload(wait_until="domcontentloaded")
+        page.locator('[data-nav="editor"]').click()
         page.locator("#edit-file").wait_for()
         report["checks"]["offline_reload"]="PASS"
         page.locator("#edit-file").set_input_files(str(sample))
@@ -38,15 +39,18 @@ with sync_playwright() as p:
         wait_media(page)
         page.locator("#edit-end").fill("3")
         page.locator("#edit-text").fill("Release proof")
+        page.locator('[data-nav="projects"]').click()
         page.locator("#edit-draft-title").fill("Offline test")
         page.locator("#edit-draft-save").click()
         expect(page.locator("#edit-draft-status")).to_contain_text("Saved on this device",timeout=20000)
         report["checks"]["offline_draft_save"]="PASS"
         page.reload(wait_until="domcontentloaded")
+        page.locator('[data-nav="projects"]').click()
         page.get_by_role("button",name="RESUME",exact=True).click()
         expect(page.locator("#edit-text")).to_have_value("Release proof",timeout=20000)
         wait_media(page)
         report["checks"]["offline_draft_resume"]="PASS"
+        page.locator('[data-nav="editor"]').click()
         page.locator("#edit-rights").check()
         if page.locator("#edit-export").is_disabled():
             report["checks"]["recording"]="NOT SUPPORTED: "+page.locator("#edit-format").inner_text()

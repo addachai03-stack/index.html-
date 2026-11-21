@@ -20,17 +20,17 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.5</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V2.6</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
-      <aside class="pwa-panel" aria-label="Install and offline status">
+      <aside class="pwa-panel" data-mobile-screen="home" aria-label="Install and offline status">
         <div><strong>CutNova mobile app</strong><p id="pwa-status" role="status" aria-live="polite">Checking offline availability…</p><p id="pwa-instructions">Open in Safari to add CutNova to your Home Screen.</p></div>
         <button id="pwa-install" type="button" class="btn btn-outline">INSTALL / ADD TO HOME</button>
         <a href="#local-editor" class="btn btn-lime">LOCAL EDITOR ↓</a>
       </aside>
-      <div class="eyebrow"><span class="eyebrow-line"></span> CREATE. CLIP. GO VIRAL-READY.</div>
-      <section class="hero">
+      <div class="eyebrow" data-mobile-screen="home"><span class="eyebrow-line"></span> CREATE. CLIP. GO VIRAL-READY.</div>
+      <section class="hero" data-mobile-screen="home">
         <div class="hero-copy">
           <div class="hero-kicker">PHONE-FIRST CREATOR WORKSPACE / 001</div>
           <h1>One long video.<br/><em>Multiple</em> <span class="lime">premium Shorts.</span></h1>
@@ -42,7 +42,7 @@
           <div class="spark s1">✳</div><div class="spark s2">✦</div>
         </div>
       </section>
-      <section id="studio" class="studio-card">
+      <section id="studio" class="studio-card" data-mobile-screen="ai">
         <div class="section-head"><span class="section-number">01 / LINK IMPORT</span><span class="section-pill"><i></i> PUBLIC LINKS ONLY</span></div>
         <h2>Start with your <span>video or URL.</span></h2>
         <p class="section-sub">YouTube · Instagram · Facebook · TikTok · Vimeo · Direct MP4. You can also upload your own MP4/MOV/WebM on GitHub. Social URL access depends on platform restrictions.</p>
@@ -88,11 +88,11 @@
           </div>
         </div>
       </section>
-      <section class="studio-card job-center local-editor" id="local-editor">
+      <section class="studio-card job-center local-editor" id="local-editor" data-mobile-screen="editor projects">
         <div class="section-head"><span class="section-number">02 / LOCAL SHORTS EDITOR</span><span class="section-pill">ON DEVICE</span></div>
         <h2>Manual <span>video editor.</span></h2>
         <p class="section-sub">Choose your own video directly from iPhone Files or Photos. Preview, trim and record a 9:16 center-cropped Short locally. No video upload to this public repository. Browser recording support varies.</p>
-        <div class="local-drafts">
+        <div class="local-drafts" id="project-manager">
           <h3>Saved projects</h3>
           <p class="footnote">Explicit local saves include media and settings, not cloud backups. Combined media limit: 150 MB per draft. Browser storage can be cleared or evicted. Keep your original files.</p>
           <label>DRAFT NAME<input id="edit-draft-title" type="text" maxlength="60" placeholder="My Short"/></label>
@@ -103,6 +103,7 @@
           <button id="edit-draft-restore" class="btn btn-outline" type="button" disabled>RESTORE SETTINGS</button>
           <p class="footnote">History stores up to ten previous settings revisions, not older media or exported videos. Rights confirmation is not stored.</p>
         </div>
+        <div class="editor-workspace">
         <label class="edit-file-label">CHOOSE VIDEO <input id="edit-file" type="file" accept="video/*,.mp4,.mov,.webm"/></label>
         <div id="edit-fields" hidden>
           <div class="edit-preview"><canvas id="edit-canvas" aria-label="Edited portrait video preview"></canvas></div>
@@ -139,8 +140,9 @@
         <p id="edit-status" role="status" aria-live="polite">Choose a local video to begin.</p>
         <div id="edit-result" hidden><div class="edit-preview"><video id="edit-output" controls playsinline></video></div><a class="btn btn-lime" id="edit-download" download>DOWNLOAD SHORT ↓</a></div>
         <p class="footnote">Manual local export uses real-time recording, not the GitHub AI renderer. No AI captions here. Color effects use a lower-resolution working buffer for mobile performance; output quality and codec support depend on the device. MP4 when supported, otherwise WebM if supported; stay in this page during export. If export is unavailable, use the original GitHub rendering route with authorized public media.</p>
+        </div>
       </section>
-      <section class="studio-card job-center" id="render-history">
+      <section class="studio-card job-center" id="render-history" data-mobile-screen="results">
         <div class="section-head"><span class="section-number">03 / RENDER HISTORY</span><span class="section-pill"><i></i> GITHUB ACTIONS</span></div>
         <h2>Your <span>render results.</span></h2>
         <p class="section-sub">Recent public CutNova video jobs from GitHub. Tap Check Files on a completed run to inspect its real ZIP artifacts, size and expiration. Sign into GitHub to download if required. No estimated progress or fake exports.</p>
@@ -151,12 +153,12 @@
         <p id="job-status" role="status" aria-live="polite">Checking GitHub Actions…</p>
         <div id="job-results"></div>
       </section>
-      <section id="example-shortcuts" class="highlights">
+      <section id="example-shortcuts" class="highlights" data-mobile-screen="home">
         <div class="section-head"><span class="section-number">04 / REFERENCE CUTS</span><span class="section-pill secondary-pill">VERIFIED TRANSCRIPT EXAMPLE</span></div>
         <div class="highlights-top"><div><h2>What <em>premium cuts</em> look like.</h2><p>Six curated timing examples from the cartoon-voice YouTube video. These are editorial suggestions, not automatic results for unrelated URLs.</p></div><span class="cut-counter">06 <small>CUT IDEAS</small></span></div>
         <div id="example-cuts" class="cut-grid"></div>
       </section>
-      <section class="steps-section">
+      <section class="steps-section" data-mobile-screen="home">
         <div class="section-head"><span class="section-number">05 / HOW IT WORKS</span><span class="section-pill">NO LAPTOP</span></div>
         <h2>Real clips. <em>Not fake downloads.</em></h2>
         <div class="steps-grid">
@@ -168,11 +170,24 @@
         <div class="notice-strip"><strong>REALITY CHECK</strong><p>Viral success is never guaranteed. YouTube/Instagram may block automated downloading; no login, private-media or DRM bypass. On GitHub, output availability is subject to repository Actions settings and usage limits. Review captions and video rights before publishing.</p></div>
       </section>
     </main>
+    <div class="mobile-edit-actions" id="mobile-edit-actions" hidden aria-label="Editor quick actions">
+      <button type="button" id="mobile-preview" class="btn btn-outline">▶ PREVIEW</button>
+      <button type="button" id="mobile-export" class="btn btn-lime">EXPORT SHORT</button>
+    </div>
+    <nav class="mobile-nav" id="mobile-nav" aria-label="CutNova main navigation">
+      <button type="button" data-nav="home" aria-label="Home"><span aria-hidden="true">⌂</span><small>HOME</small></button>
+      <button type="button" data-nav="ai" aria-label="AI Shorts"><span aria-hidden="true">✦</span><small>AI</small></button>
+      <button type="button" data-nav="editor" aria-label="Editor"><span aria-hidden="true">✂</span><small>EDITOR</small></button>
+      <button type="button" data-nav="projects" aria-label="Projects"><span aria-hidden="true">▣</span><small>PROJECTS</small></button>
+      <button type="button" data-nav="results" aria-label="Results"><span aria-hidden="true">▤</span><small>RESULTS</small></button>
+    </nav>
+    <p id="mobile-nav-message" class="sr-only" role="status" aria-live="polite"></p>
     <footer class="footer"><span>✂ CUTNOVA <b>© 2026</b></span><span>BUILT FOR CREATORS · iPHONE FIRST</span><a href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a></footer>
   </div>
   <script type="module" src="./app.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>
   <script defer src="./pwa.js"></script>
+  <script defer src="./nav.js"></script>
 </body>
 </html>

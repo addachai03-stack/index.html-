@@ -222,3 +222,10 @@ Reject private/signed URL parameters and control characters, prevent duplicate r
 ### V2.5.1 storage compatibility
 
 When a local draft Blob write fails, retry with plain ArrayBuffer media records for combined media up to 50 MB. Existing Blob drafts remain readable. Storage quotas and private/ephemeral browsing still apply. No media is uploaded. Browser proof is not proof of physical iPhone playback.
+
+
+## V2.6 — Android APK + simplified cross-platform mobile layout
+
+iPhone Safari and Android Chrome use a fixed five-tab bottom navigation (Home, AI, Editor, Projects, Results); only the selected main screen is shown on narrow screens. The editor keeps a quick preview/export/cancel bar at the bottom. Draft/video state persists across tab switches in the current tab, with rights still manually confirmed. Existing links (#studio, #local-editor, #render-history) remain supported. Desktop keeps the previous full layout.
+
+The Android APK is a browser-backed Trusted Web Activity **candidate** (Android Browser Helper), not a native video renderer. The public GitHub Pages site at the repository subpath cannot currently publish Digital Asset Links at the host-root /.well-known/assetlinks.json, so browsers may fall back to a Custom Tab with URL bar; offline caching, storage, and export compatibility depend on the installed browser. It requires a compatible Android browser and internet on first launch. Test/beta builds are signed for sideload testing and should not be treated as a production Play Store signing identity. Do not share the signing key or install APKs from untrusted sources.
