@@ -25,12 +25,12 @@ vm.runInContext(fs.readFileSync("app.js", "utf8"), ctx);
 const run = code => vm.runInContext(code, ctx);
 run('current = providerFor("https://remotion.media/video-1m.mp4");' +
     'elements.clips.value="3"; elements.min.value="15"; elements.max.value="45";' +
-    'elements.style.value="facts"; elements.language.value="hi"; elements.crop.value="center";' +
+    'elements.style.value="facts"; elements.language.value="hi"; elements.crop.value="center"; elements.script.value="roman";' +
     'elements.rights.checked=true; updateRights();');
 const request = new URL(document.getElementById("submit-request").href);
 const body = request.searchParams.get("body");
 for (const line of ["CLIPS: 3", "MIN_SECONDS: 15", "MAX_SECONDS: 45",
-                   "STYLE: facts", "LANGUAGE: hi", "CROP: center", "RIGHTS: YES"]) {
+                   "STYLE: facts", "LANGUAGE: hi", "CROP: center", "CAPTION_SCRIPT: roman", "RIGHTS: YES"]) {
   assert.ok(body.split("\n").includes(line), "Missing " + line);
 }
 assert.equal(request.hostname, "github.com");
@@ -40,6 +40,6 @@ assert.equal(document.getElementById("submit-request").attrs["aria-disabled"], "
 run('elements.min.value="15"; elements.max.value="60"; elements.rights.checked=false; updateRights();');
 assert.equal(document.getElementById("submit-request").href, "#");
 const html = fs.readFileSync("index.html","utf8");
-for (const id of ["highlight-style","speech-language","smart-crop"])
+for (const id of ["highlight-style","speech-language","smart-crop","caption-script"])
   assert.ok(html.includes('id="' + id + '"'), "Missing control " + id);
 console.log("PASS: dashboard settings in GitHub issue, duration and rights guards, and control markup.");
