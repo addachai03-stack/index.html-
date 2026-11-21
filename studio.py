@@ -18,6 +18,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from premium import highlight_bonus, normalize_style, distribute_subtitles, create_creator_pack
 from smartcrop import compute_crop, normalize_crop_mode
 from speech_quality import normalize_language, whisper_settings, group_word_timings, has_audible_speech_candidate
+from github_media import is_github_attachment_url, download_github_attachment
 
 ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "facebook.com", "fb.watch",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
@@ -61,6 +62,7 @@ def validate_url(url: str) -> str:
         if "not supported" in str(exc):
             raise
     known = any(host == h or host.endswith("." + h) for h in ALLOWED_HOSTS)
+    known = known or is_github_attachment_url(url)
     direct = bool(re.search(r"\.(mp4|mov|m4v|webm)$", parsed.path, flags=re.I))
     if not known and not direct:
         raise ValueError("Use supported social video pages or a direct HTTPS MP4/MOV/WebM.")
@@ -81,6 +83,8 @@ def run(args, timeout=600, check=True, cwd=None):
     return proc
 
 def download(url: str, work: Path) -> Path:
+    if is_github_attachment_url(url):
+        return download_github_attachment(url, work)
     from yt_dlp import YoutubeDL
     opts = {
         "format": "bv*[height<=720]+ba/b[height<=720]/best",
