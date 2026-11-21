@@ -90,11 +90,13 @@ async function fetchDirectMedia(url){
   const limit=100*1024*1024, controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),60000);
   try{
-    const response=await fetch(url,{method:"GET",mode:"cors",credentials:"omit",signal:controller.signal});
+    let response;
+    try{response=await fetch(url,{method:"GET",mode:"cors",credentials:"omit",signal:controller.signal});}
+    catch(error){throw Error(controller.signal.aborted?"Video download timed out after 60 seconds. Try a smaller MP4.":"Browser cannot access this video URL. Host CORS policy, a private link or network issue may be blocking it.");}
     if(!response.ok)throw Error("HTTP "+response.status);
     const reported=Number(response.headers.get("content-length")||0);
     if(reported>limit)throw Error("Video exceeds the 100 MB direct-link limit.");
-    const contentType=(response.headers.get("content-type")||"").split(";")[0];
+    const contentType=(response.headers.get("content-type")||"").split(";")[0].trim().toLowerCase();
     if(contentType&&!contentType.startsWith("video/")&&contentType!=="application/octet-stream")
       throw Error("That URL did not return a video.");
     const chunks=[];let bytes=0;
@@ -111,8 +113,10 @@ async function fetchDirectMedia(url){
     }
     if(bytes<1024)throw Error("The video file is empty.");
     const rawName=url.split("/").pop().split("?")[0]||"source.mp4";
-    const safeName=rawName.replace(/[^a-zA-Z0-9_.-]/g,"_").slice(0,80)||"source.mp4";
-    return new File(chunks,safeName,{type:contentType||"video/mp4"});
+    const safeName=rawName.replace(/[^a-zA-Z0-9_.-]/g,"_").slice(0,80)||"source";
+    const extension=contentType==="video/webm"?".webm":contentType==="video/quicktime"?".mov":".mp4";
+    const filename=/\.(mp4|mov|m4v|webm)$/i.test(safeName)?safeName:(safeName.replace(/\.[a-z0-9]{1,8}$/i,"")||"source")+extension;
+    return new File(chunks,filename,{type:contentType==="application/octet-stream"?"video/mp4":(contentType||"video/mp4")});
   } finally{clearTimeout(timeout)}
 }
 quick.file.addEventListener("change",()=>{
@@ -124,7 +128,7 @@ quick.file.addEventListener("change",()=>{
 quick.start.addEventListener("click",async()=>{
   if(quickBusy)return;
   if(!quick.rights.checked){quickMessage("Confirm your editing rights first.");return}
-  const file=quick.file.files?.[0]||quickFile;
+  const file=quickFile||quick.file.files?.[0];
   if(!file){quickMessage("Choose a video file from your phone first.");quick.file.click();return}
   quickBusy=true;quick.start.disabled=true;
   try{await prepareLocal(file,quick.count.value,quick.length.value)}
@@ -196,7 +200,8 @@ function providerFor(raw) {
   if (/\.(mp4|mov|m4v|webm)$/i.test(url.pathname)) {
     return {url, kind:"video", name:"Direct video file"};
   }
-  throw new Error("Public social video link, GitHub video upload, ya direct MP4/MOV/WebM URL paste karo.");
+  // CDN download endpoints may not end in .mp4; validate the response MIME on import.
+  return {url, kind:"candidate", name:"Direct video link (unverified)"};
 }
 
 function showMessage(message, success=false) {
@@ -294,7 +299,7 @@ elements.form.addEventListener("submit", event => {
     current = providerFor(elements.input.value);
     elements.rights.checked = false;
     drawSource(current);
-    showMessage(current.kind === "video" ? "Direct video link recognized. Tap PREPARE IN CUTNOVA to try loading it here (host must permit browser CORS)." : "Source preview ready. Social URLs cannot become local Shorts directly in Safari/Chrome. Save your own video to the phone and choose it above. No GitHub upload needed.",true);
+    showMessage(["video","candidate","github-upload"].includes(current.kind) ? "Video URL checked. Confirm rights and tap PREPARE IN CUTNOVA to import. A working download requires the video host to allow browser access (CORS)." : "Social source preview is ready when embedding is allowed. YouTube, Instagram and similar links cannot be imported directly into this browser editor. Choose an authorized saved video from your phone.",["video","candidate","github-upload"].includes(current.kind));
   } catch (error) {
     current = null;
     elements.panel.hidden = true;
@@ -308,10 +313,10 @@ elements.action.addEventListener("click", async () => {
   if(!current||!elements.rights.checked||Number(elements.min.value)>Number(elements.max.value)){
     showMessage("Choose a valid source and confirm rights.",false);return;
   }
-  quick.count.value=String([1,3,6].reduce((a,b)=>Math.abs(b-Number(elements.clips.value))<Math.abs(a-Number(elements.clips.value))?b:a,1));
+  quick.count.value=String([1,3,6,10].reduce((a,b)=>Math.abs(b-Number(elements.clips.value))<Math.abs(a-Number(elements.clips.value))?b:a,1));
   quick.length.value=String([15,30,45,60].reduce((a,b)=>Math.abs(b-Number(elements.max.value))<Math.abs(a-Number(elements.max.value))?b:a,15));
   quick.rights.checked=true;
-  if(current.kind!=="video"&&current.kind!=="github-upload"){
+  if(!["video","candidate","github-upload"].includes(current.kind)){
     showMessage("This social link is preview-only. Choose your own saved video above: it stays on your phone.",false);
     quick.file.click();return;
   }
@@ -324,7 +329,7 @@ elements.action.addEventListener("click", async () => {
     document.getElementById("quick-shorts").scrollIntoView({block:"start",behavior:"smooth"});
     showMessage("Video loaded locally. Choose EDIT & EXPORT above. GitHub was not opened.",true);
   }catch(e){
-    showMessage("Direct-link import unavailable: "+(e.message||"browser blocked it")+". Save your own video and choose it above.",false);
+    showMessage("Could not import this URL: "+(e.message||"browser blocked it")+". Try a public CORS-enabled MP4 link or choose your own saved video above.",false);
   }finally{quickBusy=false;updateRights();}
 });
 quick.advanced.addEventListener("click",event=>{
