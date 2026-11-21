@@ -39,7 +39,7 @@
     return {
       id: item.id,
       name: String(item.name || "GitHub artifact"),
-      size: Number.isFinite(bytes) && bytes >= 0 ? (bytes / 1048576).toFixed(2) + " MB" : "Size unknown",
+      size: Number.isFinite(bytes) && bytes >= 0 ? (bytes / 1048576).toFixed(2) + " MiB" : "Size unknown",
       expiry: Number.isFinite(expires) ? new Date(expires).toLocaleString() : "Unknown expiry",
       expiresAt: Number.isFinite(expires) ? expires : null,
       expired,
