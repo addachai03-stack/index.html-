@@ -70,8 +70,12 @@ export default {
        Number(min)<15||Number(max)>60||Number(min)>Number(max)){
       return reply({error:"Use 1–10 clips and integer min/max seconds from 15–60. Set both to 30 for exact 30-second clips."},400,true);
     }
+    const trackingId=typeof v.request_id==="string"&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v.request_id)
+      ?v.request_id.toLowerCase():"manual";
+    if(v.request_id!==undefined&&trackingId==="manual")
+      return reply({error:"Invalid render tracking ID. No GitHub job was started."},400,true);
     const inputs={
-      video_url:v.url,rights_confirm:"true",clips,min_seconds:min,max_seconds:max,
+      video_url:v.url,rights_confirm:"true",clips,min_seconds:min,max_seconds:max,request_id:trackingId,
       style:allowed(v.style,["engagement","funny","facts","story"])?v.style:"engagement",
       language:allowed(v.language,["auto","hi","en"])?v.language:"auto",
       crop:allowed(v.crop,["auto","center","track"])?v.crop:"auto",
@@ -89,7 +93,7 @@ export default {
         let result={};
         if(r.status===200){try{result=await r.json()}catch(_){ }}
         const runUrl=typeof result.html_url==="string"&&result.html_url.startsWith("https://github.com/"+REPO+"/actions/runs/")?result.html_url:RUNS;
-        return reply({accepted:true,message:"GitHub accepted the owner render request. Processing can still fail if the source blocks downloading.",runs_url:runUrl,run_id:Number.isSafeInteger(result.workflow_run_id)?result.workflow_run_id:null},202,true);
+        return reply({accepted:true,message:"GitHub accepted the owner render request. Processing can still fail if the source blocks downloading.",runs_url:runUrl,run_id:Number.isSafeInteger(result.workflow_run_id)?result.workflow_run_id:null,request_id:trackingId==="manual"?null:trackingId},202,true);
       }
       if(r.status===401||r.status===403)return reply({error:"GitHub rejected the server credential or workflow permission. Check the Cloudflare secret and GitHub Actions access."},502,true);
       return reply({error:"GitHub rejected the render request (HTTP "+r.status+"). Review owner workflow configuration."},502,true);
