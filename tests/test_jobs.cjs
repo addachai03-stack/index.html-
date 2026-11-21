@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const {labelFor, combineRuns, artifactFor, failedJobSteps} = require("../jobs.js");
+const {labelFor, combineRuns, artifactFor, failedJobSteps, matchingOwnerRun} = require("../jobs.js");
 assert.deepEqual(labelFor({status:"in_progress"}), ["PROCESSING","working"]);
 assert.deepEqual(labelFor({status:"queued"}), ["QUEUED / WAITING","working"]);
 assert.deepEqual(labelFor({status:"completed",conclusion:"success"}), ["SUCCESS","success"]);
@@ -28,3 +28,12 @@ assert.deepEqual(failedJobSteps(jobs),[{job:"generate",step:"Generate real portr
 assert.deepEqual(failedJobSteps(null),[]);
 assert.deepEqual(failedJobSteps([{name:"all-good",steps:[{name:"Done",conclusion:"success"}]}]),[]);
 console.log("PASS: real failed-job step extraction for transparent Results diagnostics.");
+
+const requestId="550e8400-e29b-41d4-a716-446655440000";
+const ownerRun={id:999,display_title:"CutNova owner "+requestId,status:"in_progress"};
+const otherRun={id:998,display_title:"CutNova owner manual",status:"completed"};
+assert.equal(matchingOwnerRun([otherRun,ownerRun],requestId)?.id,999);
+assert.equal(matchingOwnerRun([otherRun],requestId),null);
+assert.equal(matchingOwnerRun([ownerRun],"invalid id"),null);
+assert.equal(matchingOwnerRun(null,requestId),null);
+console.log("PASS: tracked owner render requires exact UUID and real GitHub display title.");
