@@ -151,5 +151,26 @@ class TestCreatorCopy(unittest.TestCase):
             pick_clips([], [], 20, requested=3, min_seconds=30, max_seconds=30)
 
 
+class TestFailureDiagnostics(unittest.TestCase):
+    def test_youtube_antibot_is_not_called_renderer_bug(self):
+        from studio import diagnose_source_failure
+        code, fix = diagnose_source_failure(RuntimeError(
+            "ERROR: [youtube] Video: Sign in to confirm you’re not a bot."))
+        self.assertEqual(code, "SOURCE_PLATFORM_BLOCKED")
+        self.assertIn("cannot bypass", fix)
+        self.assertIn("authorized saved file", fix)
+
+    def test_access_denied_and_unavailable_are_honest(self):
+        from studio import diagnose_source_failure
+        self.assertEqual(diagnose_source_failure(ValueError("HTTP Error 403 Forbidden"))[0],
+                         "SOURCE_ACCESS_DENIED")
+        self.assertEqual(diagnose_source_failure(RuntimeError("No downloadable video"))[0],
+                         "SOURCE_UNAVAILABLE")
+        self.assertEqual(diagnose_source_failure(ValueError("shorter than the selected minimum"))[0],
+                         "VIDEO_TOO_SHORT")
+        self.assertEqual(diagnose_source_failure(RuntimeError("FFmpeg encoder failed"))[0],
+                         "RENDER_FAILED")
+
+
 if __name__ == "__main__":
     unittest.main()
