@@ -23,7 +23,7 @@ const quick = {
   status: byId("quick-status"),results: byId("quick-results"),
   advanced: byId("owner-github-render")
 };
-let quickFile = null, quickBusy = false;
+let quickFile = null, quickBusy = false, awaitingSocialFile = false;
 function quickMessage(message) { quick.status.textContent = message; }
 function cutWindows(duration,count,length) {
   if(!Number.isFinite(duration)||duration<1)throw Error("Video must be at least 1 second.");
@@ -119,11 +119,28 @@ async function fetchDirectMedia(url){
     return new File(chunks,filename,{type:contentType==="application/octet-stream"?"video/mp4":(contentType||"video/mp4")});
   } finally{clearTimeout(timeout)}
 }
-quick.file.addEventListener("change",()=>{
-  quickFile=quick.file.files?.[0]||null;
+quick.file.addEventListener("change",async()=>{
+  const file=quick.file.files?.[0]||null;
+  if(!file)return;
+  quickFile=file;
   quick.results.hidden=true;
   quick.results.replaceChildren();
-  quickMessage(quickFile?quickFile.name+" selected. Confirm rights and tap PREPARE SHORTS ON PHONE.":"Choose your own video to begin.");
+  if(awaitingSocialFile){
+    awaitingSocialFile=false;
+    quick.rights.checked=!!elements.rights.checked;
+    if(!quick.rights.checked){quickMessage("Confirm video rights before preparing cuts.");return}
+    if(quickBusy)return;
+    quickBusy=true;quick.start.disabled=true;
+    quickMessage("Saved video selected. Preparing editable local Shorts…");
+    try{
+      await prepareLocal(file,quick.count.value,quick.length.value);
+      byId("quick-shorts").scrollIntoView({behavior:"smooth",block:"start"});
+      showMessage("Saved video ready! Tap EDIT & EXPORT on a cut below. Video stays on your phone.",true);
+    }catch(e){quickMessage(e.message||"Could not prepare the selected video.");}
+    finally{quickBusy=false;quick.start.disabled=false;}
+    return;
+  }
+  quickMessage(file.name+" selected. Confirm rights and tap PREPARE SHORTS ON PHONE.");
 });
 quick.start.addEventListener("click",async()=>{
   if(quickBusy)return;
@@ -224,7 +241,12 @@ function makeFrame(type, src) {
 
 function drawSource(source) {
   elements.panel.hidden = false;
-  elements.provider.textContent = source.name.toUpperCase()+" · ORIGINAL SOURCE";
+  const editable=["video","candidate","github-upload"].includes(source.kind);
+  elements.provider.textContent = source.name.toUpperCase()+(editable?" · URL IMPORT":" · LINK PREVIEW ONLY");
+  const clarity=byId("source-clarity");
+  if(clarity)clarity.textContent=editable?
+    "Direct video-file import is possible only if this URL returns video data and permits cross-origin downloads. Confirm rights and tap IMPORT VIDEO. After import, each cut opens in the editor.":
+    "This website cannot extract an MP4 from YouTube, Instagram, Facebook or other social URLs. This is only an original-source preview. To cut your own video, save an authorized copy to your phone and tap CHOOSE SAVED VIDEO below.";
   elements.original.href = source.url.href;
   elements.frame.replaceChildren();
   elements.frame.hidden = false;
@@ -280,6 +302,8 @@ function buildIssueUrl() {
 function updateRights() {
   const validDuration = Number(elements.min.value) <= Number(elements.max.value);
   const accepted = !!(current && elements.rights.checked && validDuration);
+  const downloadable=!!(current&&["video","candidate","github-upload"].includes(current.kind));
+  elements.action.textContent=downloadable?"✦ IMPORT VIDEO & PREPARE CUTS →":"✂ CHOOSE SAVED VIDEO TO EDIT →";
   elements.action.disabled = !accepted;
   elements.action.setAttribute("aria-disabled", String(!accepted));
   quick.advanced.classList.toggle("disabled-link", !accepted);
@@ -288,8 +312,8 @@ function updateRights() {
   elements.rightsTip.textContent = !validDuration
     ? "Minimum clip length maximum se badi nahi ho sakti."
     : accepted
-      ? "This stays inside CutNova. For a social URL, choose your own saved video; for direct MP4 links, browser permissions decide access."
-      : "Confirm rights to enable the on-phone button. GitHub is an optional owner-only advanced route.";
+      ? (downloadable ? "Imports an authorized video into CutNova if the source allows browser downloads (CORS). No GitHub redirect." : "Social URL can be previewed but not converted here. This button opens your phone's file picker for your own saved video.")
+      : "Confirm rights to enable local editing. Social links need an authorized saved video; direct links need browser CORS access.";
 }
 
 elements.form.addEventListener("submit", event => {
@@ -297,12 +321,14 @@ elements.form.addEventListener("submit", event => {
   clearMessage();
   try {
     current = providerFor(elements.input.value);
+    awaitingSocialFile=false;
     elements.rights.checked = false;
     drawSource(current);
-    showMessage(["video","candidate","github-upload"].includes(current.kind) ? "Video URL checked. Confirm rights and tap PREPARE IN CUTNOVA to import. A working download requires the video host to allow browser access (CORS)." : "Social source preview is ready when embedding is allowed. YouTube, Instagram and similar links cannot be imported directly into this browser editor. Choose an authorized saved video from your phone.",["video","candidate","github-upload"].includes(current.kind));
+    showMessage(["video","candidate","github-upload"].includes(current.kind) ? "Direct URL identified (not yet downloaded). Confirm rights and tap IMPORT VIDEO. Host must allow CORS and provide real video bytes." : "Social URL recognized for preview only. To actually export an MP4 Short from your own video, confirm rights then tap CHOOSE SAVED VIDEO TO EDIT.",["video","candidate","github-upload"].includes(current.kind));
   } catch (error) {
     current = null;
     elements.panel.hidden = true;
+    awaitingSocialFile=false;
     showMessage(error.message || "Invalid URL");
   }
 });
@@ -317,7 +343,8 @@ elements.action.addEventListener("click", async () => {
   quick.length.value=String([15,30,45,60].reduce((a,b)=>Math.abs(b-Number(elements.max.value))<Math.abs(a-Number(elements.max.value))?b:a,15));
   quick.rights.checked=true;
   if(!["video","candidate","github-upload"].includes(current.kind)){
-    showMessage("This social link is preview-only. Choose your own saved video above: it stays on your phone.",false);
+    awaitingSocialFile=true;
+    showMessage("Social links cannot supply editable video bytes here. Choose your own saved copy from Files or Photos; CutNova will prepare the selected video automatically.",false);
     quick.file.click();return;
   }
   if(quickBusy)return;
