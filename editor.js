@@ -445,6 +445,7 @@
     start.value="0";end.value=String(Math.floor(Math.min(60,video.duration)*100)/100);
     start.max=String(video.duration);end.max=String(video.duration);
     fields.hidden=false;
+    let reencodeReady=false;
     if(pendingDraft){
       const row=pendingDraft;pendingDraft=null;
       music=row.music instanceof Blob?row.music:null;musicBuffer=null;
@@ -463,11 +464,13 @@
         brightness.value="100";contrast.value="100";preset.value="original";
         speed.value="1";overlay.value="";position.value="bottom";
         originalVolume.value="100";mute.checked=false;musicVolume.value="20";
+        reencodeReady=true;
         say("Private Short loaded for H.264/AAC second-pass recording. Confirm rights, then tap EXPORT SHORT; output codecs will be verified.");
       }else say("Short time range prepared on this device. Confirm rights, preview, then EXPORT SHORT.");
     }else say("Local video ready. Set your trim in seconds.");
     update();
-    if(typeof cut!=="undefined"){} // no state is exposed by metadata outside its branch
+    if(reencodeReady)
+      window.dispatchEvent(new CustomEvent("cutnova:reencode-ready",{detail:{strictSocial:requireSocial.checked,duration:video.duration}}));
   });
   video.addEventListener("error",()=>{if(sourceUrl&&!busy){pendingDraft=null;pendingQuickCut=null;say("Cannot decode this video locally. This browser cannot re-encode a source it cannot play; try an original compatible MP4.");update()}});
   [start,end,rights].forEach(el=>el.addEventListener("input",()=>{if(!busy){resetPreview();clearOutput();update()}}));
