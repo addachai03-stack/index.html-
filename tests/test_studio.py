@@ -19,6 +19,29 @@ class TestSafety(unittest.TestCase):
         self.assertEqual(validate_url("https://remotion.media/video-30s.mp4"),
                          "https://remotion.media/video-30s.mp4")
 
+    @patch("studio.socket.getaddrinfo", return_value=[(0,0,0,"",("8.8.8.8",443))])
+    def test_mobile_preview_aliases_match_renderer(self, _):
+        # The browser preview supports these public hosts; the owner renderer
+        # must accept their HTTPS URLs before attempting source extraction.
+        for url in (
+            "https://www.youtube-nocookie.com/embed/XD-6LDZzXJ0",
+            "https://instagr.am/reel/example",
+            "https://www.fb.com/watch/?v=1234",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(validate_url(url), url)
+
+    @patch("studio.socket.getaddrinfo", return_value=[(0,0,0,"",("8.8.8.8",443))])
+    def test_mobile_preview_aliases_do_not_bypass_url_safety(self, _):
+        for url in (
+            "http://www.youtube-nocookie.com/embed/example",
+            "https://www.youtube-nocookie.com.evil.example/embed/example",
+            "https://user:password@www.youtube-nocookie.com/embed/example",
+            "https://www.youtube-nocookie.com/embed/example?token=secret",
+        ):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                validate_url(url)
+
     @patch("studio.socket.getaddrinfo", return_value=[(0,0,0,"",("192.168.0.1",443))])
     def test_dns_private(self, _):
         with self.assertRaises(ValueError):
