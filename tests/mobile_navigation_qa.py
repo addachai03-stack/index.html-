@@ -306,6 +306,24 @@ try:
                   "duration":duration,"size_bytes":media_path.stat().st_size,
                   "stream_codecs":[{"type":st["codec_type"],"codec":st.get("codec_name","unknown")} for st in metadata["streams"]],
                   "social_upload_compatibility":"NOT VERIFIED: MP4 extension is not proof of H.264/AAC"}
+            # Private re-encode is a supported-browser handoff, not a hidden
+            # conversion. In headless browsers without strict AVC/AAC encoder
+            # the button must be disabled, without network or a success claim.
+            if strict_available:
+                expect(page.locator("#edit-reencode-local")).to_be_enabled()
+                page.once("dialog",lambda dialog: dialog.accept())
+                page.locator("#edit-reencode-local").click()
+                page.wait_for_function("""() =>
+                  /PRIVATE SOURCE LOADED/.test(
+                    document.querySelector('#edit-reencode-status')?.textContent||'')""",timeout=12000)
+                expect(page.locator("#edit-rights")).not_to_be_checked()
+                expect(page.locator("#edit-require-h264")).to_be_checked()
+                expect(page.locator("#edit-export")).to_be_disabled()
+                REPORT["checks"]["private_local_reencode"]="PASS: local exported Blob reopened with strict codec request; manual rights/export required"
+            else:
+                expect(page.locator("#edit-reencode-local")).to_be_disabled()
+                expect(page.locator("#edit-reencode-status")).to_contain_text("UNSUPPORTED ON THIS BROWSER")
+                REPORT["checks"]["private_local_reencode"]="NOT SUPPORTED: no native H264/AAC recorder; cannot claim private transcode"
         assert all(r["method"] == "GET" for r in requests), "No export test may dispatch a cloud render"
         visible_width(page)
         page.screenshot(path=str(ROOT / f"{ENGINE}-editor.png"), full_page=False)
