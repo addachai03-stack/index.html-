@@ -415,12 +415,20 @@
       resetPreview();clearOutput();
       start.value=String(Math.min(a,Math.max(0,video.duration-1)));
       end.value=String(Math.min(b,video.duration));
-      rights.checked=false;update();paint();
-      say("Suggested cut selected. Confirm rights, preview and tap EXPORT SHORT.");return;
+      rights.checked=false;
+      if(detail.strictSocial===true)requireSocial.checked=true;
+      update();paint();
+      if(detail.reencode===true)
+        window.dispatchEvent(new CustomEvent("cutnova:reencode-ready",{detail:{strictSocial:requireSocial.checked,duration:video.duration}}));
+      say(detail.reencode===true
+        ?"Private Short prepared for strict H.264/AAC export. Reconfirm rights, then tap EXPORT SHORT. No conversion has happened yet."
+        :"Suggested cut selected. Confirm rights, preview and tap EXPORT SHORT.");
+      detail.accepted=true;return;
     }
     if(sourceFile&&!window.confirm("Open a new suggested cut? Unsaved editor changes will be replaced."))return;
     clearSource();activeDraft=null;pendingDraft=null;draftTitle.value="";historyUI();
-    pendingQuickCut={start:a,end:b};loadSource(source);
+    pendingQuickCut={start:a,end:b,reencode:detail.reencode===true,strictSocial:detail.strictSocial===true};
+    loadSource(source);detail.accepted=true;
   }
   window.addEventListener("cutnova:open-cut",event=>openQuickCut(event.detail));
   file.addEventListener("change",()=>{
@@ -448,11 +456,20 @@
       start.value=String(Math.min(cut.start,Math.max(0,video.duration-1)));
       end.value=String(Math.min(cut.end,video.duration));
       rights.checked=false;
-      say("Short time range prepared on this device. Confirm rights, preview, then EXPORT SHORT.");
+      if(cut.strictSocial)requireSocial.checked=true;
+      if(cut.reencode){
+        // Second pass processes the already-edited output. Clear previous
+        // filters/speed/audio overlays so they are not accidentally applied twice.
+        brightness.value="100";contrast.value="100";preset.value="original";
+        speed.value="1";overlay.value="";position.value="bottom";
+        originalVolume.value="100";mute.checked=false;musicVolume.value="20";
+        say("Private Short loaded for H.264/AAC second-pass recording. Confirm rights, then tap EXPORT SHORT; output codecs will be verified.");
+      }else say("Short time range prepared on this device. Confirm rights, preview, then EXPORT SHORT.");
     }else say("Local video ready. Set your trim in seconds.");
     update();
+    if(typeof cut!=="undefined"){} // no state is exposed by metadata outside its branch
   });
-  video.addEventListener("error",()=>{if(sourceUrl&&!busy){pendingDraft=null;say("Cannot decode this video. Try an MP4 compatible with your browser.");update()}});
+  video.addEventListener("error",()=>{if(sourceUrl&&!busy){pendingDraft=null;pendingQuickCut=null;say("Cannot decode this video locally. This browser cannot re-encode a source it cannot play; try an original compatible MP4.");update()}});
   [start,end,rights].forEach(el=>el.addEventListener("input",()=>{if(!busy){resetPreview();clearOutput();update()}}));
   [brightness,contrast,preset,speed,overlay,position].forEach(el=>el.addEventListener("input",()=>{
     if(!busy){clearOutput();try{setSpeed();paint()}catch(e){say("Effect preview unavailable: "+e.message)}update()}
