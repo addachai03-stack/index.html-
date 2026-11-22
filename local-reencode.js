@@ -85,10 +85,12 @@
       const file=new root.File([source],fileNameFor(source),{type:source.type});
       const details={file,start:0,end:Math.min(60,seconds),strictSocial:true,reencode:true};
       root.dispatchEvent(new CustomEvent("cutnova:open-cut",{detail:details}));
-      // open-cut may invoke confirm to prevent overwriting unsaved changes.
-      // A confirmed load triggers cutnova:reencode-ready from editor metadata.
-      if(revision===version)
-        say("Requested local editor import. If prompted, confirm replacing unsaved edits. Then confirm rights and tap EXPORT SHORT. No conversion has run yet.");
+      // The real editor sets accepted only after a user-approved handoff.
+      if(details.accepted!==true){
+        say("LOCAL RE-ENCODE CANCELLED — the original video and editor were left unchanged. No conversion started.");
+      }else if(revision===version){
+        say("Local import requested. Confirm rights in the editor before tapping EXPORT SHORT. No conversion has run yet.");
+      }
     }catch(error){
       say("LOCAL RE-ENCODE NOT PREPARED — "+String(error?.message||"Browser could not open this media").slice(0,175)+". Original export remains available unless you explicitly replaced it.");
     }finally{
