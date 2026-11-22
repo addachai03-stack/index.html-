@@ -27,7 +27,7 @@ from animated_captions import write_animated
 from github_media import is_github_attachment_url, download_github_attachment
 from direct_media import download_direct, media_kind
 
-ALLOWED_HOSTS = ("youtube.com", "youtu.be", "instagram.com", "instagr.am", "facebook.com", "fb.watch", "fb.com",
+ALLOWED_HOSTS = ("youtube.com", "youtu.be", "youtube-nocookie.com", "instagram.com", "instagr.am", "facebook.com", "fb.watch", "fb.com",
                  "tiktok.com", "vimeo.com", "dailymotion.com", "dai.ly",
                  "twitter.com", "x.com", "archive.org", "remotion.media",
                  "storage.googleapis.com", "cdn.pixabay.com")
