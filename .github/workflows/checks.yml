@@ -30,6 +30,7 @@ on:
       - "saved-file-check.js"
       - "native-share.js"
       - "social-codec-check.js"
+      - "local-reencode.js"
       - "pwa.js"
       - "refresh.js"
       - "refresh.html"
@@ -87,6 +88,8 @@ jobs:
           node tests/test_native_share.cjs
           node --check social-codec-check.js
           node tests/test_social_codec_check.cjs
+          node --check local-reencode.js
+          node tests/test_local_reencode.cjs
           node --check pwa.js
           node --check refresh.js
           node --check nav.js
