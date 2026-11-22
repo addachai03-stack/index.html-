@@ -1,4 +1,12 @@
 # CutNova — Premium URL-to-Shorts Studio
+## V4.4 — PRIVATE on-device H.264/AAC second pass (no uploads)
+
+Under **SOCIAL VIDEO FORMAT CHECK**, local exports now offer **PREPARE PRIVATE H.264/AAC RE-ENCODE** when the current browser explicitly supports recording both codecs. This uses only the original exported browser Blob in memory. After the owner taps the button, CutNova reopens the exported file in its existing local Editor, selects the **strict H.264 + AAC** recorder mode, resets previous filters/audio overlays so they are not accidentally applied twice, and restores a valid trim. The original rights checkbox is deliberately unchecked. The user must **confirm rights and tap EXPORT SHORT again** before the second pass actually encodes anything. The app then inspects the actual MP4 output via V4.1's local sample-entry parser; a misleading H.264 claim or unsupported codec triggers a warning, not success. Local re-recording can reduce quality and requires keeping the screen awake; conversion only works when the phone both *decodes* the source and can *record* H.264/AAC.
+
+On browsers without explicit strict AVC/AAC MediaRecorder support, the button is disabled with an honest **UNSUPPORTED ON THIS BROWSER** message. The flow does NOT silently upload private iPhone Files to GitHub, Cloudflare or third parties; it does NOT download FFmpeg.wasm, run in the background, auto-accept rights, or guarantee an Instagram upload. For any other permitted private file, users can choose it through CHOOSE VIDEO in the local editor and enable strict H.264/AAC recording themselves. The V4.3 Owner-only public URL GitHub converter remains a distinct workflow and must not be used with private footage.
+
+Automated unit tests simulate supported, unsupported and user-cancelled cases, verify original Blob handoff with explicit rights and no network calls, and verify offline PWA availability. Mobile browser QA asserts truthful codec support gating and, when supported by the test browser, actual editor reimport with rights unchecked. Headless WebKit/Chromium results do not establish physical iPhone Safari codec support.
+
 
 ## V4.3 — REAL H.264/AAC social MP4 conversion (Owner-only public source)
 
