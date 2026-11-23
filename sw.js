@@ -1,6 +1,6 @@
 /* Cache only the versioned public app shell, never user video, audio,
    GitHub API responses, uploads, credentials or external pages. */
-const CACHE="cutnova-shell-v5.3-local-audio-confirmation";
+const CACHE="cutnova-shell-v5.4-local-share-checklist";
 const ROOT=new URL("./",self.location.href);
 const SHELL=["./","./index.html","./styles.css","./app.js","./local-highlights.js","./audio-peaks.js","./smart-mix.js","./device-qa.js","./owner-render.js","./jobs.js","./editor.js","./export-check.js","./full-export-test.js","./playback-check.js","./saved-file-check.js","./native-share.js","./social-codec-check.js","./social-file-verify.js","./local-reencode.js","./autolive.html","./autolive.js","./moment_queue.js","./pwa.js","./nav.js","./launch.js","./manifest.webmanifest","./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png"].map(p=>new URL(p,ROOT).href);
 const ALLOWED=new Set(SHELL);
