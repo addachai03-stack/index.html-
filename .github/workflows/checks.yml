@@ -29,6 +29,7 @@ on:
       - "local-highlights.js"
       - "audio-peaks.js"
       - "smart-mix.js"
+      - "device-qa.js"
       - "owner-render.js"
       - "jobs.js"
       - "editor.js"
@@ -81,6 +82,8 @@ jobs:
           node tests/test_audio_peaks.cjs
           node --check smart-mix.js
           node tests/test_smart_mix.cjs
+          node --check device-qa.js
+          node tests/test_device_qa.cjs
           node --check app.js
           node tests/test_dashboard.cjs
           node --check owner-render.js
