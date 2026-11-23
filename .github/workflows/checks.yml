@@ -28,6 +28,7 @@ on:
       - "app.js"
       - "local-highlights.js"
       - "audio-peaks.js"
+      - "smart-mix.js"
       - "owner-render.js"
       - "jobs.js"
       - "editor.js"
@@ -78,6 +79,8 @@ jobs:
           node tests/test_local_highlights.cjs
           node --check audio-peaks.js
           node tests/test_audio_peaks.cjs
+          node --check smart-mix.js
+          node tests/test_smart_mix.cjs
           node --check app.js
           node tests/test_dashboard.cjs
           node --check owner-render.js
