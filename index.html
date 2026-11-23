@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.5</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.8</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -154,6 +154,29 @@
             </div>
             <p class="footnote" id="visual-status" role="status" aria-live="polite">Select your video above and confirm editing rights. Scan starts only when you tap FIND VISUAL MOMENTS.</p>
             <div id="visual-results" class="quick-results" hidden></div>
+          </details>
+
+          <details class="visual-finder" id="audio-peaks-panel">
+            <summary>✦ NEW: FIND AUDIO PEAKS · ON-DEVICE BETA</summary>
+            <p class="footnote">For your own video up to 3 minutes: measures relative loudness changes in short audio windows and proposes 15–60 second review ranges. It cannot understand speech, identify funny moments, remove silence, generate captions or guarantee good highlights. No upload or automatic export.</p>
+            <p class="footnote">On iPhone, decoding the sound track from MOV/MP4 may fail. If so, choose a <strong>matching full-length audio track</strong> (MP3/M4A/WAV, under 20 MB) extracted from the same video, aligned from the beginning. If its duration differs by over 2 seconds, CutNova refuses to align it. Your original video remains selected above.</p>
+            <label class="quick-source-label" for="audio-peaks-source">OPTIONAL MATCHING AUDIO FILE
+              <input id="audio-peaks-source" type="file" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg">
+            </label>
+            <div class="quick-select-row">
+              <label>MAX AUDIO PICKS
+                <select id="audio-peaks-count"><option value="1">1 clip</option><option value="3" selected>Up to 3 clips</option><option value="6">Up to 6 clips</option></select>
+              </label>
+              <label>CLIP LENGTH
+                <select id="audio-peaks-length"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select>
+              </label>
+            </div>
+            <div class="history-toolbar">
+              <button id="audio-peaks-start" type="button" class="btn btn-lime">FIND AUDIO PEAKS</button>
+              <button id="audio-peaks-cancel" type="button" class="btn btn-outline" disabled>CANCEL AUDIO SCAN</button>
+            </div>
+            <p id="audio-peaks-status" class="footnote" role="status" aria-live="polite">Choose a video above and confirm editing rights before scanning. Audio analysis stays on your phone.</p>
+            <div id="audio-peaks-results" class="quick-results" hidden></div>
           </details>
 
         </div>
@@ -311,6 +334,7 @@
   </div>
   <script type="module" src="./app.js"></script>
   <script defer src="./local-highlights.js"></script>
+  <script defer src="./audio-peaks.js"></script>
   <script defer src="./owner-render.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>

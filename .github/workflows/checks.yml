@@ -27,6 +27,7 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
       - "local-highlights.js"
+      - "audio-peaks.js"
       - "owner-render.js"
       - "jobs.js"
       - "editor.js"
@@ -75,6 +76,8 @@ jobs:
         run: |
           node --check local-highlights.js
           node tests/test_local_highlights.cjs
+          node --check audio-peaks.js
+          node tests/test_audio_peaks.cjs
           node --check app.js
           node tests/test_dashboard.cjs
           node --check owner-render.js

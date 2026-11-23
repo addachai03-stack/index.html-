@@ -415,3 +415,17 @@ The AI tab now offers FIND VISUAL MOMENTS under the existing saved-video/timed-c
 Limits: visual changes can mean camera movement, lighting, or scene cuts. This does not detect gameplay excitement, conversation highlights, audio, subtitles, face identity, speech hooks, chat spikes or exact action boundaries. Low-motion footage may produce no candidates; use existing timed cuts. Safari video seeking and codec support vary on real iPhones. No MP4 is produced until the user explicitly exports. Automatic stream capture/DM delivery remain unavailable.
 
 Tests: node tests/test_local_highlights.cjs; GitHub CI.
+
+## V4.8 — Optional local audio-energy peaks (iPhone beta)
+
+CutNova's AI tab now has **FIND AUDIO PEAKS** alongside timed cuts and sampled visual changes. This works on your own saved video only after a deliberate tap and editing-rights confirmation. It is a relative volume/energy heuristic, not speech recognition, sentiment, a content-ranking model or a guarantee of viral moments.
+
+- For video up to 3 minutes, CutNova attempts to decode the selected local video's audio using Web Audio. The input to the decoder must be under 20 MB. MP4/MOV audio decoding is browser-dependent, so iPhone Safari may reject it.
+- If decoding the video track is unsupported, optionally choose a matching full-length MP3/M4A/WAV/AAC/OGG audio file. The selected video's duration and the audio duration must match within 2 seconds. The app cannot verify that they contain identical content, so the user is responsible for aligning the correct track.
+- The app scans at most 180 seconds in half-second windows using bounded RMS audio energy. Short relative loudness spikes can yield up to 1/3/6 non-overlapping 15/30/45/60-second review windows. Constant background music/noise may yield zero candidates instead of invented highlights.
+- Each **REVIEW IN EDITOR** button opens the selected original video and suggested window in the existing local editor, where rights are reconfirmed. No file is exported until the user explicitly exports it. The scanner does not generate captions.
+- Temporary metadata blob URLs and AudioContext are released. Cancel prevents another decode from starting until cleanup finishes. No microphone, API keys, cloud uploads, live-stream downloads, account login, background posting, or local media persistence are added.
+
+Status: implementation and unit tests exist, while end-to-end Safari decoding and actual iPhone export remain to be verified on device. Videos beyond 3 minutes can still use the previously supported local visual scan and manual timed cuts. YouTube/Twitch live monitoring still requires owner-managed API credentials.
+
+Run: `node tests/test_audio_peaks.cjs` plus GitHub Code Checks.
