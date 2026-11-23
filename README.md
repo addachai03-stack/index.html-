@@ -502,3 +502,8 @@ The free browser export test now records the 1-second synthetic probe and reject
 ## V5.3 — Private local audio listening confirmation
 
 The private iPhone Files verifier adds a direct-tap **PLAY LOCAL AUDIO CHECK** for a user-selected file. It plays the video with audio enabled and checks that playback advances; then the user explicitly selects **I HEARD AUDIO** or **NO SOUND HEARD**. The browser cannot prove physical speaker/headphone audibility, so only the user's own button records that observation. Selecting another file resets the confirmation. The video remains in the local browser object URL; no upload, conversion, or sharing occurs. Automated tests validate state guards and honest labels; this is not physical iPhone QA.
+
+
+## V5.4 — Local share-preparation checklist
+
+After selecting a local file, the user can generate and save a plain-text checklist. It reports the current codec sample-entry result, local playback check, dimensions/duration and the user's explicit audio-heard confirmation. It omits the filename/path and contains manual review boxes for cuts, captions, rights and destination platform requirements. This is not an upload, encoder, automatic publishing action, or guarantee of platform acceptance. The generated report blob is local and its object URL is revoked on page exit.
