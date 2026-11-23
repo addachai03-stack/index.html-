@@ -28,11 +28,11 @@ jobs:
           python-version: "3.11"
       - name: Check official live APIs (no media downloaded)
         env:
-          CUTNOVA_STREAM_PLATFORM: \${{ vars.CUTNOVA_STREAM_PLATFORM }}
-          CUTNOVA_STREAM_CHANNEL: \${{ vars.CUTNOVA_STREAM_CHANNEL }}
-          TWITCH_CLIENT_ID: \${{ secrets.TWITCH_CLIENT_ID }}
-          TWITCH_CLIENT_SECRET: \${{ secrets.TWITCH_CLIENT_SECRET }}
-          YOUTUBE_API_KEY: \${{ secrets.YOUTUBE_API_KEY }}
+          CUTNOVA_STREAM_PLATFORM: ${{ vars.CUTNOVA_STREAM_PLATFORM }}
+          CUTNOVA_STREAM_CHANNEL: ${{ vars.CUTNOVA_STREAM_CHANNEL }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python live_monitor.py
       - name: Publish public metadata status only
         run: |
