@@ -385,3 +385,20 @@ The new **Auto Live phone dashboard** (autolive.html) adds a channel-first monit
 **Not implemented:** automated live recording, creating new Twitch or YouTube clips, detecting chat spikes, ranking source video with AI, AI subtitles/hooks from a live stream, auto-rendering vertical MP4s, Instagram DM delivery, and guaranteed unlimited/always-on clips. The advertised features in the reference recording are not treated as proof that CutNova can perform them. Future content capture/reposting requires broadcaster permission and platform-compliant access. Existing public Twitch clips are not a license to repost.
 
 Tests: python -m unittest discover -s tests; node tests/test_autolive.cjs. Never configure credentials in test fixtures or browser JS.
+
+
+## V4.6 — Public moment review shortlist (local-first; no new clip creation)
+
+CutNova Auto Live now goes one step beyond status-only monitoring with a real **metadata-based moment shortlist** for already-published Twitch clips:
+
+- After the owner configures the Twitch official API and a channel, the scheduled monitor reads up to 20 public clips from the last 48 hours and provides up to six eligible 15–60 second review candidates in the same public JSON status.
+- A transparent relative review score (0–100) uses **public views, clip age, estimated views per hour and duration**. It does **not** inspect video/audio, analyze chat, recognize faces, transcribe speech, predict viral performance or create a new highlight. Every candidate includes human-readable reasons.
+- On iPhone, select Top 1 / 3 / 6, review the official Twitch clip, add selected clip links to an **on-device review queue**, prepare/copy a plain-text caption draft after confirming reuse rights, or download a text review plan.
+- No clip video files, credentials, posting accounts or private media are collected. The review queue is browser-local and can be cleared; it is not a cloud backup. The text review plan is not a finished MP4.
+- Official Twitch clips can only be republished with creator permission and in compliance with Twitch/platform rules. The local editor remains available for video files legitimately saved by the user.
+
+**Status:** working ranking/queue code and automated unit tests, but real end-to-end official API use still requires owner-supplied Twitch credentials in repository secrets and the single monitored channel in Variables. YouTube continues to offer public LIVE/OFFLINE checks only; it does not return Twitch clip candidates. Existing GitHub Actions schedule is approximate, not continuous stream recording.
+
+Remaining major features from the submitted reference: broadcaster-approved live source capture or eligible platform clipping integration, true video-content/audio highlight scoring, on-demand rendering with real caption alignment, and explicitly authorized publishing/DM delivery. These are **not** currently active.
+
+Checks: `python -m unittest discover -s tests -v` and `node tests/test_moment_queue.cjs`.
