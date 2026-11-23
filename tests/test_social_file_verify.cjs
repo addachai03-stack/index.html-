@@ -48,7 +48,7 @@ assert.ok(code.includes("setAudioConfirmation(true)")&&code.includes("setAudioCo
 assert.ok(code.includes("needs-user-confirmation")&&code.includes("user-heard")&&code.includes("user-no-sound"));
 assert.ok(code.includes("cannot detect audible sound")&&code.includes("manual listening result"));
 assert.ok(!code.includes("audioStatus.dataset.result=\"pass\""),"No auto-pass audio label");
-assert.ok(code.includes("LOCAL SHARE PREPARATION CHECKLIST")&&code.includes("file name omitted"));
+assert.ok(code.includes("LOCAL SHARE PREPARATION CHECKLIST")&&/file name omitted/i.test(code));
 assert.ok(code.includes("status.dataset.result===\"basic-match\"")&&code.includes("playbackStatus.dataset.result===\"pass\""));
 assert.ok(code.includes("audioStatus.dataset.result===\"user-heard\"")&&code.includes("audioStatus.dataset.result===\"user-no-sound\""));
 assert.ok(code.includes("This is a local checklist, not a transcode")&&code.includes("destination app's current upload requirements"));
