@@ -350,3 +350,10 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 .qa-row .qa-state{font-size:.68rem;font-weight:800;letter-spacing:.06em;
   color:#f0d9a0;border:1px solid rgba(240,210,150,.28);border-radius:7px;padding:4px 7px}
 .qa-row small{grid-column:1 / -1;color:#bfbfc7;font-size:.76rem;overflow-wrap:anywhere;line-height:1.5}
+
+/* V5.2 user-selected H264 file check remains legible on narrow iPhone screens. */
+#social-file-panel{margin-top:22px}
+#social-file-panel video{display:block;max-width:min(100%,360px);max-height:420px;width:100%;
+  margin:12px auto;border-radius:12px;background:#101010}
+#social-file-panel video[hidden]{display:none}
+#social-file-panel .footnote{overflow-wrap:anywhere}
