@@ -82,6 +82,7 @@ if(typeof module!=="undefined"&&module.exports){
   module.exports={energySeries,peakWindows,MAX_AUDIO_BYTES,MAX_AUDIO_SECONDS};
   return;
 }
+if(root)root.CutNovaAudioMath=Object.freeze({energySeries,peakWindows});
 if(!root?.document)return;
 const d=root.document,by=id=>d.getElementById(id);
 const videoInput=by("quick-file"),audioInput=by("audio-peaks-source"),rights=by("quick-rights"),
