@@ -34,7 +34,7 @@ const sw=fs.readFileSync("sw.js","utf8");
 const pages=fs.readFileSync(".github/workflows/pages.yml","utf8");
 const ci=fs.readFileSync(".github/workflows/checks.yml","utf8");
 for(const id of ["social-file-panel","social-file-input","social-file-check","social-file-play",
- "social-file-status","social-file-preview","social-file-play-status","social-file-audio","social-file-audio-status","social-file-audio-heard","social-file-audio-silent"])
+ "social-file-status","social-file-preview","social-file-play-status","social-file-audio","social-file-audio-status","social-file-audio-heard","social-file-audio-silent","social-file-report","social-file-report-status","social-file-report-download"])
  assert.ok(html.includes('id="'+id+'"'),"Missing UI "+id);
 assert.ok(html.includes("Shortcuts")&&html.includes("Encode Media")&&html.includes("Audio Only OFF"),
   "Native private conversion instructions must not claim actual conversion");
@@ -48,6 +48,12 @@ assert.ok(code.includes("setAudioConfirmation(true)")&&code.includes("setAudioCo
 assert.ok(code.includes("needs-user-confirmation")&&code.includes("user-heard")&&code.includes("user-no-sound"));
 assert.ok(code.includes("cannot detect audible sound")&&code.includes("manual listening result"));
 assert.ok(!code.includes("audioStatus.dataset.result=\"pass\""),"No auto-pass audio label");
+assert.ok(code.includes("LOCAL SHARE PREPARATION CHECKLIST")&&code.includes("File name omitted"));
+assert.ok(code.includes("status.dataset.result===\"basic-match\"")&&code.includes("playbackStatus.dataset.result===\"pass\""));
+assert.ok(code.includes("audioStatus.dataset.result===\"user-heard\"")&&code.includes("audioStatus.dataset.result===\"user-no-sound\""));
+assert.ok(code.includes("This is a local checklist, not a transcode")&&code.includes("destination app's current upload requirements"));
+assert.ok(code.includes("URL.createObjectURL(blob)")&&code.includes("URL.revokeObjectURL(reportDownload.dataset.url)"));
+assert.ok(!code.includes("fetch(")&&!code.includes("navigator.share("),"Report generation must remain local and must not upload/share automatically");
 assert.ok(!code.includes("fetch(")&&!code.includes("getUserMedia(")&&!code.includes("localStorage"));
 assert.ok(!code.includes("file.name+")&& !code.includes("file.name,"));
 assert.ok(sw.includes('"./social-file-verify.js"')&&!sw.includes('"./autolive/status.json"'));
