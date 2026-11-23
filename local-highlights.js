@@ -20,7 +20,7 @@
     const scanned=Math.min(duration,MAX_SCAN_SECONDS);
     const count=Math.min(MAX_SAMPLES,Math.max(12,Math.ceil(scanned/12)));
     const end=Math.max(0,scanned-0.15);
-    return Array.from({length:count},(_,i)=>Number((end*i/(count-1)).toFixed(2)));
+    return Array.from({length:count},(_,i)=>Number((Math.max(0.15,end*i/(count-1))).toFixed(2)));
   }
   function candidateWindows(samples,duration,requested=3,length=30){
     if(!Number.isFinite(duration)||duration<1||!Array.isArray(samples))return [];
