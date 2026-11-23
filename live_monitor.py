@@ -94,7 +94,7 @@ def twitch_status(channel, client_id, client_secret):
             "duration": max(0, float(item.get("duration") or 0)),
         })
     safe_clips.sort(key=lambda c: c["view_count"], reverse=True)
-    return {"state": "LIVE" if live else "OFFLINE", "stream": stream, "clips": safe_clips[:12]}
+    return {"state": "LIVE" if live else "OFFLINE", "stream": stream, "clips": safe_clips[:20]}
 
 
 def youtube_status(channel, api_key):
