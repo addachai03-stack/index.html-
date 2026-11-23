@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "tests/browser_smoke.py"
+      - "tests/browser_export.py"
       - ".github/workflows/browser-smoke.yml"
       - "index.html"
       - "device-qa.js"
@@ -58,11 +59,13 @@ jobs:
           curl -f --silent http://127.0.0.1:8765/ >/dev/null
       - name: Click through V5.0 readiness report with synthetic source
         run: python tests/browser_smoke.py
+      - name: Export synthetic video in real editor, verify playback and downloaded bytes
+        run: python tests/browser_export.py
       - name: Upload only synthetic-test screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cutnova-v50-browser-smoke
+          name: cutnova-v51-browser-export-proof
           path: smoke-artifacts/*-evidence.png
           retention-days: 3
           if-no-files-found: ignore
