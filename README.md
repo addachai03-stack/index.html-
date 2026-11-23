@@ -461,7 +461,7 @@ Run `node tests/test_device_qa.cjs` and normal GitHub Code Checks.
 
 ## V5.0 automated Chromium smoke checks (free public GitHub Actions)
 
-`.github/workflows/browser-smoke.yml` checks the real UI in a mobile-sized Chromium viewport and a desktop Chromium viewport. It generates its own original 6-second silent-video-plus-sine-wave test footage, serves the current repo in the runner, then opens the website, clicks RUN DEVICE CHECKS without a file, checks that export/playback/Files remain NOT TESTED, selects its synthetic video, re-runs the check, and requires successful local source-frame decode. Optional audio decode reports PASS or FAIL depending on the runner; it is not fabricated.
+`.github/workflows/browser-smoke.yml` checks the real UI in a mobile-sized Chromium viewport and a desktop Chromium viewport. It generates its own original 6-second VP8/Opus WebM video with sine-wave test audio, serves the current repo in the runner, then opens the website, clicks RUN DEVICE CHECKS without a file, checks that export/playback/Files remain NOT TESTED, selects its synthetic video, re-runs the check, and requires successful local source-frame decode. Optional audio decode reports PASS or FAIL depending on the runner; it is not fabricated.
 
 After the run, GitHub Actions provides screenshots of the synthetic fixture's UI states (3-day artifact). No real user video is uploaded or copied into Actions; no credentials, sign-in, social publishing or export actions occur. This is **NOT a Safari/WebKit test and NOT physical iPhone verification**: mobile viewport emulation in headless Chromium can catch layout and JavaScript failures but cannot prove real iPhone rendering, audio playback, MP4 export or Files persistence.
 
