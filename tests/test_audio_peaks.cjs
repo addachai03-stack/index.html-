@@ -55,6 +55,7 @@ assert.ok(js.includes("source.arrayBuffer()")&&js.includes("ctx.decodeAudioData(
 assert.ok(js.includes("root.AudioContext||root.webkitAudioContext"),"iOS legacy support");
 assert.ok(js.includes("ctx=new AudioContextClass()"),"AudioContext initialized by user click");
 assert.ok(js.includes("await ctx.close()"),"Audio decoder closed after completion");
+assert.ok(js.includes("working=false")&&js.includes("if(working)return"),"Cancel never permits duplicate audio decodes");
 assert.ok(!js.includes("fetch(")&&!js.includes("getUserMedia("),
   "No media upload or microphone access");
 assert.ok(html.includes("cannot understand speech"),"No semantic AI claim");
