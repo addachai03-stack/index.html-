@@ -85,8 +85,10 @@
       catch(error){cleanup();try{await progressed}catch(_){}throw error}
       const end=metadata(video);
       say("LOCAL PLAYBACK PASS ✓ — "+end.width+"×"+end.height+" portrait, "+end.duration.toFixed(2)+" sec; decoded video advanced. Audio audibility and saving to iPhone Files are NOT verified. Tap DOWNLOAD SHORT, then open that saved file.");
+      root.dispatchEvent(new CustomEvent("cutnova:playback-check",{detail:{ok:true,message:"Actual exported portrait video decoded and advanced on local playback; sound audibility unverified."}}));
     }catch(error){
       say("LOCAL PLAYBACK FAILED — "+String(error?.message||"Video could not be verified").slice(0,220)+". Try another browser or authorized cloud render; do not assume the file plays.");
+      root.dispatchEvent(new CustomEvent("cutnova:playback-check",{detail:{ok:false,message:"Playback failed: "+String(error?.message||"Decoder error").slice(0,140)}}));
     }finally{
       try{video.pause()}catch(_){}
       verifying=false;btn.disabled=false;
