@@ -458,3 +458,11 @@ The local editor includes a **REAL IPHONE READINESS REPORT**, replacing guesses 
 **Not yet verified:** A real iPhone has not executed this flow in the user's Safari/browser session; playback, Files persistence, audio audibility and successful social upload must not be claimed from CI. This adds a testing path, not true autonomous livestream clipping, speech recognition or automatic publishing.
 
 Run `node tests/test_device_qa.cjs` and normal GitHub Code Checks.
+
+## V5.0 automated Chromium smoke checks (free public GitHub Actions)
+
+`.github/workflows/browser-smoke.yml` checks the real UI in a mobile-sized Chromium viewport and a desktop Chromium viewport. It generates its own original 6-second VP8/Opus WebM video with sine-wave test audio, serves the current repo in the runner, then opens the website, clicks RUN DEVICE CHECKS without a file, checks that export/playback/Files remain NOT TESTED, selects its synthetic video, re-runs the check, and requires successful local source-frame decode. Optional audio decode reports PASS or FAIL depending on the runner; it is not fabricated.
+
+After the run, GitHub Actions provides screenshots of the synthetic fixture's UI states (3-day artifact). No real user video is uploaded or copied into Actions; no credentials, sign-in, social publishing or export actions occur. This is **NOT a Safari/WebKit test and NOT physical iPhone verification**: mobile viewport emulation in headless Chromium can catch layout and JavaScript failures but cannot prove real iPhone rendering, audio playback, MP4 export or Files persistence.
+
+CI: GitHub Actions → **CutNova - Free Browser Smoke Test**, or review that workflow's PR/commit run and optional screenshots. The local-device V5.0 evidence controls remain separate and must be run on the actual phone before claiming device support.

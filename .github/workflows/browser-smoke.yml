@@ -1,0 +1,68 @@
+name: CutNova - Free Browser Smoke Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/browser_smoke.py"
+      - ".github/workflows/browser-smoke.yml"
+      - "index.html"
+      - "device-qa.js"
+      - "editor.js"
+      - "nav.js"
+      - "sw.js"
+  push:
+    branches: [main]
+    paths:
+      - "tests/browser_smoke.py"
+      - ".github/workflows/browser-smoke.yml"
+      - "index.html"
+      - "device-qa.js"
+      - "editor.js"
+      - "nav.js"
+      - "sw.js"
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-smoke:
+    name: Mobile-width and desktop Chromium UI smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Playwright browser runner
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.56.0 imageio-ffmpeg==0.6.0
+          python -m playwright install --with-deps chromium
+      - name: Generate original local WebM fixture (video and sine-wave audio)
+        run: |
+          mkdir -p smoke-artifacts
+          FFMPEG="$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
+          "$FFMPEG" -hide_banner -loglevel error -y \
+            -f lavfi -i testsrc2=size=320x180:rate=15 \
+            -f lavfi -i sine=frequency=440:sample_rate=44100 \
+            -t 6 -c:v libvpx -deadline realtime -cpu-used 8 -b:v 250k \
+            -c:a libopus -b:a 48k \
+            smoke-artifacts/original-fixture.webm
+          test -s smoke-artifacts/original-fixture.webm
+      - name: Serve current PR site locally (no cloud credentials or user media)
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 >/tmp/cutnova-http.log 2>&1 &
+          echo $! >/tmp/cutnova-http.pid
+          sleep 2
+          curl -f --silent http://127.0.0.1:8765/ >/dev/null
+      - name: Click through V5.0 readiness report with synthetic source
+        run: python tests/browser_smoke.py
+      - name: Upload only synthetic-test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutnova-v50-browser-smoke
+          path: smoke-artifacts/*-evidence.png
+          retention-days: 3
+          if-no-files-found: ignore
