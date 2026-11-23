@@ -42,6 +42,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No status changes"; exit 0
           fi
-          git commit -m "chore(autolive): publish official public stream status [skip ci]"
+          git commit -m "chore(autolive): publish official public stream status"
           git pull --rebase origin main
           git push origin HEAD:main
