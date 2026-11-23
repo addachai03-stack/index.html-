@@ -1,4 +1,9 @@
-# CutNova — Premium URL-to-Shorts Studio
+# CutNova — Premium URL-to-Shorts Studio\n
+## V5.5 — Private local timed subtitle builder
+
+The local editor now includes a manual caption timeline helper. Enter up to 12 caption lines with start/end times (seconds) and export a standard UTF-8 SubRip (.srt) file. Lines are sorted by start time; invalid ranges, overlaps, empty captions and text over 500 characters are rejected. Generated subtitle data is held in the page and a temporary download Blob only; object URLs are revoked when edits occur or the page exits. No speech recognition, video upload, background processing or burned-in subtitle render is claimed. Import the SRT into a video editor that supports external subtitles, then preview the final export yourself.
+
+
 ## V4.4 — PRIVATE on-device H.264/AAC second pass (no uploads)
 
 Under **SOCIAL VIDEO FORMAT CHECK**, local exports now offer **PREPARE PRIVATE H.264/AAC RE-ENCODE** when the current browser explicitly supports recording both codecs. This uses only the original exported browser Blob in memory. After the owner taps the button, CutNova reopens the exported file in its existing local Editor, selects the **strict H.264 + AAC** recorder mode, resets previous filters/audio overlays so they are not accidentally applied twice, and restores a valid trim. The original rights checkbox is deliberately unchecked. The user must **confirm rights and tap EXPORT SHORT again** before the second pass actually encodes anything. The app then inspects the actual MP4 output via V4.1's local sample-entry parser; a misleading H.264 claim or unsupported codec triggers a warning, not success. Local re-recording can reduce quality and requires keeping the screen awake; conversion only works when the phone both *decodes* the source and can *record* H.264/AAC.
