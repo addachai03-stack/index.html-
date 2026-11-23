@@ -4,10 +4,30 @@
  */
 (function(root){
   "use strict";
+  // Mirror all explicit H.264/AAC requests used by the actual editor.
+  // Browsers may still output different codecs: inspect the RECORDED bytes.
   const TYPES=[
-    "video/mp4;codecs=avc1.42001f,mp4a.40.2","video/mp4",
-    "video/webm;codecs=vp8,opus","video/webm"
+    "video/mp4;codecs=avc1.42001f,mp4a.40.2",
+    "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+    "video/mp4;codecs=avc1.424028,mp4a.40.2",
+    "video/mp4;codecs=avc1,mp4a.40.2",
+    "video/mp4","video/webm;codecs=vp8,opus","video/webm"
   ];
+  function probeDecision(info,requestedMime){
+    const basic=!!info&&info.container==="MP4"&&!info.incomplete&&
+      Array.isArray(info.video)&&info.video.length>0&&
+      info.video.every(t=>["avc1","avc3"].includes(t))&&
+      Array.isArray(info.audio)&&info.audio.length>0&&
+      info.audio.every(t=>t==="mp4a");
+    const explicit=/^video\/mp4;codecs=avc1(?:\.[^,]+)?,mp4a\.40\.2$/i.test(String(requestedMime||""));
+    const nonstandard=!!info&&(
+      info.container==="WebM"||info.container==="unknown"||
+      Array.isArray(info.video)&&info.video.some(t=>["vp09","vp08","av01","encv","hvc1","hev1"].includes(t))||
+      Array.isArray(info.audio)&&info.audio.some(t=>["Opus","opus","ac-3","ec-3","enca"].includes(t))
+    );
+    return {code:basic?"basic-match":nonstandard?"not-recommended":"unverified",
+      canEnableStrict:basic&&explicit,explicitRequest:explicit};
+  }
   function capabilities(win){
     const canvas=win.document?.createElement?.("canvas");
     const recorder=win.MediaRecorder;
@@ -31,12 +51,33 @@
     return "";
   }
   if(typeof module!=="undefined"&&module.exports){
-    module.exports={capabilities,unsupportedReason};
+    module.exports={capabilities,unsupportedReason,probeDecision};
     return;
   }
   const button=document.getElementById("edit-check-export");
   const status=document.getElementById("edit-check-status");
   const fallback=document.getElementById("edit-export-fallback");
+  const codecStatus=document.getElementById("edit-check-codec");
+  const strictAction=document.getElementById("edit-check-use-strict");
+  const strictToggle=document.getElementById("edit-require-h264");
+  const printCodec=(code,text)=>{
+    if(!codecStatus)return;
+    codecStatus.dataset.result=code;
+    codecStatus.textContent=text;
+  };
+  const resetProbe=()=>{
+    if(strictAction){strictAction.hidden=true;strictAction.disabled=true;}
+    printCodec("unverified","NOT TESTED — supported MediaRecorder MIME does NOT prove H.264/AAC. Tap the 1-second recording test to inspect the actual sample.");
+  };
+  resetProbe();
+  strictAction?.addEventListener("click",()=>{
+    if(strictAction.disabled||!strictToggle)return;
+    // An explicit owner action merely chooses strict mode; it never exports.
+    strictToggle.checked=true;
+    strictToggle.dispatchEvent(new Event("change",{bubbles:true}));
+    strictToggle.scrollIntoView({block:"center",behavior:"smooth"});
+    status.textContent="STRICT H.264/AAC REQUEST SELECTED. Confirm editing rights, then export the original video manually. Verify that export's actual codecs separately; the 1-second probe is not a guarantee.";
+  });
   if(!button||!status)return;
   const c=capabilities(root);
   status.textContent=c.supported
@@ -52,7 +93,7 @@
       if(fallback)fallback.hidden=false;
       return;
     }
-    busy=true;button.disabled=true;
+    busy=true;button.disabled=true;resetProbe();
     status.textContent="RECORDING 1-SECOND LOCAL TEST… Uses generated video/audio, not your files.";
     let stream,ctx,osc,gain,mediaRecorder=null,drawTimer=null,stopTimer=null;
     try{
@@ -97,10 +138,34 @@
       stopTimer=setTimeout(()=>{try{if(mediaRecorder.state!=="inactive")mediaRecorder.stop()}catch(_){}},1350);
       const blob=await recording;
       const kind=blob.type.includes("mp4")?"MP4":blob.type.includes("webm")?"WebM":"unknown codec";
-      status.textContent="RECORDED TEST CLIP ✓ — "+kind+" · "+(blob.size/1024).toFixed(0)+" KiB, generated locally. This verifies short browser recording, NOT full edited-video export or iPhone Files download. No file was stored/uploaded.";
+      status.textContent="RECORDED TEST CLIP ✓ — "+kind+" · "+(blob.size/1024).toFixed(0)+" KiB, generated locally. Recording alone does not prove H.264/AAC, full export, or Files saving. No media was uploaded.";
+      const audit=root.CutNovaCodecAudit;
+      if(audit&&typeof audit.inspect==="function"){
+        try{
+          printCodec("unverified","Inspecting the actual 1-second recording's codec entries on this phone…");
+          const info=await audit.inspect(blob);
+          const verdict=probeDecision(info,features.mime);
+          const detected=audit.label(info);
+          if(verdict.code==="basic-match"){
+            printCodec("basic-match","BASIC H.264 + MP4 AUDIO TRACK MATCH — "+detected+". Actual sample entries match the usual social format. AAC profile, audio audibility, frame rate and uploads are NOT verified. This is only a tiny generated probe, NOT your exported Short.");
+            if(verdict.canEnableStrict&&strictAction){
+              strictAction.disabled=false;strictAction.hidden=false;
+            }
+          }else if(verdict.code==="not-recommended"){
+            printCodec("not-recommended","H.264/AAC NOT VERIFIED — actual recording: "+detected+". A supported MP4 MIME can still produce VP9/Opus or another incompatible codec. Use strict export only if independently supported, or the owner FFmpeg converter for authorized PUBLIC footage; never upload private phone media.");
+          }else{
+            printCodec("unverified","ACTUAL CODECS UNKNOWN — "+detected+". The 1-second sample is not verified H.264/AAC; use the social format checker on each exported Short.");
+          }
+        }catch(error){
+          printCodec("unverified","CODEC INSPECTION FAILED — "+String(error?.message||"Unknown local media format").slice(0,130)+". No H.264/AAC claim.");
+        }
+      }else{
+        printCodec("unverified","CODEC INSPECTOR NOT LOADED — recording succeeded but H.264/AAC is NOT verified.");
+      }
       if(fallback)fallback.hidden=true;
     }catch(error){
       status.textContent="RECORDING FAILED — "+String(error?.message||"Browser recording error").slice(0,240)+". Local export is not verified on this device. Use only authorized public video URLs in cloud AI if needed.";
+      printCodec("unverified","RECORDING FAILED. No codec bytes exist to verify; do not infer H.264/AAC.");
       if(fallback)fallback.hidden=false;
     }finally{
       clearInterval(drawTimer);clearTimeout(stopTimer);
