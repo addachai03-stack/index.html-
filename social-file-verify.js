@@ -34,10 +34,9 @@ if(typeof module!=="undefined"&&module.exports){
 if(!root?.document)return;
 const doc=root.document,by=id=>doc.getElementById(id);
 const fileInput=by("social-file-input"),check=by("social-file-check"),
-  playbackBtn=by("social-file-play"),status=by("social-file-status"),
-  playbackStatus=by("social-file-play-status"),player=by("social-file-preview");
-if(!fileInput||!check||!playbackBtn||!status||!playbackStatus||!player)return;
-let objectURL="",revision=0,inspecting=false,playing=false;
+  playbackBtn=by("social-file-play"),audioBtn=by("social-file-audio"),audioStatus=by("social-file-audio-status"),audioHeard=by("social-file-audio-heard"),audioSilent=by("social-file-audio-silent"),status=by("social-file-status"),playbackStatus=by("social-file-play-status"),player=by("social-file-preview");
+if(!fileInput||!check||!playbackBtn||!audioBtn||!audioStatus||!audioHeard||!audioSilent||!status||!playbackStatus||!player)return;
+let objectURL="",revision=0,inspecting=false,playing=false,audioTesting=false;
 function say(msg,code){
   status.textContent=msg;
   status.dataset.result=code;
@@ -46,7 +45,7 @@ function release(){
   revision++;
   try{player.pause();}catch{}
   player.removeAttribute("src");player.load();
-  player.hidden=true;playbackBtn.disabled=true;
+  player.hidden=true;playbackBtn.disabled=true;audioBtn.disabled=true;audioHeard.disabled=true;audioSilent.disabled=true;audioStatus.textContent="AUDIO NOT TESTED. Select a local video and play the audio check.";audioStatus.dataset.result="not-tested";
   if(objectURL){URL.revokeObjectURL(objectURL);objectURL="";}
   playbackStatus.textContent="PLAYBACK NOT VERIFIED. Select a local video and separately test it.";
 }
@@ -66,7 +65,7 @@ fileInput.addEventListener("change",()=>{
   objectURL=URL.createObjectURL(file);
   player.src=objectURL;
   player.hidden=false;
-  playbackBtn.disabled=false;
+  playbackBtn.disabled=false;audioBtn.disabled=false;
 });
 check.addEventListener("click",async()=>{
   if(inspecting)return;
@@ -141,5 +140,33 @@ playbackBtn.addEventListener("click",async()=>{
     playing=false;playbackBtn.disabled=!objectURL;
   }
 });
+
+audioBtn.addEventListener("click",async()=>{
+  if(audioTesting)return;
+  if(!objectURL||!fileInput.files?.[0]){audioStatus.textContent="NOT TESTED — select a video from Files first.";audioStatus.dataset.result="not-tested";return;}
+  audioTesting=true;audioBtn.disabled=true;audioHeard.disabled=true;audioSilent.disabled=true;
+  const version=revision,priorMuted=player.muted,priorVolume=player.volume,start=Number(player.currentTime);
+  player.muted=false;player.volume=1;
+  audioStatus.textContent="PLAYING LOCAL VIDEO WITH AUDIO ENABLED. Listen on this device; this page cannot detect audible sound.";
+  const progress=waitToAdvance(start,version);
+  try{
+    await player.play();await progress;
+    if(version!==revision)throw Error("Selected file changed.");
+    audioStatus.textContent="PLAYBACK ADVANCED WITH AUDIO ENABLED. Did you actually hear sound? Confirm below; this is your manual observation.";
+    audioStatus.dataset.result="needs-user-confirmation";audioHeard.disabled=false;audioSilent.disabled=false;
+  }catch(error){
+    try{await progress}catch{}
+    if(version===revision){audioStatus.textContent="AUDIO PLAYBACK TEST FAILED — "+String(error?.message||"video did not play").slice(0,120)+". Sound is not verified.";audioStatus.dataset.result="failed";}
+  }finally{try{player.pause()}catch{}player.muted=priorMuted;player.volume=priorVolume;audioTesting=false;audioBtn.disabled=!objectURL;}
+});
+function setAudioConfirmation(heard){
+  if(!objectURL||audioStatus.dataset.result!=="needs-user-confirmation")return;
+  audioStatus.dataset.result=heard?"user-heard":"user-no-sound";
+  audioStatus.textContent=heard?"USER CONFIRMED: you heard sound on this device during the local check. This is a manual listening result, not automated AAC or platform validation.":"USER CONFIRMED: you did not hear sound. Check the file, device volume and output route before sharing.";
+  audioHeard.disabled=true;audioSilent.disabled=true;
+}
+audioHeard.addEventListener("click",()=>setAudioConfirmation(true));
+audioSilent.addEventListener("click",()=>setAudioConfirmation(false));
+
 root.addEventListener("pagehide",release);
 })(typeof window!=="undefined"?window:null);

@@ -497,3 +497,8 @@ The existing `TEST 1-SECOND RECORDING` now inspects actual recorded media track 
 - Owner-only verified FFmpeg H.264/AAC conversion remains available for authorized PUBLIC media URLs only. Never send private iPhone Files or signed/private links to public Actions.
 
 The free browser export test now records the 1-second synthetic probe and rejects false claims when its actual MP4 tracks are VP9/Opus. This is Chromium testing, **not physical iPhone Safari validation**. Separately, the V5.2 private Files verifier on main can inspect user-chosen videos but cannot convert or publish them.
+
+
+## V5.3 — Private local audio listening confirmation
+
+The private iPhone Files verifier adds a direct-tap **PLAY LOCAL AUDIO CHECK** for a user-selected file. It plays the video with audio enabled and checks that playback advances; then the user explicitly selects **I HEARD AUDIO** or **NO SOUND HEARD**. The browser cannot prove physical speaker/headphone audibility, so only the user's own button records that observation. Selecting another file resets the confirmation. The video remains in the local browser object URL; no upload, conversion, or sharing occurs. Automated tests validate state guards and honest labels; this is not physical iPhone QA.
