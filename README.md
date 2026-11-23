@@ -486,3 +486,14 @@ CutNova's local editor now shows a **PRIVATE SOCIAL FORMAT VERIFIER** that works
 - A separate existing owner-only GitHub FFmpeg H.264/AAC converter remains limited to authorized PUBLIC direct HTTPS or GitHub attachment URLs. Do not use it for private footage, personal iPhone Files, private/signed URLs or secret links.
 
 Automated validation: `node tests/test_social_file_verify.cjs`; browser smoke produces two original synthetic clips, an H.264/AAC MP4 and an MP4 containing VP9/Opus, then checks their actual client-side sample-entry verdict at simulated iPhone-width and desktop Chromium viewports. This is not physical iPhone Safari testing; a successful metadata check is not a real platform upload.
+
+## V5.2 add-on — Real 1-second recording codec preflight
+
+The existing `TEST 1-SECOND RECORDING` now inspects actual recorded media track entries (using the same local bounded MP4 parser as the export inspector), **not just MediaRecorder.isTypeSupported or an .mp4 file extension**. It creates only a fresh synthetic 1-second moving canvas and quiet sine tone from the user's tap, no microphone or Photos access and no upload.
+
+- Tries the editor's explicit H.264/AAC requests first; browsers may still output MP4 with VP9 video + Opus audio. This is reported as **H.264/AAC NOT VERIFIED**.
+- If the synthetic result actually includes `avc1`/`avc3` video and `mp4a` MP4 audio, it reports only a **BASIC** codec-track match: actual AAC profile, quality, audibility and platform upload remain untested.
+- Only when this actual basic match followed an explicit strict MIME request is **SELECT STRICT H.264/AAC FOR NEXT EDITOR EXPORT** offered. It merely sets the editor checkbox after a user click; it never starts export, accepts rights or sends private files. Actual exported video still needs its own codec check and playback.
+- Owner-only verified FFmpeg H.264/AAC conversion remains available for authorized PUBLIC media URLs only. Never send private iPhone Files or signed/private links to public Actions.
+
+The free browser export test now records the 1-second synthetic probe and rejects false claims when its actual MP4 tracks are VP9/Opus. This is Chromium testing, **not physical iPhone Safari validation**. Separately, the V5.2 private Files verifier on main can inspect user-chosen videos but cannot convert or publish them.
