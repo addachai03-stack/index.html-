@@ -144,7 +144,21 @@
     busy=true;refresh.disabled=true;
     say("Reading the latest scheduled status from this website. Not contacting Twitch/YouTube directly...");
     try{
-      const response=await fetch("./autolive/status.json",{cache:"no-store",credentials:"omit"});
+      // GITHUB_TOKEN-created commits do not start GitHub Pages rebuilds.
+      // Read the public repository's latest JSON rather than a stale Pages copy.
+      const latest="https://raw.githubusercontent.com/addachai03-stack/index.html-/main/autolive/status.json";
+      let response;
+      try{
+        const controller=new AbortController();
+        const timer=setTimeout(()=>controller.abort(),8000);
+        try{response=await fetch(latest+"?check="+Date.now(),{
+          cache:"no-store",credentials:"omit",signal:controller.signal
+        });}finally{clearTimeout(timer);}
+        if(!response.ok)throw Error("Raw GitHub status HTTP "+response.status);
+      }catch(_){
+        // Fallback only: Pages may have an old state, which freshness() marks.
+        response=await fetch("./autolive/status.json",{cache:"no-store",credentials:"omit"});
+      }
       if(!response.ok)throw Error("Monitor has not published a result (HTTP "+response.status+").");
       const data=await response.json();
       if(!data||typeof data!=="object")throw Error("Invalid monitor response");
