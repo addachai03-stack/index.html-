@@ -402,3 +402,16 @@ CutNova Auto Live now goes one step beyond status-only monitoring with a real **
 Remaining major features from the submitted reference: broadcaster-approved live source capture or eligible platform clipping integration, true video-content/audio highlight scoring, on-demand rendering with real caption alignment, and explicitly authorized publishing/DM delivery. These are **not** currently active.
 
 Checks: `python -m unittest discover -s tests -v` and `node tests/test_moment_queue.cjs`.
+
+## V4.7 — On-device visual-change finder (iPhone beta)
+
+The AI tab now offers FIND VISUAL MOMENTS under the existing saved-video/timed-cut workflow. The scanner reads only the video chosen in CHOOSE VIDEO FROM PHONE. It starts after a click and requires the same content rights checkbox. No file is uploaded, and existing timed cuts and owner GitHub rendering stay unchanged.
+
+- A browser video element uses a temporary local blob URL. A tiny 64×36 canvas samples at most 46 frames from the first 12 minutes; even longer footage is only partially scanned.
+- A simple RGB frame-difference heuristic proposes up to 1, 3 or 6 non-overlapping 15/30/45/60-second review windows. Scores are relative visual-change signals, not AI confidence or viral predictions.
+- Tap REVIEW IN EDITOR to open the suggested window in the existing local editor, where rights are reconfirmed before actual export. CANCEL SCAN aborts sampling and cleans up temporary media URLs.
+- No source video, extracted frames, microphone audio or private projects are sent to GitHub/Cloudflare, and PWA caches contain only public application scripts.
+
+Limits: visual changes can mean camera movement, lighting, or scene cuts. This does not detect gameplay excitement, conversation highlights, audio, subtitles, face identity, speech hooks, chat spikes or exact action boundaries. Low-motion footage may produce no candidates; use existing timed cuts. Safari video seeking and codec support vary on real iPhones. No MP4 is produced until the user explicitly exports. Automatic stream capture/DM delivery remain unavailable.
+
+Tests: node tests/test_local_highlights.cjs; GitHub CI.
