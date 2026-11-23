@@ -37,14 +37,13 @@ jobs:
           python-version: "3.11"
       - name: Install Playwright browser runner
         run: |
-          python -m pip install --disable-pip-version-check playwright==1.56.0
+          python -m pip install --disable-pip-version-check playwright==1.56.0 imageio-ffmpeg==0.6.0
           python -m playwright install --with-deps chromium
-      - name: Install FFmpeg only when missing
-        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
       - name: Generate original local WebM fixture (video and sine-wave audio)
         run: |
           mkdir -p smoke-artifacts
-          ffmpeg -hide_banner -loglevel error -y \
+          FFMPEG="$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
+          "$FFMPEG" -hide_banner -loglevel error -y \
             -f lavfi -i testsrc2=size=320x180:rate=15 \
             -f lavfi -i sine=frequency=440:sample_rate=44100 \
             -t 6 -c:v libvpx -deadline realtime -cpu-used 8 -b:v 250k \
