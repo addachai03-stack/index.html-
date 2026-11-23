@@ -89,7 +89,7 @@ const videoInput=by("quick-file"),audioInput=by("audio-peaks-source"),rights=by(
   status=by("audio-peaks-status"),results=by("audio-peaks-results"),
   count=by("audio-peaks-count"),length=by("audio-peaks-length");
 if(!videoInput||!audioInput||!rights||!start||!cancelBtn||!status||!results)return;
-let controller=null,nonce=0;
+let controller=null,nonce=0,working=false;
 
 function say(s){status.textContent=s;}
 function cancelled(signal,job){return signal.aborted||nonce!==job;}
@@ -204,12 +204,14 @@ async function run(signal,job,ctx){
 
 function stopScan(clear=true){
  nonce++;
- if(controller){controller.abort();controller=null;}
- start.disabled=false;cancelBtn.disabled=true;
- if(clear){clearResults();say("Audio scan cancelled; nothing uploaded, exported or posted.");}
+ if(controller)controller.abort();
+ // decodeAudioData() cannot be forcibly stopped in every browser. Keep a
+ // second scan locked until the previous decoder's finally has closed it.
+ start.disabled=working;cancelBtn.disabled=true;
+ if(clear){clearResults();say("Cancelling scan; waiting for local audio decoder to release. Nothing was uploaded.");}
 }
 start.addEventListener("click",async()=>{
- if(controller)return;
+ if(working)return;
  if(!rights.checked){say("Confirm video editing rights above first.");return;}
  if(!videoInput.files?.[0]){say("Choose a local video above first.");return;}
  // Create AudioContext synchronously from the explicit click for iPhone Safari.
@@ -219,12 +221,12 @@ start.addEventListener("click",async()=>{
  try{ctx=new AudioContextClass();}
  catch{say("This browser could not start a local audio decoder. Try Visual Moments.");return;}
  const job=++nonce,c=new AbortController();
- controller=c;start.disabled=true;cancelBtn.disabled=false;clearResults();
+ working=true;controller=c;start.disabled=true;cancelBtn.disabled=false;clearResults();
  try{await run(c.signal,job,ctx);}
  catch(error){if(job===nonce)say("Audio scan stopped: "+String(error?.message||"Unsupported source").slice(0,210));}
  finally{
    try{await ctx.close();}catch{}
-   if(job===nonce){controller=null;start.disabled=false;cancelBtn.disabled=true;}
+   working=false;controller=null;start.disabled=false;cancelBtn.disabled=true;
  }
 });
 cancelBtn.addEventListener("click",()=>stopScan());
