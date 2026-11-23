@@ -62,6 +62,7 @@ function sampleFile(video="avc1",audio="mp4a",{moovAtEnd=false,mdatSize=32}={}){
   assert.ok(sw.includes('"./social-codec-check.js"'));
   const src=fs.readFileSync("social-codec-check.js","utf8");
   assert.ok(!src.includes("fetch("),"codec audit must never fetch videos");
+  assert.ok(src.includes("root.CutNovaCodecAudit=Object.freeze"),"Editor and short sample must share the actual MP4 parser");
   assert.ok(src.includes("cutnova:export-reset"),"new output must clear old verdict");
   console.log("PASS: real MP4 stsd video/audio entries, VP9+Opus warning, H264+AAC candidate, moov at end, WebM spoof, uncertain formats and offline shell.");
 })().catch(e=>{console.error(e);process.exitCode=1});
