@@ -7,6 +7,15 @@
   const KEY="cutnova-moment-review-v1",MAX_QUEUE=20;
   function officialClipURL(uri){
     try{
+      if(typeof uri!=="string")return null;
+      // Parse the raw path before URL() normalizes dot segments like /../.
+      const match=uri.match(/^https:\/\/[^/?#]+(\/[^?#]*)?/);
+      if(!match)return null;
+      const segments=(match[1]||"/").split("/");
+      if(segments.some(part=>{
+        try{return ["..","."].includes(decodeURIComponent(part));}
+        catch{return true;}
+      }))return null;
       const u=new URL(uri);
       if(u.protocol!=="https:"||u.username||u.password||u.port||u.search||u.hash)return null;
       if(u.hostname==="clips.twitch.tv" && /^\/[A-Za-z0-9_-]{3,150}\/?$/.test(u.pathname))return u.href;
