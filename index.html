@@ -351,6 +351,17 @@
           </div>
           <p id="social-file-report-status" class="footnote" role="status" aria-live="polite">CHECKLIST NOT CREATED. This report stays on your device and does not verify platform acceptance.</p>
           <a id="social-file-report-download" hidden download="CutNova-local-share-checklist.txt">Save checklist report</a>
+          <section class="srt-caption-builder" id="srt-caption-builder" aria-labelledby="srt-caption-heading">
+            <strong id="srt-caption-heading">V5.5 · PRIVATE TIMED CAPTIONS → SRT</strong>
+            <p class="footnote">Type your own caption text and its start/end time in seconds. CutNova creates a standard subtitle file locally—no AI transcription, media upload, or burned-in captions. Import the saved .srt into a compatible video editor.</p>
+            <div id="srt-caption-list" class="srt-caption-list"></div>
+            <div class="history-toolbar">
+              <button id="srt-caption-add" type="button" class="btn btn-outline">+ ADD CAPTION (MAX 12)</button>
+              <button id="srt-caption-export" type="button" class="btn btn-lime">CREATE SRT FILE</button>
+            </div>
+            <p id="srt-caption-status" class="footnote" role="status" aria-live="polite">2 sample rows ready. Replace the text and timings before exporting.</p>
+            <a id="srt-caption-download" hidden download="CutNova-captions.srt">SAVE SRT SUBTITLES</a>
+          </section>
           <p class="footnote">A BASIC MATCH means MP4 container + H.264 sample entries + MP4 audio sample entries (usually AAC); the exact AAC object type, loudness, full video integrity and social upload are NOT independently verified. Review the full clip yourself before posting.</p>
         </section>
         <p class="footnote">Manual local export records video in real time; it is not cloud AI and adds no AI captions. Some iPhone/Safari browser versions cannot record a canvas video, so the Export button may be disabled. If unsupported, the AI tab can render only authorized publicly downloadable video URLs; saved iPhone video files are NOT automatically uploaded. MP4 when supported, otherwise WebM; MP4 may still use codecs that some social apps reject. Play the downloaded file before publishing, and keep this page open during recording.</p>
@@ -420,6 +431,6 @@
   <script defer src="./local-reencode.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
-  <script defer src="./launch.js"></script>
+  <script defer src="./caption-srt.js"></script>\n  <script defer src="./launch.js"></script>
 </body>
 </html>
