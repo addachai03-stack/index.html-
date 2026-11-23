@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "platform": "",
+  "channel": "",
+  "checked_at": null,
+  "state": "NOT_CONFIGURED",
+  "stream": null,
+  "clips": [],
+  "clip_source": "official_public_existing_twitch_clips_only",
+  "polling": "scheduled_not_realtime",
+  "note": "Configure one channel and private API credentials in GitHub Actions before checking status.",
+  "last_live_at": null,
+  "restart_count": 0
+}
