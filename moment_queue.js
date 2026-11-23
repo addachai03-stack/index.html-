@@ -79,7 +79,7 @@
   const d=root.document,by=id=>d.getElementById(id);
   const container=by("moment-list"),info=by("moment-status"),queueBox=by("moment-queue"),
     queueInfo=by("queue-status"),draft=by("moment-draft"),download=by("queue-download"),
-    clear=by("queue-clear"),showCount=by("moment-count"),rights=by("live-rights");
+    clear=by("queue-clear"),copyDraft=by("moment-copy"),showCount=by("moment-count"),rights=by("live-rights");
   if(!container||!queueBox||!download||!rights)return;
   let candidates=[],target=null,stale=true;
   let queue=[];
@@ -112,7 +112,7 @@
       actions.append(original,
         button("PREPARE POST DRAFT",()=>{
           if(!rights.checked){queueSay("Confirm editing/reposting rights in section 01 before preparing a post draft.");return;}
-          try{draft.value=postingDraft(moment);draft.hidden=false;draft.focus();queueSay("Draft prepared for review. Nothing was posted or downloaded.");}
+          try{draft.value=postingDraft(moment);draft.hidden=false;copyDraft.disabled=false;draft.focus();queueSay("Draft prepared for review. Nothing was posted or downloaded.");}
           catch(e){queueSay(e.message);}
         }),
         button("REMOVE",()=>{
@@ -153,7 +153,7 @@
   }
   root.addEventListener("cutnova:live-status",event=>{
     const result=event.detail?.result,targetValue=event.detail?.target;
-    if(!result||!targetValue){target=null;candidates=[];stale=true;showCandidates();return;}
+    if(!result||!targetValue){target=null;candidates=[];stale=true;showCandidates();say("No verified metadata for this channel yet.");return;}
     target=targetValue;
     const checked=Date.parse(result.checked_at||"");
     stale=!Number.isFinite(checked)||Math.abs(Date.now()-checked)>90*60*1000;
@@ -165,6 +165,18 @@
     showCandidates();
   });
   showCount?.addEventListener("change",()=>showCandidates());
+  copyDraft?.addEventListener("click",async()=>{
+    if(!rights.checked){queueSay("Confirm editing/reposting rights before copying the draft.");return;}
+    if(!draft.value){queueSay("Select PREPARE POST DRAFT first.");return;}
+    try{
+      if(!root.navigator?.clipboard?.writeText)throw Error("Clipboard unavailable");
+      await root.navigator.clipboard.writeText(draft.value);
+      queueSay("Draft copied. Edit and verify context before any manual posting.");
+    }catch{
+      draft.hidden=false;draft.focus();draft.select();
+      queueSay("Clipboard permission unavailable. The draft is selected; use iPhone Copy manually.");
+    }
+  });
   clear.addEventListener("click",()=>{
     if(!queue.length||!root.confirm("Clear saved review queue on this browser?"))return;
     queue=[];persist();renderQueue();queueSay("Review queue cleared on this browser.");
