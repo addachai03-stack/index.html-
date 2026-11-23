@@ -143,6 +143,7 @@
     const a=(info.audio||[]).map(x=>CODECS[x]||x).join(", ")||"unverified";
     return info.container+" · Video: "+v+" · Audio: "+a;
   }
+  if(root)root.CutNovaCodecAudit=Object.freeze({inspect,classify,label,honorsStrictSocialRequest});
   if(typeof module!=="undefined"&&module.exports){
     module.exports={boxes,codecsInMoov,inspect,classify,label,honorsStrictSocialRequest};
     return;
