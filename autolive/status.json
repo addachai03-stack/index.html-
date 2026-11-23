@@ -10,5 +10,7 @@
   "polling": "scheduled_not_realtime",
   "note": "Configure one channel and private API credentials in GitHub Actions before checking status.",
   "last_live_at": null,
-  "restart_count": 0
+  "restart_count": 0,
+  "moment_candidates": [],
+  "moment_source": "official_existing_twitch_clip_metadata_only"
 }
