@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 
 BASE = os.environ.get("CUTNOVA_SMOKE_URL", "http://127.0.0.1:8765/")
 ROOT = Path(__file__).resolve().parents[1]
-MEDIA = ROOT / "smoke-artifacts" / "original-fixture.mp4"
+MEDIA = ROOT / "smoke-artifacts" / "original-fixture.webm"
 OUT = ROOT / "smoke-artifacts"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -65,6 +65,7 @@ def check(browser, mobile):
         )
         src = row_status(page, "Source video")
         audio = row_status(page, "Audio decode")
+        print(("MOBILE" if mobile else "DESKTOP") + " fixture source result: " + page.locator(".qa-row").filter(has=page.locator("strong", has_text="Source video")).inner_text())
         assert src == "PASS", "Original fixture should decode a real video frame, got " + src
         assert audio in ("PASS", "FAIL"), "Audio must be attempted and have a real outcome, got " + audio
         assert row_status(page, "Actual editor export") == "NOT TESTED", "No media was exported"
