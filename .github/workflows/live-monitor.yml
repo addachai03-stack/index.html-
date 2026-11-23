@@ -1,0 +1,47 @@
+name: CutNova - Auto Live Monitor (Official Read-Only)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub schedules may run late or be disabled. These are approximate 30-minute checks.
+    - cron: "13,43 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cutnova-autolive-status
+  cancel-in-progress: false
+
+jobs:
+  public-stream-status:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check official live APIs (no media downloaded)
+        env:
+          CUTNOVA_STREAM_PLATFORM: \${{ vars.CUTNOVA_STREAM_PLATFORM }}
+          CUTNOVA_STREAM_CHANNEL: \${{ vars.CUTNOVA_STREAM_CHANNEL }}
+          TWITCH_CLIENT_ID: \${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: \${{ secrets.TWITCH_CLIENT_SECRET }}
+          YOUTUBE_API_KEY: \${{ secrets.YOUTUBE_API_KEY }}
+        run: python live_monitor.py
+      - name: Publish public metadata status only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add autolive/status.json
+          if git diff --cached --quiet; then
+            echo "No status changes"; exit 0
+          fi
+          git commit -m "chore(autolive): publish official public stream status [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
