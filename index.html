@@ -318,6 +318,26 @@
           </div>
           <p class="footnote">On iPhone, if your browser opens a preview instead of saving automatically, use Share → Save to Files. The website cannot access Files until you choose a file yourself. Play the saved video and listen for audio before posting.</p>
         </div>
+        <section class="saved-file-check" id="social-file-panel" aria-labelledby="social-file-heading">
+          <strong id="social-file-heading">V5.2 · PRIVATE SOCIAL FORMAT VERIFIER</strong>
+          <p class="footnote">Have a converted MP4 in iPhone Files? Check its <strong>actual</strong> H.264 video + MP4 audio sample entries locally. A filename ending in .mp4 does not prove compatible codecs. This tool does NOT convert media, send it to a server, or guarantee Instagram/YouTube acceptance.</p>
+          <details class="social-converter-help">
+            <summary>Free iPhone-only conversion option: Apple Shortcuts (manual)</summary>
+            <p class="footnote">After saving your own CutNova video to Files, open the built-in <strong>Shortcuts</strong> app. Make a shortcut accepting a video (from Share Sheet or a file picker), add <strong>Encode Media</strong> with <strong>Audio Only OFF</strong>, choose H.264 or a compatible video format if offered on your iOS version, then <strong>Save File</strong>. Run that shortcut on your saved video. Options vary by iOS; if H.264 is unavailable, do not assume the output was converted. Select the output in this verifier to check actual codecs. Files stay private unless you explicitly share them.</p>
+            <p class="footnote">Browser-native strict H.264/AAC recording remains available above only if your browser advertises both codecs; no unsupported encoder is fabricated. The separate Owner GitHub converter accepts PUBLIC authorized URLs only—never private iPhone Files.</p>
+          </details>
+          <label class="edit-file-label" for="social-file-input">CHOOSE VIDEO FROM IPHONE FILES (MAX 250 MiB)
+            <input id="social-file-input" type="file" accept="video/*,.mp4,.mov,.m4v,.webm">
+          </label>
+          <div class="history-toolbar">
+            <button id="social-file-check" type="button" class="btn btn-lime">CHECK CONVERTED FILE FORMAT</button>
+            <button id="social-file-play" type="button" class="btn btn-outline" disabled>VERIFY CONVERTED VIDEO PLAYBACK</button>
+          </div>
+          <p id="social-file-status" class="footnote" role="status" aria-live="polite" data-result="not-tested">FORMAT NOT VERIFIED. Select a local video; CutNova will not upload it.</p>
+          <video id="social-file-preview" controls playsinline preload="metadata" hidden aria-label="Local converted video preview"></video>
+          <p id="social-file-play-status" class="footnote" role="status" aria-live="polite">PLAYBACK NOT VERIFIED. A verified codec entry does not prove this browser can decode the movie or that its audio is audible.</p>
+          <p class="footnote">A BASIC MATCH means MP4 container + H.264 sample entries + MP4 audio sample entries (usually AAC); the exact AAC object type, loudness, full video integrity and social upload are NOT independently verified. Review the full clip yourself before posting.</p>
+        </section>
         <p class="footnote">Manual local export records video in real time; it is not cloud AI and adds no AI captions. Some iPhone/Safari browser versions cannot record a canvas video, so the Export button may be disabled. If unsupported, the AI tab can render only authorized publicly downloadable video URLs; saved iPhone video files are NOT automatically uploaded. MP4 when supported, otherwise WebM; MP4 may still use codecs that some social apps reject. Play the downloaded file before publishing, and keep this page open during recording.</p>
         </div>
       </section>
@@ -381,6 +401,7 @@
   <script defer src="./device-qa.js"></script>
   <script defer src="./native-share.js"></script>
   <script defer src="./social-codec-check.js"></script>
+  <script defer src="./social-file-verify.js"></script>
   <script defer src="./local-reencode.js"></script>
   <script defer src="./pwa.js"></script>
   <script defer src="./nav.js"></script>
