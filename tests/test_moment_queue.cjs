@@ -40,7 +40,7 @@ const sw=fs.readFileSync("sw.js","utf8");
 const pages=fs.readFileSync(".github/workflows/pages.yml","utf8");
 const monitor=fs.readFileSync("live_monitor.py","utf8");
 const ci=fs.readFileSync(".github/workflows/checks.yml","utf8");
-for(const id of ["moment-list","moment-queue","moment-count","moment-status","moment-draft","queue-download","queue-clear"]){
+for(const id of ["moment-list","moment-queue","moment-count","moment-status","moment-draft","queue-download","queue-clear","moment-copy"]){
   assert.ok(html.includes('id="'+id+'"'),id);
 }
 assert.ok(html.includes('src="./moment_queue.js"'));
