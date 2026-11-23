@@ -141,6 +141,21 @@
           <button type="button" id="quick-generate" class="btn btn-lime">✦ PREPARE SHORTS ON PHONE</button>
           <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. The number of feasible, mostly non-overlapping clips depends on video duration. Actual Shorts must be exported one at a time in the editor.</p>
           <div id="quick-results" class="quick-results" hidden></div>
+          <details class="visual-finder" id="visual-finder">
+            <summary>✦ NEW: FIND VISUAL MOMENTS (ON-DEVICE BETA)</summary>
+            <p class="footnote">Scans at most the first 12 minutes of a video saved on your phone, using up to 46 tiny frame samples. Suggests 15–60s clips around visual changes, not AI speech analysis, chat peaks, action recognition or guaranteed exciting highlights. The video is never uploaded. Your phone must support seeking the file.</p>
+            <div class="quick-select-row">
+              <label>NUMBER OF SUGGESTIONS<select id="visual-count"><option value="1">1 clip</option><option value="3" selected>Up to 3 clips</option><option value="6">Up to 6 clips</option></select></label>
+              <label>CLIP DURATION<select id="visual-length"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></label>
+            </div>
+            <div class="history-toolbar">
+              <button type="button" id="visual-scan" class="btn btn-lime">FIND VISUAL MOMENTS</button>
+              <button type="button" id="visual-stop" class="btn btn-outline" disabled>CANCEL SCAN</button>
+            </div>
+            <p class="footnote" id="visual-status" role="status" aria-live="polite">Select your video above and confirm editing rights. Scan starts only when you tap FIND VISUAL MOMENTS.</p>
+            <div id="visual-results" class="quick-results" hidden></div>
+          </details>
+
         </div>
       </section>
       <section class="studio-card job-center local-editor" id="local-editor" data-mobile-screen="editor projects">
@@ -295,6 +310,7 @@
     <footer class="footer"><span>✂ CUTNOVA <b>© 2026</b></span><span>BUILT FOR CREATORS · iPHONE FIRST</span><a href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">VIEW SOURCE ↗</a></footer>
   </div>
   <script type="module" src="./app.js"></script>
+  <script defer src="./local-highlights.js"></script>
   <script defer src="./owner-render.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>

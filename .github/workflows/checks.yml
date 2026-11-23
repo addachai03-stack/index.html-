@@ -26,6 +26,7 @@ on:
       - "parse_request.py"
       - ".github/ISSUE_TEMPLATE/**"
       - "app.js"
+      - "local-highlights.js"
       - "owner-render.js"
       - "jobs.js"
       - "editor.js"
@@ -72,6 +73,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Test app JS syntax and dashboard request integration
         run: |
+          node --check local-highlights.js
+          node tests/test_local_highlights.cjs
           node --check app.js
           node tests/test_dashboard.cjs
           node --check owner-render.js
