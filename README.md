@@ -444,3 +444,17 @@ Smart Mix is a **one-tap, on-device** candidate finder in CutNova's saved-video 
 Important: Smart Mix detects **relative sampled frame changes and loudness spikes**, not words, emotions, humour, viewer reactions, real highlights or virality. Browser decoder support and actual MP4 export on Safari still require device verification. Local media never goes to GitHub or cloud storage through this feature. Stream monitor remains NOT_CONFIGURED until official platform API credentials are supplied privately by the owner.
 
 Tests: node tests/test_smart_mix.cjs, node tests/test_local_highlights.cjs, node tests/test_audio_peaks.cjs, plus GitHub CI.
+
+## V5.0 — iPhone device-readiness and export evidence report
+
+The local editor includes a **REAL IPHONE READINESS REPORT**, replacing guesses about Safari support with explicit, separate evidence. Click **RUN DEVICE CHECKS** after selecting your own source video in the AI tab or editor. No video/audio is sent to a server, and it does not silently run in the background.
+
+- The checker verifies only declared MediaRecorder/canvas/WebAudio API support (not actual recording success), and tries to decode a real frame from the user-selected video using a temporary local blob URL.
+- It can attempt a bounded local audio decode on the selected video or optional audio file if the input is no larger than 20 MB. Audio signal present or decoded is *not* the same as verified loudness/audibility.
+- **GO TO FULL EXPORT TEST** scrolls to the existing 5-second original test-source generator. That flow still requires explicit user confirmation of rights, manual EXPORT SHORT, verification of actual 720x1280 playback and a manually selected downloaded file from Files.
+- Structured in-page events from the existing real editor, playback checker, codec inspection and Files round-trip checker update seven independent statuses. The report distinguishes NOT TESTED, FAIL, RECORDED, PASS, BASIC MATCH and UNVERIFIED. An export Blob does not count as a playback PASS; a codec entry alone does not mean a social upload will work.
+- COPY PRIVATE-SAFE TEST REPORT sends only evidence statuses and generic diagnostics to the clipboard after an explicit tap; it excludes file names, media bytes, URLs, credentials and any automatic storage/upload.
+
+**Not yet verified:** A real iPhone has not executed this flow in the user's Safari/browser session; playback, Files persistence, audio audibility and successful social upload must not be claimed from CI. This adds a testing path, not true autonomous livestream clipping, speech recognition or automatic publishing.
+
+Run `node tests/test_device_qa.cjs` and normal GitHub Code Checks.

@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.9</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V5.0</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -230,6 +230,21 @@
             <p id="edit-prepare-status" role="status" aria-live="polite">Creates an original 5-second video on your phone, then opens it in the real editor for a 3-second MP4/WebM export. Your rights checkbox and download remain manual.</p>
           </div>
         </section>
+
+        <section class="device-export-check" id="device-qa-panel" aria-labelledby="qa-heading">
+          <div class="export-check-head">
+            <strong id="qa-heading">V5.0 · REAL IPHONE READINESS REPORT</strong>
+          </div>
+          <p class="footnote">Checks real local video frame decoding when you select a video above (or below), optional local audio decoding, and your browser's declared recording APIs. It does not upload files, access Photos without selection, or pretend to export. Later, as you use the real editor, this report captures its actual export, playback, codec and selected-Files-copy verification events.</p>
+          <div class="history-toolbar">
+            <button id="qa-run" type="button" class="btn btn-lime">RUN DEVICE CHECKS</button>
+            <button id="qa-demo" type="button" class="btn btn-outline">GO TO FULL EXPORT TEST</button>
+            <button id="qa-copy" type="button" class="btn btn-outline">COPY PRIVATE-SAFE TEST REPORT</button>
+          </div>
+          <p class="footnote" id="qa-summary" role="status" aria-live="polite">NOT TESTED. Select a local video and tap RUN DEVICE CHECKS; no support claims until actual checks run. Synthetic demo, manual export, playback and saved Files proof are separate steps.</p>
+          <div id="qa-output" class="qa-output" aria-label="Device readiness check results"></div>
+          <p class="footnote">A reported browser API PASS only means the API advertises support. RECORDED only means a Blob was produced. Actual playback PASS is separate. Files PASS requires a file you personally chose and byte-matched. Codec BASIC MATCH does not prove AAC profile, frame rate or platform upload acceptance. Nothing here proves audio audibility or iPhone Files persistence.</p>
+        </section>
         <label class="edit-file-label">CHOOSE VIDEO <input id="edit-file" type="file" accept="video/*,.mp4,.mov,.webm"/></label>
         <div id="edit-fields" hidden>
           <div class="edit-preview"><canvas id="edit-canvas" aria-label="Edited portrait video preview"></canvas></div>
@@ -363,6 +378,7 @@
   <script defer src="./full-export-test.js"></script>
   <script defer src="./playback-check.js"></script>
   <script defer src="./saved-file-check.js"></script>
+  <script defer src="./device-qa.js"></script>
   <script defer src="./native-share.js"></script>
   <script defer src="./social-codec-check.js"></script>
   <script defer src="./local-reencode.js"></script>

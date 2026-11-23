@@ -122,14 +122,17 @@
       if(version!==revision)throw Error("File selection changed during verification");
       if(!matched){
         say("FILE MISMATCH — selected file is NOT byte-for-byte identical to this export. Re-download the current Short and select that saved copy.");
+        root.dispatchEvent(new CustomEvent("cutnova:saved-file-check",{detail:{ok:false,message:"Selected file does not match current export byte-for-byte."}}));
         return;
       }
       say("File contents match exactly. Now checking video decoding and playback…");
       await playForCheck(video);
       if(version!==revision)throw Error("File selection changed during verification");
       say("SAVED FILE VERIFIED ✓ — selected file matches the original export byte-for-byte and plays in this browser (720×1280). This confirms only the file you manually selected. Audible sound, Files storage persistence and social upload compatibility still require checking on iPhone.");
+      root.dispatchEvent(new CustomEvent("cutnova:saved-file-check",{detail:{ok:true,message:"User-selected Files copy matched current export byte-for-byte and played in browser; Files persistence unverified."}}));
     }catch(e){
       say("SAVED FILE CHECK FAILED — "+String(e?.message||"Cannot verify this file").slice(0,200)+". No successful Files download is claimed.");
+      root.dispatchEvent(new CustomEvent("cutnova:saved-file-check",{detail:{ok:false,message:"Saved Files copy check failed; no verified download."}}));
     }finally{
       busy=false;button.disabled=false;
     }

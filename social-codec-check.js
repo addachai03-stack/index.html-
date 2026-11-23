@@ -162,21 +162,27 @@
       const info=await inspect(blob);
       if(current!==version)return;
       const verdict=classify(info);
+      let reportCode="unverified";
       const strict=event.detail?.strictSocial===true;
       if(strict&&!honorsStrictSocialRequest(info)){
         status.textContent="STRICT SOCIAL CODEC REQUEST NOT MET — "+label(info)+". The browser did not output verified H.264 + MP4 audio sample entries. Do not treat this as social-ready; the exported file is still available for review and download.";
         status.dataset.result="not-recommended";
+        reportCode="not-recommended";
       }else if(strict){
         status.textContent="STRICT FORMAT BASIC MATCH — "+label(info)+". H.264 + MP4 audio sample entries detected. AAC audio object type, bitrate, frame rate and actual social upload are not verified.";
         status.dataset.result="basic-match";
+        reportCode="basic-match";
       }else{
         status.textContent=verdict.label+" — "+label(info)+". "+verdict.detail;
         status.dataset.result=verdict.code;
+        reportCode=verdict.code;
       }
+      root.dispatchEvent(new CustomEvent("cutnova:codec-check",{detail:{code:reportCode,message:label(info)+"; actual container entries inspected, codec and social compatibility may still be unverified."}}));
     }catch(e){
       if(current!==version)return;
       status.textContent="CODECS NOT VERIFIED — "+String(e?.message||"Could not read MP4 atoms").slice(0,120)+". Do not assume social upload compatibility.";
       status.dataset.result="unverified";
+      root.dispatchEvent(new CustomEvent("cutnova:codec-check",{detail:{code:"unverified",message:"Codec inspection failed; no verified H.264/AAC claim."}}));
     }
   });
 })(typeof window!=="undefined"?window:null);
