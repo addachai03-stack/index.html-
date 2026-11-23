@@ -34,7 +34,7 @@ const sw=fs.readFileSync("sw.js","utf8");
 const pages=fs.readFileSync(".github/workflows/pages.yml","utf8");
 const ci=fs.readFileSync(".github/workflows/checks.yml","utf8");
 for(const id of ["social-file-panel","social-file-input","social-file-check","social-file-play",
- "social-file-status","social-file-preview","social-file-play-status"])
+ "social-file-status","social-file-preview","social-file-play-status","social-file-audio","social-file-audio-status","social-file-audio-heard","social-file-audio-silent"])
  assert.ok(html.includes('id="'+id+'"'),"Missing UI "+id);
 assert.ok(html.includes("Shortcuts")&&html.includes("Encode Media")&&html.includes("Audio Only OFF"),
   "Native private conversion instructions must not claim actual conversion");
@@ -43,6 +43,11 @@ assert.ok(codecs.includes("root.CutNovaCodecAudit=Object.freeze({inspect,classif
 assert.ok(code.includes("engine.inspect(file)"),"Inspect real selected file bytes, not filename");
 assert.ok(code.includes("URL.createObjectURL(file)")&&code.includes("URL.revokeObjectURL(objectURL)"));
 assert.ok(code.includes("player.play()")&&code.includes("waitToAdvance(start,version)"));
+assert.ok(code.includes("player.muted=false")&&code.includes("player.volume=1"));
+assert.ok(code.includes("setAudioConfirmation(true)")&&code.includes("setAudioConfirmation(false)"));
+assert.ok(code.includes("needs-user-confirmation")&&code.includes("user-heard")&&code.includes("user-no-sound"));
+assert.ok(code.includes("cannot detect audible sound")&&code.includes("manual listening result"));
+assert.ok(!code.includes("audioStatus.dataset.result=\"pass\""),"No auto-pass audio label");
 assert.ok(!code.includes("fetch(")&&!code.includes("getUserMedia(")&&!code.includes("localStorage"));
 assert.ok(!code.includes("file.name+")&& !code.includes("file.name,"));
 assert.ok(sw.includes('"./social-file-verify.js"')&&!sw.includes('"./autolive/status.json"'));
