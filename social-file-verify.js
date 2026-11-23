@@ -34,8 +34,8 @@ if(typeof module!=="undefined"&&module.exports){
 if(!root?.document)return;
 const doc=root.document,by=id=>doc.getElementById(id);
 const fileInput=by("social-file-input"),check=by("social-file-check"),
-  playbackBtn=by("social-file-play"),audioBtn=by("social-file-audio"),audioStatus=by("social-file-audio-status"),audioHeard=by("social-file-audio-heard"),audioSilent=by("social-file-audio-silent"),status=by("social-file-status"),playbackStatus=by("social-file-play-status"),player=by("social-file-preview");
-if(!fileInput||!check||!playbackBtn||!audioBtn||!audioStatus||!audioHeard||!audioSilent||!status||!playbackStatus||!player)return;
+  playbackBtn=by("social-file-play"),audioBtn=by("social-file-audio"),audioStatus=by("social-file-audio-status"),audioHeard=by("social-file-audio-heard"),audioSilent=by("social-file-audio-silent"),reportBtn=by("social-file-report"),reportStatus=by("social-file-report-status"),reportDownload=by("social-file-report-download"),status=by("social-file-status"),playbackStatus=by("social-file-play-status"),player=by("social-file-preview");
+if(!fileInput||!check||!playbackBtn||!audioBtn||!audioStatus||!audioHeard||!audioSilent||!reportBtn||!reportStatus||!reportDownload||!status||!playbackStatus||!player)return;
 let objectURL="",revision=0,inspecting=false,playing=false,audioTesting=false;
 function say(msg,code){
   status.textContent=msg;
@@ -45,9 +45,9 @@ function release(){
   revision++;
   try{player.pause();}catch{}
   player.removeAttribute("src");player.load();
-  player.hidden=true;playbackBtn.disabled=true;audioBtn.disabled=true;audioHeard.disabled=true;audioSilent.disabled=true;audioStatus.textContent="AUDIO NOT TESTED. Select a local video and play the audio check.";audioStatus.dataset.result="not-tested";
+  player.hidden=true;playbackBtn.disabled=true;audioBtn.disabled=true;audioHeard.disabled=true;audioSilent.disabled=true;reportBtn.disabled=true;reportDownload.hidden=true;audioStatus.textContent="AUDIO NOT TESTED. Select a local video and play the audio check.";audioStatus.dataset.result="not-tested";
   if(objectURL){URL.revokeObjectURL(objectURL);objectURL="";}
-  playbackStatus.textContent="PLAYBACK NOT VERIFIED. Select a local video and separately test it.";
+  playbackStatus.textContent="PLAYBACK NOT VERIFIED. Select a local video and separately test it.";playbackStatus.dataset.result="not-tested";
 }
 fileInput.addEventListener("change",()=>{
   release();
@@ -65,7 +65,7 @@ fileInput.addEventListener("change",()=>{
   objectURL=URL.createObjectURL(file);
   player.src=objectURL;
   player.hidden=false;
-  playbackBtn.disabled=false;audioBtn.disabled=false;
+  playbackBtn.disabled=false;audioBtn.disabled=false;reportBtn.disabled=false;
 });
 check.addEventListener("click",async()=>{
   if(inspecting)return;
@@ -130,11 +130,11 @@ playbackBtn.addEventListener("click",async()=>{
     await player.play();
     await progress;
     if(version!==revision)throw Error("Selected file changed.");
-    playbackStatus.textContent="LOCAL PLAYBACK PASS — 9:16 metadata present and video frames advanced. Audio audibility and social upload NOT verified. This does not transcode the file.";
+    playbackStatus.textContent="LOCAL PLAYBACK PASS — 9:16 metadata present and video frames advanced. Audio audibility and social upload NOT verified. This does not transcode the file.";playbackStatus.dataset.result="pass";
   }catch(error){
     try{await progress;}catch{}
     if(version===revision)
-      playbackStatus.textContent="LOCAL PLAYBACK FAILED — "+String(error?.message||"Cannot play file").slice(0,150)+". This browser did not verify playback.";
+      playbackStatus.textContent="LOCAL PLAYBACK FAILED — "+String(error?.message||"Cannot play file").slice(0,150)+". This browser did not verify playback.";playbackStatus.dataset.result="failed";
   }finally{
     try{player.pause();}catch{}
     playing=false;playbackBtn.disabled=!objectURL;
@@ -168,5 +168,44 @@ function setAudioConfirmation(heard){
 audioHeard.addEventListener("click",()=>setAudioConfirmation(true));
 audioSilent.addEventListener("click",()=>setAudioConfirmation(false));
 
-root.addEventListener("pagehide",release);
+reportBtn.addEventListener("click",()=>{
+  const file=fileInput.files?.[0];
+  if(!file||!objectURL){reportStatus.textContent="Select a local video first. No report created.";return;}
+  const metadata=validPortraitMetadata(player);
+  const format=status.dataset.result==="basic-match";
+  const playback=playbackStatus.dataset.result==="pass";
+  const heard=audioStatus.dataset.result==="user-heard";
+  const noSound=audioStatus.dataset.result==="user-no-sound";
+  const rows=[
+    "CUTNOVA — LOCAL SHARE PREPARATION CHECKLIST",
+    "Generated locally: "+new Date().toISOString(),
+    "Privacy: this report contains no filename or file path. Video was not uploaded.",
+    "",
+    "FILE TECHNICAL CHECKS",
+    "File selected: YES (name omitted)",
+    "File size: "+(Number(file.size)/1048576).toFixed(2)+" MiB",
+    "Portrait 9:16 and 1–65 seconds metadata: "+(metadata?"PASS":"NOT VERIFIED"),
+    "Basic AVC + mp4a sample-entry match: "+(format?"PASS (basic match only)":"NOT VERIFIED"),
+    "Browser playback advanced: "+(playback?"PASS":"NOT VERIFIED"),
+    "Audio manually heard by user: "+(heard?"USER CONFIRMED":noSound?"USER REPORTED NO SOUND":"NOT CONFIRMED"),
+    "",
+    "BEFORE SHARING — USER REVIEW",
+    "[ ] I watched the entire exported clip and checked start/end cuts.",
+    "[ ] I checked captions, spelling, crop and orientation.",
+    "[ ] I confirmed I have permission/rights to publish this media.",
+    "[ ] I checked the destination app's current upload requirements.",
+    "[ ] I chose and reviewed the final export file in Files.",
+    "",
+    "LIMIT: This is a local checklist, not a transcode, upload, social-platform acceptance test or guarantee. H.264/MP4A sample entries do not prove AAC profile/bitrate or actual platform compatibility."
+  ];
+  const blob=new Blob([rows.join("\\n")],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  if(reportDownload.dataset.url)URL.revokeObjectURL(reportDownload.dataset.url);
+  reportDownload.href=url;reportDownload.dataset.url=url;reportDownload.hidden=false;
+  reportStatus.textContent="LOCAL CHECKLIST CREATED. Tap Save checklist report; review remaining boxes yourself. No video was uploaded.";
+  reportStatus.dataset.result="created";
+});
+
+
+root.addEventListener("pagehide",()=>{release();if(reportDownload.dataset.url)URL.revokeObjectURL(reportDownload.dataset.url);});
 })(typeof window!=="undefined"?window:null);
