@@ -371,3 +371,6 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 #srt-caption-download{display:inline-block;margin-top:10px;padding:12px;color:var(--lime);font-weight:800}
 #srt-caption-download[hidden]{display:none}
 @media(min-width:600px){.srt-caption-row{grid-template-columns:130px 130px minmax(0,1fr) auto;align-items:end}.srt-caption-row label:last-of-type{grid-column:auto}}
+
+.srt-preview-status{margin:10px 0;padding:12px;border:1px solid #4b5a38;border-radius:5px;background:#171c14;color:#d8f6a4;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+#srt-caption-builder #srt-caption-add,#srt-caption-builder #srt-caption-export,#srt-caption-builder .srt-caption-row{margin-bottom:8px}
