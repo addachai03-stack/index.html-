@@ -7,7 +7,6 @@ on:
       - "live_monitor.py"
       - "autolive.html"
       - "autolive.js"
-      - "autolive/status.json"
       - "social_convert.py"
       - "direct_media.py"
       - "github_media.py"
