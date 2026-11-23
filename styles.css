@@ -341,3 +341,12 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 .owner-render-tools{margin:12px 0 0}
 .owner-render-tools a{display:inline-block;margin:8px 8px 0 0}
 @media(max-width:800px){.quick-shorts{margin:10px 0;padding:12px}.quick-cut{padding:9px}.quick-cut .btn{font-size:10px}.url-tools{margin-top:10px}.quick-select-row{gap:8px}}
+
+/* V5.0 — evidence rows; neutral labels avoid claiming product-wide readiness. */
+.qa-output{display:grid;gap:9px;margin:14px 0}
+.qa-row{display:grid;grid-template-columns:minmax(105px,1fr) auto;gap:5px 12px;align-items:baseline;
+  border:1px solid rgba(200,210,220,.23);background:rgba(20,26,32,.32);border-radius:12px;padding:12px}
+.qa-row strong{font-size:.85rem;color:#fafafa}
+.qa-row .qa-state{font-size:.68rem;font-weight:800;letter-spacing:.06em;
+  color:#f0d9a0;border:1px solid rgba(240,210,150,.28);border-radius:7px;padding:4px 7px}
+.qa-row small{grid-column:1 / -1;color:#bfbfc7;font-size:.76rem;overflow-wrap:anywhere;line-height:1.5}
