@@ -25,7 +25,8 @@ jobs:
       - name: Prepare static website
         run: |
           mkdir -p _site
-          cp index.html refresh.html refresh.js app.js jobs.js editor.js pwa.js nav.js launch.js sw.js styles.css manifest.webmanifest _site/
+          cp index.html autolive.html autolive.js refresh.html refresh.js app.js owner-render.js jobs.js editor.js export-check.js full-export-test.js playback-check.js saved-file-check.js native-share.js social-codec-check.js local-reencode.js pwa.js nav.js launch.js sw.js styles.css manifest.webmanifest _site/
+          cp -r autolive _site/
           cp -r icons _site/
           touch _site/.nojekyll
       - name: Upload site artifact
