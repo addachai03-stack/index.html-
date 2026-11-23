@@ -38,6 +38,7 @@
     .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.step{padding:16px;border-radius:13px;background:#240f21aa;border:1px solid #ffc5de22}.step span{color:var(--amber);font-size:.75rem;font-weight:900}.step strong{display:block;font-size:.92rem;margin:9px 0 6px}.step p{font-size:.76rem;line-height:1.48;margin:0;color:var(--muted)}
     .setup{font-size:.78rem;line-height:1.55}.setup code{color:#ffd091;background:#1a1220;padding:2px 5px;border-radius:5px}.setup details{margin-top:13px}.setup summary{cursor:pointer;color:var(--amber);font-weight:800}
     #live-feedback{min-height:24px;color:#ffd4a5;font-size:.78rem;line-height:1.5;margin:12px 0 0}
+    .moment-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.moment-controls label{margin:0}.moment-controls select{width:auto;min-width:130px;min-height:40px;padding:8px 12px}.moment-note{font-size:.76rem;color:#d7baca;line-height:1.5}.draft-preview{display:block;width:100%;margin:14px 0;min-height:145px;padding:12px;border:1px solid #ffcbdd45;border-radius:12px;background:#0c080e;color:#fff5f2;resize:vertical;white-space:pre-wrap}.draft-preview[hidden]{display:none}.queue-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
     footer{color:#927f92;text-align:center;font-size:.7rem;padding-top:26px}
     @media(max-width:580px){.wrap{padding:0 14px 80px}.form-row,.status-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.panel{padding:15px}.btn{flex:1 1 130px}.stats{gap:6px}.stat b{font-size:1rem}.stat{padding:12px 7px}.stat small{font-size:.62rem}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -81,6 +82,28 @@
         <div id="live-clips" class="clip-list"><p class="mini">No recent official clips available.</p></div>
         <p id="live-clip-feedback" class="mini" role="status" aria-live="polite"></p>
       </section>
+
+      <section class="panel" aria-labelledby="moments-head">
+        <div class="panel-head"><h2 id="moments-head">04 · SMART MOMENT SHORTLIST</h2><span class="pill">METADATA PRIORITY · NOT VIDEO AI</span></div>
+        <p class="notice">CutNova prioritizes <b>existing public Twitch clips</b> using official views, clip age and 15–60-second duration. The 0–100 number is a transparent, relative review score—not an AI analysis of audio/video, a viral prediction, or newly recorded footage.</p>
+        <div class="moment-controls"><label for="moment-count">SHOW TOP MOMENTS</label><select id="moment-count"><option value="1">TOP 1</option><option value="3" selected>TOP 3</option><option value="6">TOP 6</option></select></div>
+        <div id="moment-list" class="clip-list" aria-live="polite"><p class="mini">No verified moment candidates yet.</p></div>
+        <p id="moment-status" class="moment-note" role="status" aria-live="polite">Choose a configured Twitch channel and check official status.</p>
+      </section>
+      <section class="panel" aria-labelledby="queue-head">
+        <div class="panel-head"><h2 id="queue-head">05 · MY REVIEW QUEUE</h2><span class="pill">SAVED ON THIS PHONE</span></div>
+        <p class="notice">Bookmark official clip links for manual review. Post drafts contain <b>no invented transcript</b>; you must watch the source, verify rights and add accurate text. Copying a draft or exporting a plan does not download the video, create Shorts, or publish anything.</p>
+        <div id="moment-queue" class="clip-list"><p class="mini">Your review queue is empty.</p></div>
+        <label for="moment-draft" style="margin-top:13px">POSTING DRAFT PREVIEW · EDIT/COPY MANUALLY</label>
+        <textarea id="moment-draft" class="draft-preview" rows="6" hidden readonly aria-label="Posting draft preview"></textarea>
+        <div class="queue-actions">
+          <button id="moment-copy" class="btn" type="button" disabled>COPY DRAFT TEXT</button>
+          <button id="queue-download" class="btn primary" type="button" disabled>↓ DOWNLOAD TEXT REVIEW PLAN</button>
+          <button id="queue-clear" class="btn" type="button" disabled>CLEAR LOCAL QUEUE</button>
+          <a class="btn" href="./#local-editor">OPEN SAVED-VIDEO EDITOR ↗</a>
+        </div>
+        <p id="queue-status" class="moment-note" role="status" aria-live="polite">Queue data remains in this browser; keep your source videos separately.</p>
+      </section>
       <section class="panel" aria-labelledby="how-head">
         <div class="panel-head"><h2 id="how-head">HOW AUTO LIVE WORKS</h2><span class="pill">READ-ONLY PHASE</span></div>
         <div class="steps">
@@ -101,5 +124,6 @@
     <footer>✂ CUTNOVA AUTO LIVE · AUTHORIZED STREAMS ONLY · 2026</footer>
   </div>
   <script defer src="./autolive.js"></script>
+  <script defer src="./moment_queue.js"></script>
 </body>
 </html>

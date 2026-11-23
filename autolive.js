@@ -55,6 +55,7 @@
     title.textContent="NO STREAM DATA";details.textContent="No verified live session.";
     streamLink.hidden=true;clips.replaceChildren();
     const p=d.createElement("p");p.className="mini";p.textContent="No verified public clips for this selected channel.";clips.append(p);
+    root.dispatchEvent(new CustomEvent("cutnova:live-status",{detail:{result:null,target:null}}));
   }
   function showClips(items, target){
     clips.replaceChildren();
@@ -122,6 +123,7 @@
     const href=live?safeStreamURL(live.url,target):null;
     if(href){streamLink.href=href;streamLink.hidden=false;}else streamLink.hidden=true;
     showClips(result.clips,target);
+    root.dispatchEvent(new CustomEvent("cutnova:live-status",{detail:{result,target}}));
   }
   function chosen(){
     const next=normalizeTarget(platform.value,channel.value);

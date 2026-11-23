@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from moment_rank import official_clip_url, rank_public_moments
 
 UTC = timezone.utc
 CHANNEL_RE = re.compile(r"^[a-zA-Z0-9_]{3,25}$")
@@ -83,7 +84,7 @@ def twitch_status(channel, client_id, client_secret):
     safe_clips = []
     for item in clips:
         uri = str(item.get("url") or "")
-        if not (uri.startswith("https://clips.twitch.tv/") or uri.startswith("https://www.twitch.tv/")):
+        if not official_clip_url(uri):
             continue
         safe_clips.append({
             "id": clip_text(item.get("id"), 100),
@@ -93,7 +94,7 @@ def twitch_status(channel, client_id, client_secret):
             "duration": max(0, float(item.get("duration") or 0)),
         })
     safe_clips.sort(key=lambda c: c["view_count"], reverse=True)
-    return {"state": "LIVE" if live else "OFFLINE", "stream": stream, "clips": safe_clips[:12]}
+    return {"state": "LIVE" if live else "OFFLINE", "stream": stream, "clips": safe_clips[:20]}
 
 
 def youtube_status(channel, api_key):
@@ -134,10 +135,10 @@ def build_status(platform, channel, secrets, previous=None):
     result = {
         "schema_version": 1, "platform": str(platform or "").lower().strip(),
         "channel": str(channel or "").strip(), "checked_at": now(),
-        "state": "NOT_CONFIGURED", "stream": None, "clips": [],
+        "state": "NOT_CONFIGURED", "stream": None, "clips": [], "moment_candidates": [],
         "clip_source": "official_public_existing_twitch_clips_only",
         "polling": "scheduled_not_realtime",
-        "note": "Read-only official API monitor. No auto clip recording, AI ranking, DM, or uploads.",
+        "note": "Official metadata-based review priorities, not video or AI analysis. No stream recording, new clip generation, DMs, or uploads.",
         "last_live_at": None, "restart_count": 0,
     }
     if not channel or not platform:
@@ -154,6 +155,8 @@ def build_status(platform, channel, secrets, previous=None):
                 return result
             data = youtube_status(channel, secrets["YOUTUBE_API_KEY"])
         result.update(data)
+        if platform == "twitch":
+            result["moment_candidates"] = rank_public_moments(result.get("clips"), checked_at=datetime.now(UTC))
         old = previous or {}
         if old.get("platform") == platform and old.get("channel") == channel:
             result["restart_count"] = max(0, int(old.get("restart_count") or 0))
