@@ -150,7 +150,7 @@ function display(candidates,source,mode){
  }
 }
 
-async function run(signal,job){
+async function run(signal,job,ctx){
  const videoFile=videoInput.files?.[0];
  if(!videoFile)throw Error("Choose a video above before checking audio peaks.");
  if(!/^video\//i.test(videoFile.type||"")&&!/\.(mp4|mov|webm|m4v)$/i.test(videoFile.name||""))
@@ -174,9 +174,6 @@ async function run(signal,job){
    if(Math.abs(audioDuration-videoDuration)>2)
      throw Error("Separate audio duration differs by over 2 seconds. Use an audio track aligned to the full selected video.");
  }
- const AudioContextClass=root.AudioContext||root.webkitAudioContext;
- if(typeof AudioContextClass!=="function")throw Error("Web Audio decoding unavailable in this browser. Use Visual Moments instead.");
- const ctx=new AudioContextClass();
  try{
    say("Decoding a local audio track (no upload). iPhone codec support may vary…");
    const bytes=await source.arrayBuffer();
@@ -202,8 +199,6 @@ async function run(signal,job){
    if(error?.name==="EncodingError"||error?.name==="NotSupportedError")
      throw Error("This iPhone/browser cannot decode the video audio track. Select a matching MP3/M4A/WAV file or use Visual Moments.");
    throw error;
- }finally{
-   try{await ctx.close();}catch{}
  }
 }
 
@@ -217,11 +212,20 @@ start.addEventListener("click",async()=>{
  if(controller)return;
  if(!rights.checked){say("Confirm video editing rights above first.");return;}
  if(!videoInput.files?.[0]){say("Choose a local video above first.");return;}
+ // Create AudioContext synchronously from the explicit click for iPhone Safari.
+ const AudioContextClass=root.AudioContext||root.webkitAudioContext;
+ if(typeof AudioContextClass!=="function"){say("Web Audio unavailable. Try Visual Moments or timed cuts.");return;}
+ let ctx;
+ try{ctx=new AudioContextClass();}
+ catch{say("This browser could not start a local audio decoder. Try Visual Moments.");return;}
  const job=++nonce,c=new AbortController();
  controller=c;start.disabled=true;cancelBtn.disabled=false;clearResults();
- try{await run(c.signal,job);}
+ try{await run(c.signal,job,ctx);}
  catch(error){if(job===nonce)say("Audio scan stopped: "+String(error?.message||"Unsupported source").slice(0,210));}
- finally{if(job===nonce){controller=null;start.disabled=false;cancelBtn.disabled=true;}}
+ finally{
+   try{await ctx.close();}catch{}
+   if(job===nonce){controller=null;start.disabled=false;cancelBtn.disabled=true;}
+ }
 });
 cancelBtn.addEventListener("click",()=>stopScan());
 videoInput.addEventListener("change",()=>{stopScan(false);clearResults();say("Video changed. Confirm rights and start audio peak scan when ready.");});
