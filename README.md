@@ -466,3 +466,11 @@ Run `node tests/test_device_qa.cjs` and normal GitHub Code Checks.
 After the run, GitHub Actions provides screenshots of the synthetic fixture's UI states (3-day artifact). No real user video is uploaded or copied into Actions; no credentials, sign-in, social publishing or export actions occur. This is **NOT a Safari/WebKit test and NOT physical iPhone verification**: mobile viewport emulation in headless Chromium can catch layout and JavaScript failures but cannot prove real iPhone rendering, audio playback, MP4 export or Files persistence.
 
 CI: GitHub Actions → **CutNova - Free Browser Smoke Test**, or review that workflow's PR/commit run and optional screenshots. The local-device V5.0 evidence controls remain separate and must be run on the actual phone before claiming device support.
+
+## V5.1 — Browser end-to-end local export evidence (synthetic footage)
+
+The free GitHub Actions browser-smoke workflow now runs `tests/browser_export.py` after the V5.0 readiness checks. A GitHub-hosted Chromium browser uses the generated original 6-second VP8/Opus WebM fixture (no private user content), opens the real CutNova editor, sets a 0–3s trim, explicitly confirms the synthetic source rights, then **actually clicks EXPORT SHORT**.
+
+The test waits for a non-empty real editor download blob, checks an actual `RECORDED` evidence event, invokes the production decoded-portrait playback verifier, downloads the emitted file via the browser, selects that exact file again via the built-in file picker, and runs the production byte-for-byte Files verification. It asserts each actual verifier PASS and collects safe synthetic screenshots on desktop and mobile-width Chromium. No posts, microphone or social-media actions.
+
+**Important:** If export, duration, codec, playback or saved-copy checks fail, CI must fail. A passing Chromium synthetic export is **not** proof of export on the user's iPhone Safari. That device still needs V5.0's `RUN DEVICE CHECKS` and manual original phone video / Files verification.
