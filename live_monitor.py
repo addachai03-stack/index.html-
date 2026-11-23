@@ -185,6 +185,12 @@ def main():
         except (ValueError, OSError):
             pass
     data = build_status(args.platform, args.channel, os.environ, old)
+    # Missing credentials/configuration should not generate pointless public commits
+    # on every scheduled run. Do not present a fake recent successful check.
+    if (data["state"] == "NOT_CONFIGURED" and old.get("state") == "NOT_CONFIGURED"
+            and old.get("platform") == data["platform"]
+            and old.get("channel") == data["channel"]):
+        data["checked_at"] = old.get("checked_at")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print("CUTNOVA_AUTOLIVE", data["platform"], data["channel"], data["state"],
