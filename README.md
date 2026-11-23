@@ -367,3 +367,21 @@ The primary Generate flow no longer opens GitHub. Users select their own video i
 ## V2.7.1 — PWA stale-cache recovery
 
 A screen recording showed a prior cached V2.6 URL-to-GitHub interface on iPhone even after V2.7 deployment. To avoid trapping users in outdated HTML, V2.7.1 uses network-first caching for the allowlisted public app shell with offline fallback. A non-cached /refresh.html route can be reached through an OLD service worker's fetch handler, checks for a new worker, and asks the user to activate it after saving edits. The update page never deletes browser storage, indexedDB drafts or user videos. The primary app provides an UPDATE APP link. Avoid updating while actively exporting. Video import uses own file and optional CORS-compatible direct media only; social links are preview-only.
+
+
+## V4.5 beta — Auto Live monitor (reference-video-inspired)
+
+The new **Auto Live phone dashboard** (autolive.html) adds a channel-first monitoring workflow inspired by the submitted reference video, but clearly separates implemented features from future automation.
+
+**Implemented in this release:**
+- Choose a Twitch username or YouTube @handle / UC channel ID, with validation and an on-device-only target preference.
+- Official Twitch Helix or YouTube Data API scheduled read-only LIVE/OFFLINE checks, once the repository owner configures matching variables and private API secrets.
+- Publish public time-stamped autolive/status.json through GitHub Actions, marking checks over 90 minutes old as stale rather than claiming continuous monitoring.
+- On Twitch only, review existing public Twitch clips from the last 48 hours, sorted by view count. Open official clip links; optionally copy an editorial posting draft after rights confirmation; open CutNova's existing saved-file editor.
+- Detect status returning LIVE after an OFFLINE check (reconnect count), without guaranteeing instant resume detection. No source media or API credentials are uploaded from the browser.
+
+**One-time owner setup:** Under repository Settings → Secrets and variables → Actions, create variables CUTNOVA_STREAM_PLATFORM (twitch or youtube) and CUTNOVA_STREAM_CHANNEL (the channel selected). For Twitch, add TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET as secrets from your own Twitch developer app. For YouTube, enable YouTube Data API in your own Google Cloud project and add YOUTUBE_API_KEY as a secret. Run the Auto Live Monitor workflow manually once; scheduled checks occur approximately every 30 minutes subject to GitHub limitations, delays, disablement, quotas and platform API availability. Only one configured channel can be monitored at once. Never put tokens in public website forms, GitHub source or chat. YouTube search requests consume API quota.
+
+**Not implemented:** automated live recording, creating new Twitch or YouTube clips, detecting chat spikes, ranking source video with AI, AI subtitles/hooks from a live stream, auto-rendering vertical MP4s, Instagram DM delivery, and guaranteed unlimited/always-on clips. The advertised features in the reference recording are not treated as proof that CutNova can perform them. Future content capture/reposting requires broadcaster permission and platform-compliant access. Existing public Twitch clips are not a license to repost.
+
+Tests: python -m unittest discover -s tests; node tests/test_autolive.cjs. Never configure credentials in test fixtures or browser JS.

@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - "studio.py"
+      - "live_monitor.py"
+      - "autolive.html"
+      - "autolive.js"
       - "social_convert.py"
       - "direct_media.py"
       - "github_media.py"
@@ -59,7 +62,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Test engine compilation
-        run: python -m py_compile studio.py social_convert.py direct_media.py github_media.py
+        run: python -m py_compile studio.py social_convert.py direct_media.py github_media.py live_monitor.py
       - name: Install FFmpeg for render proof
         run: |
           command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
@@ -89,6 +92,8 @@ jobs:
           node --check social-codec-check.js
           node tests/test_social_codec_check.cjs
           node --check local-reencode.js
+          node --check autolive.js
+          node tests/test_autolive.cjs
           node tests/test_local_reencode.cjs
           node --check pwa.js
           node --check refresh.js

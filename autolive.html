@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#180711">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://raw.githubusercontent.com; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'">
+  <title>CutNova Auto Live — Stream Watch</title>
+  <meta name="description" content="Monitor authorized Twitch/YouTube public live status and review official clips without pretending to capture or upload a stream.">
+  <link rel="icon" href="./icons/icon-192.png">
+  <style>
+    :root{color-scheme:dark;--bg:#10070e;--ink:#fff5f2;--muted:#c3aab8;--pink:#ff5979;--amber:#ffac42;--green:#54e59b;--edge:#ffffff23}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 140% 60% at 55% 7%,#5f092f 0%,#210c21 44%,#10070e 87%),var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100dvh}
+    a{color:inherit}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}
+    .wrap{max-width:930px;margin:auto;padding:0 16px 88px}
+    header{padding:21px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .logo{text-decoration:none;font-size:1.14rem;font-weight:1000;letter-spacing:-.05em}.logo span{color:var(--amber)}
+    .back{font-size:.79rem;text-decoration:none;border:1px solid var(--edge);padding:9px 12px;border-radius:10px}
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;border:1px solid #ffb44e66;border-radius:100px;color:var(--amber);padding:7px 11px;background:#ff9a1a0d;font-size:.72rem;letter-spacing:.11em;font-weight:800}
+    h1{font-weight:1000;font-style:italic;letter-spacing:-.065em;line-height:1.05;font-size:clamp(2.5rem,8vw,5.3rem);margin:18px 0 14px;max-width:750px}
+    h1 em{font-style:normal;color:var(--pink)}h1 strong{color:var(--amber)}
+    .intro{color:#e3cfdb;max-width:650px;font-size:.96rem;line-height:1.6;margin-bottom:23px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:17px 0 27px}
+    .stat{border:1px solid var(--edge);border-radius:13px;padding:14px 10px;background:#090509a6}.stat b{display:block;font-size:1.18rem;color:var(--amber)}.stat small{font-size:.68rem;color:#d9bdd0}
+    .panel{background:linear-gradient(150deg,#21131fdd,#0d080ff2);border:1px solid #f0a2be3b;border-radius:19px;padding:20px;margin:20px 0;box-shadow:0 24px 55px #0004}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+    .panel h2{margin:0;font-weight:900;font-size:1.27rem;letter-spacing:-.035em}.pill{border:1px solid #ffb24768;background:#ffb24718;border-radius:100px;padding:6px 10px;font-size:.68rem;color:var(--amber);font-weight:900}
+    label{font-weight:750;font-size:.73rem;letter-spacing:.04em;display:block;color:#f3d5e1;margin:0 0 8px}
+    .form-row{display:grid;grid-template-columns:180px 1fr;gap:10px}input,select{width:100%;padding:14px 12px;border:1px solid #ffcbdd45;background:#100912;color:#fff;border-radius:11px;outline-offset:3px;min-height:50px}
+    input:focus,select:focus{border-color:var(--amber)}input::placeholder{color:#947d8d}.rights{display:flex;gap:10px;align-items:flex-start;font-size:.8rem;font-weight:500;line-height:1.45;margin-top:16px;letter-spacing:0}.rights input{width:18px;min-height:18px;height:18px;accent-color:var(--green);margin:1px 0}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.btn{border-radius:10px;text-align:center;border:1px solid #ffb34e44;background:#1a121b;color:var(--ink);padding:13px 14px;text-decoration:none;font-size:.8rem;font-weight:850;letter-spacing:.015em;min-height:45px}.primary{background:linear-gradient(135deg,#ffbb51,#fa8738);color:#2e1404;border:0}.btn:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+    .hint,.notice{font-size:.78rem;line-height:1.55;color:var(--muted)}.hint a,.notice a{color:#ffd3a0}
+    .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.status-box{background:#0c070ddb;border:1px solid var(--edge);border-radius:12px;padding:15px}
+    .status-label{text-transform:uppercase;letter-spacing:.09em;color:#c3a0b7;font-size:.72rem;font-weight:800}.status-big{display:block;margin:8px 0;font-size:1.38rem;font-weight:950;color:var(--amber)}.status-big.live{color:var(--green)}.status-big.error{color:#ff6c81}
+    .mini{font-size:.74rem;color:var(--muted);line-height:1.45;word-wrap:break-word}.muted{color:var(--muted)}
+    .clip-list{display:grid;gap:11px}.clip{background:#0b090f;border:1px solid var(--edge);padding:16px;border-radius:14px}.clip-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.clip-title{margin:0 0 6px;font-size:.96rem;overflow-wrap:anywhere}.clip-num{font-weight:900;color:var(--amber);font-size:.71rem}.clip-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.clip .btn{font-size:.73rem;min-height:38px;padding:10px}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.step{padding:16px;border-radius:13px;background:#240f21aa;border:1px solid #ffc5de22}.step span{color:var(--amber);font-size:.75rem;font-weight:900}.step strong{display:block;font-size:.92rem;margin:9px 0 6px}.step p{font-size:.76rem;line-height:1.48;margin:0;color:var(--muted)}
+    .setup{font-size:.78rem;line-height:1.55}.setup code{color:#ffd091;background:#1a1220;padding:2px 5px;border-radius:5px}.setup details{margin-top:13px}.setup summary{cursor:pointer;color:var(--amber);font-weight:800}
+    #live-feedback{min-height:24px;color:#ffd4a5;font-size:.78rem;line-height:1.5;margin:12px 0 0}
+    footer{color:#927f92;text-align:center;font-size:.7rem;padding-top:26px}
+    @media(max-width:580px){.wrap{padding:0 14px 80px}.form-row,.status-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.panel{padding:15px}.btn{flex:1 1 130px}.stats{gap:6px}.stat b{font-size:1rem}.stat{padding:12px 7px}.stat small{font-size:.62rem}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header><a class="logo" href="./">✂ CUT<span>NOVA</span></a><a class="back" href="./">← BACK TO STUDIO</a></header>
+    <main>
+      <section aria-labelledby="headline">
+        <span class="eyebrow">✦ AUTO LIVE · EARLY ACCESS</span>
+        <h1 id="headline">STREAMER <em>LIVE?</em><br><strong>FIND THE MOMENTS.</strong></h1>
+        <p class="intro">ClipsBuddy-inspired monitoring in CutNova. Connect one authorized public streamer through repository settings, get periodic official LIVE/OFFLINE checks, and review existing Twitch clips from your phone. Real-time capture, new auto clips and automatic DMs are <b>not enabled</b>.</p>
+        <div class="stats">
+          <div class="stat"><b>PHONE</b><small>Monitor from iPhone</small></div>
+          <div class="stat"><b>OFFICIAL</b><small>Twitch / YouTube APIs</small></div>
+          <div class="stat"><b>REVIEW</b><small>No unapproved reposts</small></div>
+        </div>
+      </section>
+      <section class="panel" aria-labelledby="channel-head">
+        <div class="panel-head"><h2 id="channel-head">01 · STREAMER CHANNEL</h2><span class="pill">PRIVATE SETTINGS ON DEVICE</span></div>
+        <div class="form-row">
+          <div><label for="live-platform">PLATFORM</label><select id="live-platform"><option value="twitch">Twitch</option><option value="youtube">YouTube Live</option></select></div>
+          <div><label for="live-channel">CHANNEL USERNAME / @HANDLE</label><input id="live-channel" placeholder="e.g. streamer_name or @channel" autocomplete="off" autocapitalize="none" maxlength="35" spellcheck="false"></div>
+        </div>
+        <label class="rights"><input type="checkbox" id="live-rights"><span>I own this content or have explicit permission before editing or reposting clips. Viewing public live status alone does not grant reuse rights.</span></label>
+        <div class="actions"><button class="btn primary" type="button" id="live-save">SAVE TARGET ON PHONE</button><button class="btn" type="button" id="live-refresh">↻ CHECK LAST MONITOR RESULT</button></div>
+        <p id="live-feedback" role="status" aria-live="polite">Select a platform and channel. Repo-wide monitoring needs one-time GitHub setup below.</p>
+      </section>
+      <section class="panel" aria-labelledby="live-head">
+        <div class="panel-head"><h2 id="live-head">02 · LIVE MONITOR</h2><span class="pill">SCHEDULED · NOT REAL-TIME</span></div>
+        <div class="status-grid">
+          <div class="status-box"><span class="status-label">LAST VERIFIED STATE</span><strong id="live-state" class="status-big">NOT CONNECTED</strong><div id="live-checked" class="mini">No API check loaded.</div></div>
+          <div class="status-box"><span class="status-label">CURRENT / LAST SESSION</span><strong id="live-title" class="status-big">NO STREAM DATA</strong><div id="live-details" class="mini">Stream metadata appears after backend setup.</div></div>
+        </div>
+        <div class="actions"><a id="live-open-stream" class="btn" href="https://www.twitch.tv/" target="_blank" rel="noopener noreferrer" hidden>OPEN OFFICIAL LIVE PAGE ↗</a><a class="btn" href="./#local-editor">EDIT AUTHORIZED SAVED VIDEO ↗</a></div>
+      </section>
+      <section class="panel" aria-labelledby="clips-head">
+        <div class="panel-head"><h2 id="clips-head">03 · PUBLIC MOMENTS</h2><span class="pill">OFFICIAL TWITCH CLIPS ONLY</span></div>
+        <p class="notice">These are existing clips published on Twitch, ordered by public view count. They are <b>not</b> automatically created, ranked by AI, converted into vertical MP4s, or licensed by CutNova. YouTube live detection currently does not provide clips.</p>
+        <div id="live-clips" class="clip-list"><p class="mini">No recent official clips available.</p></div>
+        <p id="live-clip-feedback" class="mini" role="status" aria-live="polite"></p>
+      </section>
+      <section class="panel" aria-labelledby="how-head">
+        <div class="panel-head"><h2 id="how-head">HOW AUTO LIVE WORKS</h2><span class="pill">READ-ONLY PHASE</span></div>
+        <div class="steps">
+          <div class="step"><span>01 / CONNECT</span><strong>Choose one channel</strong><p>The owner configures the public channel name and API credentials as GitHub settings, never on this page.</p></div>
+          <div class="step"><span>02 / MONITOR</span><strong>Periodic live checks</strong><p>GitHub Actions checks the official platform. Paused or delayed scheduled jobs may miss short streams.</p></div>
+          <div class="step"><span>03 / REVIEW</span><strong>Inspect real clips</strong><p>Review published Twitch clips. Only download/edit video you may lawfully reuse.</p></div>
+        </div>
+        <div class="setup">
+          <details><summary>OWNER SETUP · GITHUB, NO TOKEN IN WEBSITE</summary>
+            <p>In this repository, open <a href="https://github.com/addachai03-stack/index.html-/settings/variables/actions" target="_blank" rel="noopener noreferrer">Actions Variables</a> and add <code>CUTNOVA_STREAM_PLATFORM</code> = <code>twitch</code> or <code>youtube</code>, plus <code>CUTNOVA_STREAM_CHANNEL</code> = the Twitch username or YouTube @handle/UC channel ID. Only this configured channel is monitored.</p>
+            <p>In <a href="https://github.com/addachai03-stack/index.html-/settings/secrets/actions" target="_blank" rel="noopener noreferrer">Actions Secrets</a> add <code>TWITCH_CLIENT_ID</code> and <code>TWITCH_CLIENT_SECRET</code> from your own Twitch developer app; or <code>YOUTUBE_API_KEY</code> from a Google Cloud project with YouTube Data API enabled. Do not enter credentials in the public site, issue forms, chat, or code.</p>
+            <p>Then open <a href="https://github.com/addachai03-stack/index.html-/actions/workflows/live-monitor.yml" target="_blank" rel="noopener noreferrer">Auto Live Monitor</a>, run it once manually, and allow the scheduled checks. GitHub's scheduled checks are approximate, may be delayed/disabled and have quota limits. YouTube searches use API quota.</p>
+            <p><b>No source-media recording, AI transcription, clip creation, Instagram DM, or all-night on-device recording</b> occurs in this initial release. A broadcaster-approved clipping pipeline can be added separately.</p>
+          </details>
+        </div>
+      </section>
+    </main>
+    <footer>✂ CUTNOVA AUTO LIVE · AUTHORIZED STREAMS ONLY · 2026</footer>
+  </div>
+  <script defer src="./autolive.js"></script>
+</body>
+</html>
