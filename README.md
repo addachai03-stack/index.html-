@@ -429,3 +429,18 @@ CutNova's AI tab now has **FIND AUDIO PEAKS** alongside timed cuts and sampled v
 Status: implementation and unit tests exist, while end-to-end Safari decoding and actual iPhone export remain to be verified on device. Videos beyond 3 minutes can still use the previously supported local visual scan and manual timed cuts. YouTube/Twitch live monitoring still requires owner-managed API credentials.
 
 Run: `node tests/test_audio_peaks.cjs` plus GitHub Code Checks.
+
+## V4.9 — SMART MIX: local visual + audio review shortlist (iPhone beta)
+
+Smart Mix is a **one-tap, on-device** candidate finder in CutNova's saved-video quick-cut area. Select your own video, check editing rights, and tap FIND SMART CLIPS ON PHONE. The file stays in the current browser session; no upload, livestream recording, AI transcription, automatic posting, or clip rendering is performed.
+
+- An independent scanner samples tiny 64×36 visual frames across videos of **15–180 seconds**, using the proven V4.7 scene-difference math.
+- If supported, Web Audio decodes audio from the selected video (or the optional full-length matching audio file already available in FIND AUDIO PEAKS), with a 20 MB audio input cap and a two-second video/audio duration alignment check.
+- It scores up to six visual and six audio candidate windows. A **relative heuristic** combines nearby visual and sound peaks (with a small overlap bonus), then selects 1, 3, or 6 non-overlapping 15/30/45/60-second candidate windows.
+- If audio decoding is unsupported or no distinct peaks are present, the UI explicitly says visual-only. If frames cannot be sampled but audio can, the UI can show audio-only. If no signal qualifies, it suggests ordinary timed cuts instead of pretending to find a highlight.
+- REVIEW IN EDITOR moves the selected file and trim range to the existing manual local video editor. Rights must be reconfirmed before export. A successful suggestion is **not** a finished MP4 or a verified great moment.
+- Both the visual media blob URL and the local AudioContext are cleaned up; cancellation/quick-file changes invalidate old results. Long or heavy files can still use separate V4.7 visual-only and ordinary timed cuts.
+
+Important: Smart Mix detects **relative sampled frame changes and loudness spikes**, not words, emotions, humour, viewer reactions, real highlights or virality. Browser decoder support and actual MP4 export on Safari still require device verification. Local media never goes to GitHub or cloud storage through this feature. Stream monitor remains NOT_CONFIGURED until official platform API credentials are supplied privately by the owner.
+
+Tests: node tests/test_smart_mix.cjs, node tests/test_local_highlights.cjs, node tests/test_audio_peaks.cjs, plus GitHub CI.

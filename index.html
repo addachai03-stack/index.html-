@@ -20,7 +20,7 @@
   <div class="app-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="CutNova home"><span class="brand-mark">✂</span><span>CUT<span class="accent">NOVA</span></span></a>
-      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.8</b></span>
+      <span class="topbar-caption"><span class="status-dot"></span> SHORTS STUDIO <b>V4.9</b></span>
       <a class="topbar-github" href="https://github.com/addachai03-stack/index.html-" target="_blank" rel="noopener noreferrer">GITHUB ↗</a>
     </header>
     <main class="container">
@@ -141,6 +141,26 @@
           <button type="button" id="quick-generate" class="btn btn-lime">✦ PREPARE SHORTS ON PHONE</button>
           <p id="quick-status" class="footnote" role="status" aria-live="polite">Choose a video to create timed cut suggestions. The number of feasible, mostly non-overlapping clips depends on video duration. Actual Shorts must be exported one at a time in the editor.</p>
           <div id="quick-results" class="quick-results" hidden></div>
+
+          <details class="visual-finder" id="smart-mix-panel" open>
+            <summary>✦ NEW V4.9 · SMART MIX — VISUAL + AUDIO PICKS</summary>
+            <p class="footnote">ONE TAP for your own selected video (15 seconds to 3 minutes). CutNova samples scene changes and tries to measure relative audio-energy peaks, combining the available signals into review suggestions. If iPhone audio decoding fails, it automatically falls back to visual-only results. This does NOT understand speech, recognize events, predict virality, create subtitles or generate/download an MP4.</p>
+            <p class="footnote">Optional audio: use the matching full-length audio file in <strong>FIND AUDIO PEAKS</strong> below if your browser cannot decode MP4/MOV sound. Video must be up to 3 minutes; audio input must be under 20 MB and aligned within 2 seconds. A 3-minute video with a larger encoded file can still get visual-only suggestions.</p>
+            <div class="quick-select-row">
+              <label>NUMBER OF PICKS
+                <select id="smart-mix-count"><option value="1">1 clip</option><option value="3" selected>Up to 3 clips</option><option value="6">Up to 6 clips</option></select>
+              </label>
+              <label>CLIP LENGTH
+                <select id="smart-mix-length"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select>
+              </label>
+            </div>
+            <div class="history-toolbar">
+              <button id="smart-mix-start" type="button" class="btn btn-lime">✦ FIND SMART CLIPS ON PHONE</button>
+              <button id="smart-mix-stop" type="button" class="btn btn-outline" disabled>CANCEL SCAN</button>
+            </div>
+            <p id="smart-mix-status" class="footnote" role="status" aria-live="polite">Choose the video above, confirm rights, then tap FIND SMART CLIPS ON PHONE. Scan runs locally.</p>
+            <div id="smart-mix-results" class="quick-results" hidden></div>
+          </details>
           <details class="visual-finder" id="visual-finder">
             <summary>✦ NEW: FIND VISUAL MOMENTS (ON-DEVICE BETA)</summary>
             <p class="footnote">Scans at most the first 12 minutes of a video saved on your phone, using up to 46 tiny frame samples. Suggests 15–60s clips around visual changes, not AI speech analysis, chat peaks, action recognition or guaranteed exciting highlights. The video is never uploaded. Your phone must support seeking the file.</p>
@@ -335,6 +355,7 @@
   <script type="module" src="./app.js"></script>
   <script defer src="./local-highlights.js"></script>
   <script defer src="./audio-peaks.js"></script>
+  <script defer src="./smart-mix.js"></script>
   <script defer src="./owner-render.js"></script>
   <script defer src="./jobs.js"></script>
   <script defer src="./editor.js"></script>
