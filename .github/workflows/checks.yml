@@ -39,7 +39,8 @@ on:
       - "saved-file-check.js"
       - "native-share.js"
       - "social-codec-check.js"
-      - "social-file-verify.js"\n      - "caption-srt.js"
+      - "social-file-verify.js"
+      - "caption-srt.js"
       - "local-reencode.js"
       - "pwa.js"
       - "refresh.js"
@@ -107,7 +108,9 @@ jobs:
           node --check social-codec-check.js
           node tests/test_social_codec_check.cjs
           node --check social-file-verify.js
-          node tests/test_social_file_verify.cjs\n          node --check caption-srt.js\n          node tests/test_caption_srt.cjs
+          node tests/test_social_file_verify.cjs
+          node --check caption-srt.js
+          node tests/test_caption_srt.cjs
           node --check local-reencode.js
           node --check autolive.js
           node --check moment_queue.js
