@@ -45,7 +45,7 @@ function release(){
   revision++;
   try{player.pause();}catch{}
   player.removeAttribute("src");player.load();
-  player.hidden=true;playbackBtn.disabled=true;audioBtn.disabled=true;audioHeard.disabled=true;audioSilent.disabled=true;reportBtn.disabled=true;reportDownload.hidden=true;audioStatus.textContent="AUDIO NOT TESTED. Select a local video and play the audio check.";audioStatus.dataset.result="not-tested";
+  player.hidden=true;playbackBtn.disabled=true;audioBtn.disabled=true;audioHeard.disabled=true;audioSilent.disabled=true;reportBtn.disabled=true;reportDownload.hidden=true;if(reportDownload.dataset.url){URL.revokeObjectURL(reportDownload.dataset.url);reportDownload.dataset.url="";}reportStatus.textContent="CHECKLIST NOT CREATED. Select a file and run checks.";reportStatus.dataset.result="not-tested";audioStatus.textContent="AUDIO NOT TESTED. Select a local video and play the audio check.";audioStatus.dataset.result="not-tested";
   if(objectURL){URL.revokeObjectURL(objectURL);objectURL="";}
   playbackStatus.textContent="PLAYBACK NOT VERIFIED. Select a local video and separately test it.";playbackStatus.dataset.result="not-tested";
 }
@@ -198,7 +198,7 @@ reportBtn.addEventListener("click",()=>{
     "",
     "LIMIT: This is a local checklist, not a transcode, upload, social-platform acceptance test or guarantee. H.264/MP4A sample entries do not prove AAC profile/bitrate or actual platform compatibility."
   ];
-  const blob=new Blob([rows.join("\\n")],{type:"text/plain;charset=utf-8"});
+  const blob=new Blob([rows.join("\n")],{type:"text/plain;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   if(reportDownload.dataset.url)URL.revokeObjectURL(reportDownload.dataset.url);
   reportDownload.href=url;reportDownload.dataset.url=url;reportDownload.hidden=false;
