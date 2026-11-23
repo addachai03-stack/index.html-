@@ -25,6 +25,8 @@ for(const id of ["live-platform","live-channel","live-save","live-refresh","live
 assert.ok(index.includes('href="./autolive.html"'));
 assert.ok(sw.includes('"./autolive.html"')&&sw.includes('"./autolive.js"'));
 assert.ok(!sw.includes('"./autolive/status.json"'),"Live data must never be cached offline as if fresh");
+assert.ok(html.includes("https://raw.githubusercontent.com"),"Public status source allowed by CSP");
+assert.ok(fs.readFileSync("autolive.js","utf8").includes("raw.githubusercontent.com/addachai03-stack/index.html-/main/autolive/status.json"),"Reads latest status despite Pages lag");
 assert.ok(pages.includes("autolive.html")&&pages.includes("autolive.js")&&pages.includes("cp -r autolive _site/"));
 assert.ok(html.includes("not enabled"),"Do not falsely claim auto clip recording is live");
 console.log("PASS: Auto Live input validation, safe URLs, stale-state checks, UI assets and honest feature labeling.");
