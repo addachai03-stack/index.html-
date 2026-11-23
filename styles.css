@@ -357,3 +357,17 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
   margin:12px auto;border-radius:12px;background:#101010}
 #social-file-panel video[hidden]{display:none}
 #social-file-panel .footnote{overflow-wrap:anywhere}
+
+/* V5.5 — locally authored timed subtitles, mobile-first. */
+.srt-caption-builder{margin-top:22px;padding:16px;border:1px solid rgba(200,210,220,.23);border-radius:12px;background:rgba(20,26,32,.32)}
+.srt-caption-builder>strong{display:block;font-size:.9rem;letter-spacing:.04em}
+.srt-caption-list{display:grid;gap:10px;margin:12px 0}
+.srt-caption-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:12px;border:1px solid #41444b;border-radius:10px}
+.srt-caption-row label{display:grid;gap:6px;font-size:.7rem;font-weight:800;color:#c6c7ce;letter-spacing:.04em}
+.srt-caption-row label:last-of-type{grid-column:1/-1}
+.srt-caption-row input,.srt-caption-row textarea{width:100%;min-width:0;background:#17191f;color:#fff;border:1px solid #4a4d55;border-radius:7px;padding:10px;font:inherit}
+.srt-caption-row textarea{resize:vertical;line-height:1.4}
+.srt-caption-row button{justify-self:start}
+#srt-caption-download{display:inline-block;margin-top:10px;padding:12px;color:var(--lime);font-weight:800}
+#srt-caption-download[hidden]{display:none}
+@media(min-width:600px){.srt-caption-row{grid-template-columns:130px 130px minmax(0,1fr) auto;align-items:end}.srt-caption-row label:last-of-type{grid-column:auto}}
