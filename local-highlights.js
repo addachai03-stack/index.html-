@@ -54,6 +54,7 @@
     module.exports={frameDifference,planSampleTimes,candidateWindows,MAX_SCAN_SECONDS,MAX_SAMPLES};
     return;
   }
+  if(root)root.CutNovaVisualMath=Object.freeze({frameDifference,planSampleTimes,candidateWindows});
   if(!root?.document)return;
   const doc=root.document,by=id=>doc.getElementById(id);
   const fileInput=by("quick-file"),rights=by("quick-rights"),scan=by("visual-scan"),
