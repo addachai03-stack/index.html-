@@ -9,6 +9,7 @@ function previewCue(rows,seconds){
  const active=cues.find(c=>seconds>=c.start&&seconds<c.end);
  return {text:active?active.text:"",index:active?active.index:-1,next:cues.find(c=>c.start>seconds)?.start??null,end:cues.length?Math.max(...cues.map(c=>c.end)):0};
 }
+function timelineSegments(rows){return rows.map((r,i)=>({start:Number(r.start),end:Number(r.end),text:String(r.text||"").trim(),index:i})).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.start>=0&&r.end>r.start&&r.text).sort((a,b)=>a.start-b.start);}
 function buildSrt(rows){
  if(!Array.isArray(rows)||rows.length<1||rows.length>12)throw Error("Add 1–12 captions.");
  const cleaned=rows.map((r,i)=>{
@@ -20,7 +21,7 @@ function buildSrt(rows){
  for(let i=1;i<cleaned.length;i++)if(cleaned[i].start<cleaned[i-1].end)throw Error("Caption timings overlap. Adjust the start or end.");
  return cleaned.map((r,i)=>(i+1)+"\n"+timecode(r.start)+" --> "+timecode(r.end)+"\n"+r.text).join("\n\n")+"\n";
 }
-if(typeof module!=="undefined"&&module.exports){module.exports={timecode,buildSrt,previewCue};return;}
+if(typeof module!=="undefined"&&module.exports){module.exports={timecode,buildSrt,previewCue,timelineSegments};return;}
 if(!root?.document)return;
 const doc=root.document,by=id=>doc.getElementById(id),list=by("srt-caption-list"),add=by("srt-caption-add"),make=by("srt-caption-export"),status=by("srt-caption-status"),download=by("srt-caption-download");
 if(!list||!add||!make||!status||!download)return;
@@ -32,15 +33,16 @@ const previewStatus=doc.createElement("p");previewStatus.className="srt-preview-
 status.insertAdjacentElement("afterend",previewButton);previewButton.insertAdjacentElement("afterend",previewStatus);
 const scrub=doc.createElement("input");scrub.type="range";scrub.min="0";scrub.max="6";scrub.step="0.1";scrub.value="0";scrub.setAttribute("aria-label","Seek caption preview time in seconds");scrub.className="srt-caption-scrubber";
 const seekLabel=doc.createElement("p");seekLabel.className="srt-preview-seek-label";seekLabel.textContent="0.0s / 6.0s";
+const markerRail=doc.createElement("div");markerRail.className="srt-caption-marker-rail";markerRail.setAttribute("aria-label","Caption cue markers");
 const seekActions=doc.createElement("div");seekActions.className="srt-preview-seek-actions";
 const previous=doc.createElement("button");previous.type="button";previous.className="btn btn-outline";previous.textContent="↶ PREVIOUS CAPTION";
 const next=doc.createElement("button");next.type="button";next.className="btn btn-outline";next.textContent="NEXT CAPTION ↷";
-seekActions.append(previous,next);previewStatus.insertAdjacentElement("afterend",scrub);scrub.insertAdjacentElement("afterend",seekLabel);seekLabel.insertAdjacentElement("afterend",seekActions);
+seekActions.append(previous,next);previewStatus.insertAdjacentElement("afterend",scrub);scrub.insertAdjacentElement("afterend",markerRail);markerRail.insertAdjacentElement("afterend",seekLabel);seekLabel.insertAdjacentElement("afterend",seekActions);
 let timelineRows=[],timelineEnd=6,seekSeconds=0;
 function refreshTimeline(rows,seconds){
  timelineRows=rows.map((r,i)=>({start:Number(r.start),end:Number(r.end),text:String(r.text||"").trim(),index:i})).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start&&r.text).sort((a,b)=>a.start-b.start);
  timelineEnd=Math.max(1,...timelineRows.map(r=>r.end));scrub.max=String(timelineEnd);scrub.value=String(Math.max(0,Math.min(timelineEnd,seconds)));seekSeconds=Number(scrub.value);
- const cue=previewCue(rows,seekSeconds);seekLabel.textContent=seekSeconds.toFixed(1)+"s / "+timelineEnd.toFixed(1)+"s · "+(cue.text||"No caption here");
+ const cue=previewCue(rows,seekSeconds);seekLabel.textContent=seekSeconds.toFixed(1)+"s / "+timelineEnd.toFixed(1)+"s · "+(cue.text||"No caption here");\n markerRail.replaceChildren();timelineRows.forEach((r,i)=>{const marker=doc.createElement("button");marker.type="button";marker.className="srt-caption-cue-marker";marker.style.left=(r.start/timelineEnd*100)+"%";marker.setAttribute("aria-label","Jump to caption "+(i+1)+" at "+r.start.toFixed(1)+" seconds");marker.title="Caption "+(i+1)+" · "+r.start.toFixed(1)+"s";marker.textContent=String(i+1);marker.addEventListener("click",()=>seekTo(r.start));markerRail.append(marker);});
 }
 function seekTo(seconds){const bounded=Math.max(0,Math.min(timelineEnd,Number(seconds)||0));scrub.value=String(bounded);seekSeconds=bounded;if(previewFrame)previewStart=Date.now()-bounded*1000;refreshTimeline(previewRows.length?previewRows:readRows(),bounded);previewStatus.textContent="TIMELINE "+bounded.toFixed(1)+"s · "+(previewCue(previewRows.length?previewRows:readRows(),bounded).text||"No caption at this time.");}
 scrub.addEventListener("input",()=>seekTo(scrub.value));
