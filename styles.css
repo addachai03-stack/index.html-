@@ -378,3 +378,8 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 .srt-caption-scrubber{display:block;width:100%;margin:13px 0 5px;accent-color:var(--lime);min-height:28px;touch-action:pan-x}
 .srt-preview-seek-label{font-size:11px;color:#c8dca6;margin:4px 0 12px;font-variant-numeric:tabular-nums}
 .srt-preview-seek-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.srt-preview-seek-actions .btn{flex:1;min-height:44px;padding:10px;font-size:10px}
+
+/* V5.8 visual cue markers above the caption seek track */
+.srt-caption-marker-rail{position:relative;height:28px;margin:0 0 6px;border-bottom:1px solid rgba(190,210,160,.28);background:linear-gradient(90deg,rgba(190,210,160,.08),rgba(190,210,160,.02));border-radius:6px;overflow:visible}
+.srt-caption-cue-marker{position:absolute;top:4px;transform:translateX(-50%);min-width:28px;height:22px;padding:0 5px;border:1px solid var(--lime);border-radius:6px;background:#20251b;color:var(--lime);font-size:10px;font-weight:700;cursor:pointer;touch-action:manipulation}
+.srt-caption-cue-marker:focus-visible{outline:2px solid #fff;outline-offset:2px}
