@@ -30,6 +30,22 @@ function readRows(){return [...list.querySelectorAll(".srt-caption-row")].map(el
 const previewButton=doc.createElement("button");previewButton.type="button";previewButton.className="btn btn-outline";previewButton.textContent="▶ PLAY CAPTION TIMELINE";
 const previewStatus=doc.createElement("p");previewStatus.className="srt-preview-status";previewStatus.setAttribute("role","status");previewStatus.setAttribute("aria-live","polite");previewStatus.textContent="Timeline preview runs captions against a timer only—no video is played or rendered.";
 status.insertAdjacentElement("afterend",previewButton);previewButton.insertAdjacentElement("afterend",previewStatus);
+const scrub=doc.createElement("input");scrub.type="range";scrub.min="0";scrub.max="6";scrub.step="0.1";scrub.value="0";scrub.setAttribute("aria-label","Seek caption preview time in seconds");scrub.className="srt-caption-scrubber";
+const seekLabel=doc.createElement("p");seekLabel.className="srt-preview-seek-label";seekLabel.textContent="0.0s / 6.0s";
+const seekActions=doc.createElement("div");seekActions.className="srt-preview-seek-actions";
+const previous=doc.createElement("button");previous.type="button";previous.className="btn btn-outline";previous.textContent="↶ PREVIOUS CAPTION";
+const next=doc.createElement("button");next.type="button";next.className="btn btn-outline";next.textContent="NEXT CAPTION ↷";
+seekActions.append(previous,next);previewStatus.insertAdjacentElement("afterend",scrub);scrub.insertAdjacentElement("afterend",seekLabel);seekLabel.insertAdjacentElement("afterend",seekActions);
+let timelineRows=[],timelineEnd=6,seekSeconds=0;
+function refreshTimeline(rows,seconds){
+ timelineRows=rows.map((r,i)=>({start:Number(r.start),end:Number(r.end),text:String(r.text||"").trim(),index:i})).filter(r=>Number.isFinite(r.start)&&Number.isFinite(r.end)&&r.end>r.start&&r.text).sort((a,b)=>a.start-b.start);
+ timelineEnd=Math.max(1,...timelineRows.map(r=>r.end));scrub.max=String(timelineEnd);scrub.value=String(Math.max(0,Math.min(timelineEnd,seconds)));seekSeconds=Number(scrub.value);
+ const cue=previewCue(rows,seekSeconds);seekLabel.textContent=seekSeconds.toFixed(1)+"s / "+timelineEnd.toFixed(1)+"s · "+(cue.text||"No caption here");
+}
+function seekTo(seconds){const bounded=Math.max(0,Math.min(timelineEnd,Number(seconds)||0));scrub.value=String(bounded);seekSeconds=bounded;if(previewFrame)previewStart=Date.now()-bounded*1000;refreshTimeline(previewRows.length?previewRows:readRows(),bounded);previewStatus.textContent="TIMELINE "+bounded.toFixed(1)+"s · "+(previewCue(previewRows.length?previewRows:readRows(),bounded).text||"No caption at this time.");}
+scrub.addEventListener("input",()=>seekTo(scrub.value));
+previous.addEventListener("click",()=>{const rows=previewRows.length?previewRows:readRows(),cues=rows.map(r=>Number(r.start)).filter(n=>Number.isFinite(n)&&n<seekSeconds).sort((a,b)=>b-a);seekTo(cues[0]??0);});
+next.addEventListener("click",()=>{const rows=previewRows.length?previewRows:readRows(),cues=rows.map(r=>Number(r.start)).filter(n=>Number.isFinite(n)&&n>seekSeconds).sort((a,b)=>a-b);seekTo(cues[0]??timelineEnd);});
 function stopPreview(message){if(previewFrame)root.cancelAnimationFrame(previewFrame);previewFrame=0;previewButton.textContent="▶ PLAY CAPTION TIMELINE";if(message)previewStatus.textContent=message;}
 function row(start="0",end="3",value=""){
  if(count>=12){status.textContent="Maximum 12 caption lines.";return;}
@@ -43,9 +59,9 @@ row();row("3","6");
 add.addEventListener("click",()=>row(String(count*3),String(count*3+3)));
 previewButton.addEventListener("click",()=>{
  if(previewFrame){stopPreview("Timeline preview stopped.");return;}
- try{previewRows=readRows();buildSrt(previewRows);}catch(e){previewStatus.textContent="PREVIEW UNAVAILABLE — "+e.message;return;}
- previewStart=Date.now();previewButton.textContent="■ STOP PREVIEW";
- const tick=()=>{const seconds=(Date.now()-previewStart)/1000,cue=previewCue(previewRows,seconds);previewStatus.textContent="TIMELINE "+seconds.toFixed(1)+"s · "+(cue.text||"No caption at this time.");if(seconds>=cue.end){stopPreview("Timeline preview complete. This was a text timing preview, not a video render.");return;}previewFrame=root.requestAnimationFrame(tick);};tick();
+ try{previewRows=readRows();buildSrt(previewRows);refreshTimeline(previewRows,0);}catch(e){previewStatus.textContent="PREVIEW UNAVAILABLE — "+e.message;return;}
+ previewStart=Date.now()-seekSeconds*1000;refreshTimeline(previewRows,seekSeconds);previewButton.textContent="■ STOP PREVIEW";
+ const tick=()=>{const seconds=(Date.now()-previewStart)/1000,cue=previewCue(previewRows,seconds);seekTo(seconds);previewStatus.textContent="TIMELINE "+seconds.toFixed(1)+"s · "+(cue.text||"No caption at this time.");if(seconds>=timelineEnd){stopPreview("Timeline preview complete. This was a text timing preview, not a video render.");return;}previewFrame=root.requestAnimationFrame(tick);};tick();
 });
 make.addEventListener("click",()=>{
  stopPreview("Caption export started.");
