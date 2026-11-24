@@ -529,3 +529,8 @@ After selecting a local file, the user can generate and save a plain-text checkl
 ## V5.8 — Visual caption cue map
 
 The local SRT timeline now shows numbered, keyboard/touch-accessible cue markers positioned by caption start time. Tap a marker to seek directly to that caption; markers refresh with the existing timeline when timing or text changes. The map is a local timing aid and does not represent video frames or render subtitles.
+
+
+## V5.9 — Active caption cue marker
+
+The cue map highlights the caption currently under the local timeline playhead or scrub position. The active marker uses a high-contrast state and `aria-current` feedback for assistive technology. This remains a text-only timing preview, not video synchronization or subtitle rendering.
