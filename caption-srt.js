@@ -53,7 +53,7 @@ function row(start="0",end="3",value=""){
  const label=(name,caption)=>{const l=doc.createElement("label");l.textContent=caption;const input=doc.createElement("input");input.type="number";input.min="0";input.max="3600";input.step="0.1";input.value=name;l.append(input);return {l,input};};
  const a=label(start,"START (SEC)"),b=label(end,"END (SEC)");const t=doc.createElement("label");t.textContent="CAPTION TEXT";const textarea=doc.createElement("textarea");textarea.maxLength=500;textarea.rows=2;textarea.placeholder="Type the words for this moment";textarea.value=value;t.append(textarea);
  const remove=doc.createElement("button");remove.type="button";remove.className="btn btn-outline";remove.textContent="REMOVE";remove.addEventListener("click",()=>{box.remove();count--;clearUrl();status.textContent="Caption removed. Export again to refresh the SRT.";});
- [a.l,b.l,t,remove].forEach(x=>box.append(x));list.append(box);[a.input,b.input,textarea].forEach(x=>x.addEventListener("input",()=>{clearUrl();stopPreview("Caption changed. Restart preview to check the updated timing.");}));
+ [a.l,b.l,t,remove].forEach(x=>box.append(x));list.append(box);[a.input,b.input,textarea].forEach(x=>x.addEventListener("input",()=>{clearUrl();previewRows=[];stopPreview("Caption changed. Restart preview to check the updated timing.");refreshTimeline(readRows(),seekSeconds);}));
 }
 row();row("3","6");
 add.addEventListener("click",()=>row(String(count*3),String(count*3+3)));
