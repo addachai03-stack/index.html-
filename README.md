@@ -524,3 +524,8 @@ The private iPhone Files verifier adds a direct-tap **PLAY LOCAL AUDIO CHECK** f
 ## V5.4 — Local share-preparation checklist
 
 After selecting a local file, the user can generate and save a plain-text checklist. It reports the current codec sample-entry result, local playback check, dimensions/duration and the user's explicit audio-heard confirmation. It omits the filename/path and contains manual review boxes for cuts, captions, rights and destination platform requirements. This is not an upload, encoder, automatic publishing action, or guarantee of platform acceptance. The generated report blob is local and its object URL is revoked on page exit.
+
+
+## V5.8 — Visual caption cue map
+
+The local SRT timeline now shows numbered, keyboard/touch-accessible cue markers positioned by caption start time. Tap a marker to seek directly to that caption; markers refresh with the existing timeline when timing or text changes. The map is a local timing aid and does not represent video frames or render subtitles.

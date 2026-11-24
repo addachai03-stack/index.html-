@@ -1,5 +1,5 @@
 const assert=require("node:assert/strict");
-const {timecode,buildSrt,previewCue}=require("../caption-srt.js");
+const {timecode,buildSrt,previewCue,timelineSegments}=require("../caption-srt.js");
 assert.equal(timecode(0),"00:00:00,000");
 assert.equal(timecode(61.234),"00:01:01,234");
 assert.equal(timecode(3600),"01:00:00,000");
@@ -16,3 +16,7 @@ assert.equal(previewCue([{start:1,end:2,text:"A"},{start:4,end:6,text:"B"}],4).t
 assert.equal(previewCue([{start:1,end:2,text:"A"},{start:4,end:6,text:"B"}],3).next,4);
 assert.equal(previewCue([{start:1,end:2,text:"A"},{start:4,end:6,text:"B"}],6).index,-1);
 console.log("PASS caption scrub seeking: cue starts, gaps and end boundary");
+
+const markerRows=timelineSegments([{start:5,end:7,text:"later"},{start:0,end:2,text:"first"},{start:-1,end:1,text:"invalid"},{start:3,end:3,text:"zero"},{start:1,end:4,text:"overlap"}]);
+assert.deepEqual(markerRows.map(c=>[c.start,c.end,c.text]),[[0,2,"first"],[1,4,"overlap"],[5,7,"later"]]);
+console.log("PASS caption map: sorted cue markers, valid bounds and text filtering");
