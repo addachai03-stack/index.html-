@@ -11,3 +11,8 @@ assert.deepEqual(previewCue([{start:0,end:2,text:"First"},{start:2,end:4,text:"S
 assert.equal(previewCue([{start:0,end:2,text:"First"}],2).text,"");
 assert.equal(previewCue([{start:5,end:7,text:"Later"}],1).next,5);
 console.log("PASS caption timeline preview: active cue boundaries, gaps and upcoming cue");
+
+assert.equal(previewCue([{start:1,end:2,text:"A"},{start:4,end:6,text:"B"}],4).text,"B");
+assert.equal(previewCue([{start:1,end:2,text:"A"},{start:4,end:6,text:"B"}],3).next,4);
+assert.equal(previewCue([{start:1,end:2,text:"A"},{start:4,end:6,text:"B"}],6).index,-1);
+console.log("PASS caption scrub seeking: cue starts, gaps and end boundary");

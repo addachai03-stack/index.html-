@@ -1,4 +1,10 @@
 # CutNova — Premium URL-to-Shorts Studio\n
+## V5.7 — Caption timeline scrubbing
+
+The caption timeline now includes a touch-friendly seek slider plus previous/next-caption controls. Users can jump to exact caption starts, inspect silent gaps, and resume the timer preview from the selected time. The seek range derives from the last caption end time. This remains a local text timing aid, not video synchronization or rendering.
+
+Tests: `node tests/test_caption_srt.cjs` covers seek target cue starts, gaps, and the final boundary.
+
 ## V5.6 — Private caption timeline preview
 
 The local timed subtitle tool now offers a play/stop preview that advances a timer and displays the caption active at each timestamp. It validates the same cue set before starting, handles gaps and cue boundaries, and stops at the final end time. This is a text-only timing preview—not video playback, waveform sync, transcription or a rendered/burned-in caption track. It remains local and resets when captions are edited.
