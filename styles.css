@@ -374,3 +374,7 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 
 .srt-preview-status{margin:10px 0;padding:12px;border:1px solid #4b5a38;border-radius:5px;background:#171c14;color:#d8f6a4;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 #srt-caption-builder #srt-caption-add,#srt-caption-builder #srt-caption-export,#srt-caption-builder .srt-caption-row{margin-bottom:8px}
+
+.srt-caption-scrubber{display:block;width:100%;margin:13px 0 5px;accent-color:var(--lime);min-height:28px;touch-action:pan-x}
+.srt-preview-seek-label{font-size:11px;color:#c8dca6;margin:4px 0 12px;font-variant-numeric:tabular-nums}
+.srt-preview-seek-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.srt-preview-seek-actions .btn{flex:1;min-height:44px;padding:10px;font-size:10px}
