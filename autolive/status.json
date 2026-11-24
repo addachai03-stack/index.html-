@@ -6,11 +6,10 @@
   "state": "NOT_CONFIGURED",
   "stream": null,
   "clips": [],
+  "moment_candidates": [],
   "clip_source": "official_public_existing_twitch_clips_only",
   "polling": "scheduled_not_realtime",
-  "note": "Configure one channel and private API credentials in GitHub Actions before checking status.",
+  "note": "Official metadata-based review priorities, not video or AI analysis. No stream recording, new clip generation, DMs, or uploads.",
   "last_live_at": null,
-  "restart_count": 0,
-  "moment_candidates": [],
-  "moment_source": "official_existing_twitch_clip_metadata_only"
+  "restart_count": 0
 }
