@@ -1,4 +1,10 @@
 # CutNova — Premium URL-to-Shorts Studio\n
+## V5.6 — Private caption timeline preview
+
+The local timed subtitle tool now offers a play/stop preview that advances a timer and displays the caption active at each timestamp. It validates the same cue set before starting, handles gaps and cue boundaries, and stops at the final end time. This is a text-only timing preview—not video playback, waveform sync, transcription or a rendered/burned-in caption track. It remains local and resets when captions are edited.
+
+Tests: `node tests/test_caption_srt.cjs` covers active cue, gap and boundary timing.
+
 ## V5.5 — Private local timed subtitle builder
 
 The local editor now includes a manual caption timeline helper. Enter up to 12 caption lines with start/end times (seconds) and export a standard UTF-8 SubRip (.srt) file. Lines are sorted by start time; invalid ranges, overlaps, empty captions and text over 500 characters are rejected. Generated subtitle data is held in the page and a temporary download Blob only; object URLs are revoked when edits occur or the page exits. No speech recognition, video upload, background processing or burned-in subtitle render is claimed. Import the SRT into a video editor that supports external subtitles, then preview the final export yourself.
