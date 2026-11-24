@@ -383,3 +383,6 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 .srt-caption-marker-rail{position:relative;height:28px;margin:0 0 6px;border-bottom:1px solid rgba(190,210,160,.28);background:linear-gradient(90deg,rgba(190,210,160,.08),rgba(190,210,160,.02));border-radius:6px;overflow:visible}
 .srt-caption-cue-marker{position:absolute;top:4px;transform:translateX(-50%);min-width:28px;height:22px;padding:0 5px;border:1px solid var(--lime);border-radius:6px;background:#20251b;color:var(--lime);font-size:10px;font-weight:700;cursor:pointer;touch-action:manipulation}
 .srt-caption-cue-marker:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* V5.9 active cue feedback */
+.srt-caption-cue-marker.is-active{background:var(--lime);color:#10120c;border-color:#f4ffd8;box-shadow:0 0 0 3px rgba(190,230,100,.18);font-weight:900}
